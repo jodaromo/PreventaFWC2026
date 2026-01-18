@@ -376,71 +376,69 @@ const MascotCard = ({
   const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 30%, rgba(255, 255, 255, 0) 70%)`;
 
   // ========== DEVICE ORIENTATION TILT (Mobile) ==========
+  const [orientationEnabled, setOrientationEnabled] = useState(false);
+
+  const handleOrientation = useRef((event) => {
+    // beta: front-to-back tilt (-180 to 180, 0 = flat)
+    // gamma: left-to-right tilt (-90 to 90, 0 = flat)
+    const { beta, gamma } = event;
+
+    if (beta === null || gamma === null) return;
+
+    // Normalize to -0.5 to 0.5 range
+    // Phone typically held at ~45-60 deg angle when viewing
+    const normalizedY = Math.max(-0.5, Math.min(0.5, (beta - 50) / 60));
+    const normalizedX = Math.max(-0.5, Math.min(0.5, gamma / 45));
+
+    mouseX.set(normalizedX);
+    mouseY.set(normalizedY);
+  }).current;
+
+  // Request permission on card tap (iOS requires user gesture)
+  const requestOrientationPermission = async () => {
+    if (orientationEnabled) return;
+
+    // iOS 13+ requires permission request from user gesture
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission === 'granted') {
+          setOrientationEnabled(true);
+          window.addEventListener('deviceorientation', handleOrientation);
+        }
+      } catch (err) {
+        console.log('Device orientation permission denied');
+      }
+    } else if (window.DeviceOrientationEvent) {
+      // Android and older iOS - just enable
+      setOrientationEnabled(true);
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+  };
+
+  // Cleanup orientation listener
+  useEffect(() => {
+    return () => {
+      if (orientationEnabled) {
+        window.removeEventListener('deviceorientation', handleOrientation);
+      }
+    };
+  }, [orientationEnabled, handleOrientation]);
+
+  // Auto-enable on Android (doesn't need permission)
   useEffect(() => {
     if (!isCenter) return;
 
-    let orientationPermissionGranted = false;
+    // Check if NOT iOS (doesn't have requestPermission)
+    const isIOS = typeof DeviceOrientationEvent !== 'undefined' &&
+                  typeof DeviceOrientationEvent.requestPermission === 'function';
 
-    const handleOrientation = (event) => {
-      if (!isCenter) return;
-
-      // beta: front-to-back tilt (-180 to 180, 0 = flat)
-      // gamma: left-to-right tilt (-90 to 90, 0 = flat)
-      const { beta, gamma } = event;
-
-      if (beta === null || gamma === null) return;
-
-      // Normalize to -0.5 to 0.5 range
-      // Phone held upright (beta ~90), tilting forward/back changes beta
-      // Tilting left/right changes gamma
-      const normalizedY = Math.max(-0.5, Math.min(0.5, (beta - 45) / 90)); // Assume phone held at ~45deg
-      const normalizedX = Math.max(-0.5, Math.min(0.5, gamma / 90));
-
-      mouseX.set(normalizedX);
-      mouseY.set(normalizedY);
-    };
-
-    const requestPermission = async () => {
-      // iOS 13+ requires permission request
-      if (typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
-        try {
-          const permission = await DeviceOrientationEvent.requestPermission();
-          if (permission === 'granted') {
-            orientationPermissionGranted = true;
-            window.addEventListener('deviceorientation', handleOrientation);
-          }
-        } catch (err) {
-          console.log('Device orientation permission denied');
-        }
-      } else {
-        // Non-iOS or older devices - just add listener
-        orientationPermissionGranted = true;
-        window.addEventListener('deviceorientation', handleOrientation);
-      }
-    };
-
-    // Check if device supports orientation
-    if (window.DeviceOrientationEvent) {
-      // For iOS, we need user interaction to request permission
-      // Add a one-time touch listener to request permission
-      const handleFirstTouch = () => {
-        requestPermission();
-        document.removeEventListener('touchstart', handleFirstTouch);
-      };
-
-      // Try to add listener directly (works on Android and older iOS)
+    if (!isIOS && window.DeviceOrientationEvent && !orientationEnabled) {
+      setOrientationEnabled(true);
       window.addEventListener('deviceorientation', handleOrientation);
-
-      // Also add touch listener for iOS permission request
-      document.addEventListener('touchstart', handleFirstTouch, { once: true });
-
-      return () => {
-        window.removeEventListener('deviceorientation', handleOrientation);
-        document.removeEventListener('touchstart', handleFirstTouch);
-      };
     }
-  }, [isCenter, mouseX, mouseY]);
+  }, [isCenter, orientationEnabled, handleOrientation]);
 
   const handleMouseMove = (e) => {
     if (!isCenter || !cardRef.current) return;
@@ -483,7 +481,15 @@ const MascotCard = ({
     >
       <motion.button
         ref={cardRef}
-        onClick={() => isCenter ? onSelect() : onTap()}
+        onClick={() => {
+          // Request orientation permission on tap (iOS needs user gesture)
+          if (isCenter) {
+            requestOrientationPermission();
+            onSelect();
+          } else {
+            onTap();
+          }
+        }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         className="w-full h-full focus:outline-none select-none"
