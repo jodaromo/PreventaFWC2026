@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useMotionTemplate, animate } from 'framer-motion';
 import { X, MapPin, ExternalLink } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { img } from '../utils/assets';
@@ -349,213 +349,298 @@ const MascotModal = ({ mascot, onClose, isDark }) => {
   );
 };
 
-// Individual Mascot Card with real-time drag tracking
+// Individual Mascot Card - Clean animated card with 3D tilt on hover
 const MascotCard = ({
   mascot,
-  isActive,
-  isLeft,
-  isRight,
-  isDragging,
-  dragX,
+  position, // -1 (left), 0 (center), 1 (right)
   isDark,
   onSelect,
+  onTap,
 }) => {
-  // Base positions for each card state
-  const baseX = isActive ? 0 : isLeft ? -70 : 70;
-  const baseScale = isActive ? 1 : 0.82;
-  const baseOpacity = isActive ? 1 : 0.6;
+  const cardRef = useRef(null);
+  const isCenter = position === 0;
 
-  // Transform drag position to card movement (cards follow finger with parallax effect)
-  // Active card moves 1:1, side cards move slightly less for depth
-  const dragInfluence = isActive ? 1 : 0.5;
-  const x = useTransform(dragX, (value) => baseX + value * dragInfluence);
+  // ========== COMET CARD 3D TILT EFFECT (Center card only) ==========
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
-  // Scale responds to drag - cards grow/shrink as they approach center
-  const scale = useTransform(dragX, [-150, 0, 150], [
-    isLeft ? 0.95 : isActive ? 0.88 : 0.75,
-    baseScale,
-    isRight ? 0.95 : isActive ? 0.88 : 0.75,
-  ]);
+  const mouseXSpring = useSpring(mouseX, { stiffness: 300, damping: 30 });
+  const mouseYSpring = useSpring(mouseY, { stiffness: 300, damping: 30 });
 
-  // Opacity shifts with drag
-  const opacity = useTransform(dragX, [-150, 0, 150], [
-    isLeft ? 0.9 : isActive ? 0.7 : 0.4,
-    baseOpacity,
-    isRight ? 0.9 : isActive ? 0.7 : 0.4,
-  ]);
+  const rotateDepth = 12;
+  const tiltRotateX = useTransform(mouseYSpring, [-0.5, 0.5], [`${rotateDepth}deg`, `-${rotateDepth}deg`]);
+  const tiltRotateY = useTransform(mouseXSpring, [-0.5, 0.5], [`-${rotateDepth}deg`, `${rotateDepth}deg`]);
 
-  // Slight rotation for more organic feel
-  const rotate = useTransform(dragX, [-200, 0, 200], [
-    isActive ? -3 : isLeft ? -5 : 0,
-    0,
-    isActive ? 3 : isRight ? 5 : 0,
-  ]);
+  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], [0, 100]);
+  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], [0, 100]);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 30%, rgba(255, 255, 255, 0) 70%)`;
+
+  const handleMouseMove = (e) => {
+    if (!isCenter || !cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  // Card positioning based on slot
+  const getCardStyle = () => {
+    if (position === 0) {
+      return { x: 0, scale: 1, opacity: 1, zIndex: 30, rotateY: 0 };
+    } else if (position === -1) {
+      return { x: -120, scale: 0.85, opacity: 0.7, zIndex: 20, rotateY: 15 };
+    } else if (position === 1) {
+      return { x: 120, scale: 0.85, opacity: 0.7, zIndex: 20, rotateY: -15 };
+    }
+    // Hidden cards
+    return { x: position < 0 ? -200 : 200, scale: 0.7, opacity: 0, zIndex: 10, rotateY: 0 };
+  };
+
+  const cardStyle = getCardStyle();
 
   return (
-    <motion.button
-      onClick={onSelect}
-      className="absolute w-[240px] sm:w-[280px] h-[340px] sm:h-[390px] focus:outline-none select-none"
-      style={{
-        x,
-        scale,
-        opacity,
-        rotate,
-        zIndex: isActive ? 30 : 10,
-      }}
-      animate={!isDragging ? {
-        x: baseX,
-        scale: baseScale,
-        opacity: baseOpacity,
-        rotate: 0,
-      } : undefined}
+    <motion.div
+      className="absolute w-[240px] sm:w-[280px] h-[340px] sm:h-[390px]"
+      style={{ perspective: '1000px' }}
+      animate={cardStyle}
       transition={{
         type: "spring",
-        stiffness: 300,
-        damping: 30,
-        mass: 0.8,
+        stiffness: 260,
+        damping: 26,
+        mass: 1,
       }}
     >
-      <div className={`relative rounded-3xl overflow-hidden h-full w-full shadow-xl
-        ${isActive ? 'shadow-2xl' : 'shadow-lg'}
-        ${isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-black/5'}
-      `}>
-        {/* Mascot Image */}
-        <img
-          src={img(mascot.image)}
-          alt={mascot.name}
-          className="w-full h-full object-cover pointer-events-none"
-          draggable={false}
-        />
+      <motion.button
+        ref={cardRef}
+        onClick={() => isCenter ? onSelect() : onTap()}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="w-full h-full focus:outline-none select-none"
+        style={{
+          rotateX: isCenter ? tiltRotateX : 0,
+          rotateY: isCenter ? tiltRotateY : 0,
+          transformStyle: 'preserve-3d',
+        }}
+        whileHover={isCenter ? { scale: 1.02 } : {}}
+        whileTap={{ scale: 0.98 }}
+      >
+        <div className={`relative rounded-3xl overflow-hidden h-full w-full
+          ${isCenter ? 'shadow-2xl' : 'shadow-lg'}
+          ${isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-black/5'}
+        `}>
+          <img
+            src={img(mascot.image)}
+            alt={mascot.name}
+            className="w-full h-full object-cover pointer-events-none"
+            draggable={false}
+          />
 
-        {/* Gradient overlay */}
-        <div className={`absolute inset-0 transition-opacity duration-200
-          ${isActive
-            ? 'bg-gradient-to-t from-black/80 via-black/20 to-transparent'
-            : 'bg-black/40'
+          <div className={`absolute inset-0 transition-opacity duration-200
+            ${isCenter
+              ? 'bg-gradient-to-t from-black/80 via-black/20 to-transparent'
+              : 'bg-black/40'
+            }
+          `} />
+
+          {/* Glare effect - center card only */}
+          {isCenter && (
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-10 rounded-3xl mix-blend-overlay"
+              style={{ background: glareBackground, opacity: 0.8 }}
+            />
+          )}
+
+          {/* Flag */}
+          <AnimatePresence>
+            {isCenter && (
+              <motion.div
+                className="absolute top-4 right-4 z-20"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <span className="text-3xl drop-shadow-lg">{mascot.flag}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Content */}
+          <AnimatePresence>
+            {isCenter && (
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 p-5 z-20"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 15 }}
+                transition={{ duration: 0.25 }}
+              >
+                <h3 className="text-2xl sm:text-3xl font-bold mb-1 text-white">{mascot.name}</h3>
+                <p className="text-white/80 text-sm font-medium">{mascot.animal}</p>
+                <p className="text-white/60 text-sm">{mascot.country} • {mascot.stadiums.length} estadios</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.button>
+    </motion.div>
+  );
+};
+
+// Fluid Carousel with swipe gestures
+const MascotCarousel = ({ mascots, currentIndex, setCurrentIndex, setActiveMascot, isDark }) => {
+  const containerRef = useRef(null);
+  const dragX = useMotionValue(0);
+  const dragXSmooth = useSpring(dragX, { stiffness: 300, damping: 30 });
+
+  // Card width for calculating drag distance
+  const CARD_WIDTH = 280;
+  const SWIPE_THRESHOLD = CARD_WIDTH * 0.25;
+  const VELOCITY_THRESHOLD = 300;
+
+  const paginate = (direction) => {
+    setCurrentIndex((prev) => {
+      const next = prev + direction;
+      if (next < 0) return mascots.length - 1;
+      if (next >= mascots.length) return 0;
+      return next;
+    });
+  };
+
+  // Calculate position for each card based on current index and drag
+  const getPosition = (index) => {
+    let diff = index - currentIndex;
+    // Handle wrapping for infinite loop feel
+    if (diff > mascots.length / 2) diff -= mascots.length;
+    if (diff < -mascots.length / 2) diff += mascots.length;
+    return diff;
+  };
+
+  return (
+    <div ref={containerRef} className="relative flex flex-col items-center">
+      {/* Carousel Track */}
+      <motion.div
+        className="relative w-[340px] sm:w-[400px] h-[380px] sm:h-[430px] flex items-center justify-center cursor-grab active:cursor-grabbing"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDrag={(e, info) => {
+          dragX.set(info.offset.x);
+        }}
+        onDragEnd={(e, info) => {
+          const { offset, velocity } = info;
+
+          // Determine direction based on velocity or offset
+          if (Math.abs(velocity.x) > VELOCITY_THRESHOLD) {
+            paginate(velocity.x > 0 ? -1 : 1);
+          } else if (Math.abs(offset.x) > SWIPE_THRESHOLD) {
+            paginate(offset.x > 0 ? -1 : 1);
           }
-        `} />
 
-        {/* Flag - top right (active only) */}
-        {isActive && (
-          <motion.div
-            className="absolute top-4 right-4"
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, type: "spring", stiffness: 400 }}
-          >
-            <span className="text-3xl drop-shadow-lg">{mascot.flag}</span>
-          </motion.div>
-        )}
+          // Reset drag position
+          dragX.set(0);
+        }}
+        style={{ touchAction: 'pan-y' }}
+      >
+        {mascots.map((mascot, index) => (
+          <MascotCard
+            key={mascot.id}
+            mascot={mascot}
+            position={getPosition(index)}
+            isDark={isDark}
+            onSelect={() => setActiveMascot(mascot)}
+            onTap={() => setCurrentIndex(index)}
+          />
+        ))}
+      </motion.div>
 
-        {/* Content at bottom (active only) */}
-        {isActive && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 p-5"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05, duration: 0.2 }}
-          >
-            <h3 className="text-2xl sm:text-3xl font-bold mb-1 text-white">{mascot.name}</h3>
-            <p className="text-white/80 text-sm font-medium">{mascot.animal}</p>
-            <p className="text-white/60 text-sm">{mascot.country} • {mascot.stadiums.length} estadios</p>
-          </motion.div>
-        )}
+      {/* Minimalist Bottom Navigation: Arrows + Dots */}
+      <div className="flex items-center gap-4 mt-6">
+        {/* Left Arrow */}
+        <motion.button
+          onClick={() => paginate(-1)}
+          className={`p-1.5 transition-colors ${isDark ? 'text-white/30 hover:text-white/70' : 'text-warm-brown/30 hover:text-warm-brown/70'}`}
+          whileTap={{ scale: 0.9 }}
+          aria-label="Previous mascot"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </motion.button>
+
+        {/* Dots */}
+        <div className="flex gap-1.5">
+          {mascots.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`rounded-full transition-all duration-300
+                ${index === currentIndex
+                  ? 'bg-maple w-4 h-1.5'
+                  : `w-1.5 h-1.5 ${isDark ? 'bg-white/25 hover:bg-white/40' : 'bg-warm-brown/25 hover:bg-warm-brown/40'}`
+                }
+              `}
+              aria-label={`Go to mascot ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Right Arrow */}
+        <motion.button
+          onClick={() => paginate(1)}
+          className={`p-1.5 transition-colors ${isDark ? 'text-white/30 hover:text-white/70' : 'text-warm-brown/30 hover:text-warm-brown/70'}`}
+          whileTap={{ scale: 0.9 }}
+          aria-label="Next mascot"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </motion.button>
       </div>
-    </motion.button>
+    </div>
   );
 };
 
 const MascotSection = () => {
   const [activeMascot, setActiveMascot] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const { isDark } = useTheme();
   const carouselRef = useRef(null);
 
-  // Motion value for tracking drag position in real-time
-  const dragX = useMotionValue(0);
-
-  // Much lower thresholds for native feel
-  const DRAG_THRESHOLD = 20; // Reduced from 50 - triggers earlier
-  const VELOCITY_THRESHOLD = 200; // Reduced from 500 - flicks register easier
-
-  const nextMascot = () => {
-    setCurrentIndex((prev) => (prev + 1) % mascots.length);
-  };
-
-  const prevMascot = () => {
-    setCurrentIndex((prev) => (prev - 1 + mascots.length) % mascots.length);
-  };
-
-  // Handle scroll wheel - must use useEffect to add non-passive listener
+  // Handle scroll wheel
   const wheelTimeout = useRef(null);
+
+  const paginate = (direction) => {
+    setCurrentIndex((prev) => {
+      const next = prev + direction;
+      if (next < 0) return mascots.length - 1;
+      if (next >= mascots.length) return 0;
+      return next;
+    });
+  };
 
   useEffect(() => {
     const carousel = carouselRef.current;
     if (!carousel) return;
 
     const handleWheel = (e) => {
-      // Prevent page scroll when wheeling on carousel
       e.preventDefault();
-      e.stopPropagation();
-
       if (wheelTimeout.current) return;
 
-      if (e.deltaY > 0) {
-        nextMascot();
-      } else {
-        prevMascot();
-      }
+      paginate(e.deltaY > 0 ? 1 : -1);
 
       wheelTimeout.current = setTimeout(() => {
         wheelTimeout.current = null;
-      }, 250); // Slightly faster debounce
+      }, 300);
     };
 
-    // Must use { passive: false } to allow preventDefault
     carousel.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      carousel.removeEventListener('wheel', handleWheel);
-    };
+    return () => carousel.removeEventListener('wheel', handleWheel);
   }, []);
-
-  // Handle drag start
-  const handleDragStart = () => {
-    setIsDragging(true);
-  };
-
-  // Handle swipe/drag gestures with velocity support
-  const handleDragEnd = (event, info) => {
-    setIsDragging(false);
-
-    const offset = info.offset.x;
-    const velocity = info.velocity.x;
-
-    // Quick flick detection (velocity-based)
-    if (Math.abs(velocity) > VELOCITY_THRESHOLD) {
-      if (velocity < 0) {
-        nextMascot();
-      } else {
-        prevMascot();
-      }
-    }
-    // Slow drag detection (distance-based)
-    else if (Math.abs(offset) > DRAG_THRESHOLD) {
-      if (offset < 0) {
-        nextMascot();
-      } else {
-        prevMascot();
-      }
-    }
-
-    // Animate drag position back to 0 with spring
-    animate(dragX, 0, {
-      type: "spring",
-      stiffness: 400,
-      damping: 30,
-    });
-  };
 
   return (
     <>
@@ -565,16 +650,14 @@ const MascotSection = () => {
           : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
         }
       `}>
-        {/* Soccer Ball Background Images - Switch based on theme */}
+        {/* Soccer Ball Background Images */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Light mode - Light leather ball */}
           <div
             className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
               ${isDark ? 'opacity-0' : 'opacity-[0.15]'}
             `}
             style={{ backgroundImage: `url('${img('unnamed-3.jpg')}')` }}
           />
-          {/* Dark mode - Dark dramatic ball */}
           <div
             className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
               ${isDark ? 'opacity-[0.25]' : 'opacity-0'}
@@ -585,80 +668,22 @@ const MascotSection = () => {
 
         <div className="relative max-w-6xl mx-auto w-full">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left Side - Stacked Carousel */}
+            {/* Left Side - Carousel */}
             <motion.div
+              ref={carouselRef}
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
               className="order-1"
             >
-              <div
-                ref={carouselRef}
-                className="relative flex flex-col items-center"
-              >
-                {/* Stacked cards container with swipe support */}
-                <motion.div
-                  className="relative w-[340px] sm:w-[400px] h-[380px] sm:h-[430px] flex items-center justify-center cursor-grab active:cursor-grabbing"
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.5} // Increased for more responsive feel
-                  dragMomentum={false} // We handle momentum ourselves
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  style={{ x: dragX, touchAction: 'pan-y' }}
-                  whileTap={{ cursor: 'grabbing' }}
-                >
-                  {mascots.map((mascot, index) => {
-                    // Calculate circular offset (-1, 0, 1) wrapping around
-                    let offset = index - currentIndex;
-                    if (offset > 1) offset = offset - 3;
-                    if (offset < -1) offset = offset + 3;
-
-                    const isActive = offset === 0;
-                    const isLeft = offset === -1;
-                    const isRight = offset === 1;
-
-                    return (
-                      <MascotCard
-                        key={mascot.id}
-                        mascot={mascot}
-                        isActive={isActive}
-                        isLeft={isLeft}
-                        isRight={isRight}
-                        isDragging={isDragging}
-                        dragX={dragX}
-                        isDark={isDark}
-                        onSelect={() => {
-                          if (!isDragging) {
-                            if (isActive) {
-                              setActiveMascot(mascot);
-                            } else {
-                              setCurrentIndex(index);
-                            }
-                          }
-                        }}
-                      />
-                    );
-                  })}
-                </motion.div>
-
-                {/* Dots indicator */}
-                <div className="flex gap-2 mt-4">
-                  {mascots.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentIndex(index)}
-                      className={`h-1.5 rounded-full transition-all duration-300
-                        ${index === currentIndex
-                          ? 'bg-maple w-5'
-                          : `w-1.5 ${isDark ? 'bg-white/30 hover:bg-white/50' : 'bg-warm-brown/30 hover:bg-warm-brown/50'}`
-                        }
-                      `}
-                    />
-                  ))}
-                </div>
-              </div>
+              <MascotCarousel
+                mascots={mascots}
+                currentIndex={currentIndex}
+                setCurrentIndex={setCurrentIndex}
+                setActiveMascot={setActiveMascot}
+                isDark={isDark}
+              />
             </motion.div>
 
             {/* Right Side - Text Content - FIFA Inspired Design */}
