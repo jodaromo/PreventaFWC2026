@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { products } from '../data/products';
+import { getAssetPath } from '../utils/assets';
 
 // Google Apps Script Web App URL
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwcMXQ5VFuqMB9iqV2BqlUUmt0Xx8lMOZcJgZ-gItI0RgrY3ka8ECmMMqcfRUKvlxEqg/exec';
@@ -481,7 +482,7 @@ const ReserveSection = ({ cart = {} }) => {
                             >
                               <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-warm-cream-light">
                                 <img
-                                  src={product.image}
+                                  src={getAssetPath(product.image)}
                                   alt={product.name}
                                   className="w-full h-full object-contain"
                                 />

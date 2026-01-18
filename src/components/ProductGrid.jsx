@@ -3,6 +3,7 @@ import { Gift } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { products } from '../data/products';
 import { useTheme } from '../context/ThemeContext';
+import { img } from '../utils/assets';
 
 const ProductGrid = ({ cart, onQuantityChange }) => {
   const { isDark } = useTheme();
@@ -23,14 +24,14 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
           className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
             ${isDark ? 'opacity-0' : 'opacity-[0.15]'}
           `}
-          style={{ backgroundImage: "url('/images/unnamed-4.jpg')" }}
+          style={{ backgroundImage: `url('${img('unnamed-4.jpg')}')` }}
         />
         {/* Dark mode - Dark stickers */}
         <div
           className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
             ${isDark ? 'opacity-[0.25]' : 'opacity-0'}
           `}
-          style={{ backgroundImage: "url('/images/unnamed-7.jpg')" }}
+          style={{ backgroundImage: `url('${img('unnamed-7.jpg')}')` }}
         />
       </div>
 
@@ -93,7 +94,7 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
                   ${isDark ? 'bg-dark-surface' : 'bg-white'}
                 `}>
                   <img
-                    src="/images/Album_FWC_2026.png"
+                    src={img('Album_FWC_2026.png')}
                     alt="Álbum Pasta Blanda"
                     className="w-full h-full object-contain p-1"
                   />

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, ExternalLink } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { img } from '../utils/assets';
 
 // Mascot color mapping for dynamic text colors
 const mascotTextColors = {
@@ -16,7 +17,7 @@ const mascots = [
     id: 'maple',
     name: 'Maple',
     country: 'Canadá',
-    image: '/images/Maple.avif',
+    image: 'Maple.avif',
     flag: '🇨🇦',
     animal: 'Alce',
     color: 'from-red-500 to-red-600',
@@ -46,7 +47,7 @@ const mascots = [
     id: 'zayu',
     name: 'Zayu',
     country: 'México',
-    image: '/images/Zayu.avif',
+    image: 'Zayu.avif',
     flag: '🇲🇽',
     animal: 'Jaguar',
     color: 'from-emerald-500 to-green-600',
@@ -83,7 +84,7 @@ const mascots = [
     id: 'clutch',
     name: 'Clutch',
     country: 'Estados Unidos',
-    image: '/images/Clutch.avif',
+    image: 'Clutch.avif',
     flag: '🇺🇸',
     animal: 'Águila Calva',
     color: 'from-blue-500 to-blue-600',
@@ -205,7 +206,7 @@ const MascotModal = ({ mascot, onClose, isDark }) => {
           <div className="relative h-56 sm:h-64 overflow-hidden">
             <div
               className="absolute inset-0 bg-cover bg-center scale-105"
-              style={{ backgroundImage: `url(${mascot.image})` }}
+              style={{ backgroundImage: `url(${img(mascot.image)})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
@@ -361,14 +362,14 @@ const MascotSection = () => {
             className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
               ${isDark ? 'opacity-0' : 'opacity-[0.15]'}
             `}
-            style={{ backgroundImage: "url('/images/unnamed-3.jpg')" }}
+            style={{ backgroundImage: `url('${img('unnamed-3.jpg')}')` }}
           />
           {/* Dark mode - Dark dramatic ball */}
           <div
             className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
               ${isDark ? 'opacity-[0.25]' : 'opacity-0'}
             `}
-            style={{ backgroundImage: "url('/images/unnamed-6.jpg')" }}
+            style={{ backgroundImage: `url('${img('unnamed-6.jpg')}')` }}
           />
         </div>
 
@@ -424,7 +425,7 @@ const MascotSection = () => {
                         `}>
                           {/* Mascot Image */}
                           <img
-                            src={mascot.image}
+                            src={img(mascot.image)}
                             alt={mascot.name}
                             className="w-full h-full object-cover"
                           />

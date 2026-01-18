@@ -3,6 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { stats } from '../data/products';
 import { useTheme } from '../context/ThemeContext';
+import { img } from '../utils/assets';
 
 // Pastel colors for each stat
 const statColors = [
@@ -110,7 +111,7 @@ const StatsBar = () => {
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/unnamed-8.jpg')" }}
+        style={{ backgroundImage: `url('${img('unnamed-8.jpg')}')` }}
       />
 
       {/* Overlay for readability - adjusts based on theme */}

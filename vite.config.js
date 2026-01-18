@@ -5,6 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   // For custom domain: use '/'
-  // For GitHub Pages without custom domain: use '/fifa2026-landing/'
-  base: '/fifa2026-landing/',
+  // For GitHub Pages without custom domain: use '/CollectPoint/'
+  base: '/CollectPoint/',
 })

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { img } from '../utils/assets';
 
 // Sun Icon for Light Mode
 const SunIcon = () => (
@@ -91,7 +92,7 @@ const Header = () => {
           }`}
         >
           <img
-            src="/images/COLLECTPOINTLOGO.jpg"
+            src={img('COLLECTPOINTLOGO.jpg')}
             alt="Collect Point"
             className="w-10 h-10 object-cover rounded-full flex-shrink-0"
           />

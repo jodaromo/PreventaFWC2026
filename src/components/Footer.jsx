@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { img } from '../utils/assets';
 
 const Footer = () => {
   const { isDark } = useTheme();
@@ -26,13 +27,13 @@ const Footer = () => {
             <div className="flex flex-col items-center md:items-start">
               <div className="flex items-center gap-4 mb-4">
                 <img
-                  src="/images/panini-logo.svg"
+                  src={img('panini-logo.svg')}
                   alt="Panini"
                   className="h-8 rounded"
                 />
                 <div className={`w-px h-8 ${isDark ? 'bg-dark-border' : 'bg-warm-gray/30'}`} />
                 <img
-                  src="/images/2026-FIFA-World-Cup-logo.png"
+                  src={img('2026-FIFA-World-Cup-logo.png')}
                   alt="FIFA World Cup 2026"
                   className="h-12"
                 />

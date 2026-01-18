@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Minus, Plus } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { getAssetPath } from '../utils/assets';
 
 const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
   const { isDark } = useTheme();
@@ -57,7 +58,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
       `}>
         <div className="relative transition-transform duration-300 ease-out group-hover:scale-105">
           <img
-            src={product.image}
+            src={getAssetPath(product.image)}
             alt={product.name}
             className="h-28 sm:h-36 w-auto object-contain drop-shadow-lg"
           />
