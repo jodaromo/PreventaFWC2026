@@ -271,18 +271,19 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                     e.stopPropagation();
                     setShowExtraStickersModal(true);
                   }}
-                  whileHover={{ scale: 1.1, rotate: -3 }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="relative flex flex-col items-center cursor-pointer ml-2"
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg cursor-pointer
+                    ${isDark
+                      ? 'bg-maple/20 hover:bg-maple/30'
+                      : 'bg-maple/10 hover:bg-maple/20'
+                    }
+                  `}
                 >
-                  <img
-                    src={img('card-extra-blue.jpg')}
-                    alt="Extra Sticker"
-                    className="w-auto h-10 object-contain drop-shadow-lg -rotate-6 -mb-1 pointer-events-none"
-                  />
-                  <span className={`text-[9px] font-medium tracking-wide transition-colors
-                    ${isDark ? 'text-gray-400' : 'text-warm-gray'}
+                  <Sparkles className="w-3.5 h-3.5 text-maple" />
+                  <span className={`text-[10px] font-semibold
+                    ${isDark ? 'text-gray-200' : 'text-warm-brown'}
                   `}>
                     Extra Stickers
                   </span>
