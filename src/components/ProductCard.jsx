@@ -189,6 +189,13 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
           }
         `}>
+          {/* Reference disclaimer - top left */}
+          <span className={`absolute top-3 left-3 text-[9px] z-10 transition-colors duration-300
+            ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
+          `}>
+            *Imagen de referencia
+          </span>
+
           <div className="relative transition-transform duration-300 ease-out group-hover:scale-105">
             <img
               src={getAssetPath(product.image)}
@@ -325,7 +332,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           </p>
 
           {/* Specs pills */}
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-1.5">
             {product.specs.map((spec, i) => (
               <span
                 key={i}
@@ -340,13 +347,6 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
               </span>
             ))}
           </div>
-
-          {/* Reference disclaimer - bottom left */}
-          <span className={`text-[9px] transition-colors duration-300
-            ${isDark ? 'text-gray-600' : 'text-warm-gray/50'}
-          `}>
-            *Imagen de referencia
-          </span>
         </div>
       </motion.div>
 
