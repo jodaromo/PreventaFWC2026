@@ -270,17 +270,17 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
         {/* Product Info - Tighter layout with layered components */}
         <div className="relative p-4 pt-3 flex flex-col">
           {/* Title + Price block - tightly coupled */}
-          <div className="mb-2">
-            <h3 className={`text-lg font-bold leading-tight transition-colors duration-300
+          <div className="mb-3">
+            <h3 className={`text-xl font-bold leading-tight transition-colors duration-300
               ${isDark ? 'text-white' : 'text-warm-brown'}
             `}>
               {product.name}
             </h3>
 
-            {/* Price - big and prominent, right after title */}
-            <div className="flex items-baseline gap-2 mt-1">
-              <p className={`text-2xl font-bold transition-colors duration-300
-                ${isDark ? 'text-white' : 'text-warm-brown'}
+            {/* Price - secondary to title */}
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <p className={`text-lg font-semibold transition-colors duration-300
+                ${isDark ? 'text-gray-200' : 'text-warm-brown/80'}
               `}>
                 {product.priceFormatted}
               </p>
