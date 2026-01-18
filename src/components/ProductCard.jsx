@@ -147,7 +147,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.5, delay: index * 0.1 }}
-        className={`relative rounded-2xl overflow-hidden border-2 flex flex-col transition-colors duration-300
+        className={`relative rounded-2xl overflow-hidden border-2 transition-colors duration-300
           ${isDark
             ? isSelected
               ? 'bg-dark-bg-card border-maple shadow-xl shadow-maple/20'
@@ -267,30 +267,64 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           </div>
         </div>
 
-        {/* Product Info */}
-        <div className="flex-1 p-5 sm:p-6 flex flex-col">
-          {/* Title */}
-          <h3 className={`text-lg sm:text-xl font-bold mb-2 transition-colors duration-300
-            ${isDark ? 'text-white' : 'text-warm-brown'}
-          `}>
-            {product.name}
-          </h3>
+        {/* Product Info - Tighter layout with layered components */}
+        <div className="relative p-4 pt-3 flex flex-col">
+          {/* Title + Price block - tightly coupled */}
+          <div className="mb-2">
+            <h3 className={`text-lg font-bold leading-tight transition-colors duration-300
+              ${isDark ? 'text-white' : 'text-warm-brown'}
+            `}>
+              {product.name}
+            </h3>
 
-          {/* Description */}
-          <p className={`text-sm mb-4 leading-relaxed transition-colors duration-300
-            ${isDark ? 'text-gray-300' : 'text-warm-gray'}
+            {/* Price - big and prominent, right after title */}
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className={`text-2xl font-bold transition-colors duration-300
+                ${isDark ? 'text-white' : 'text-warm-brown'}
+              `}>
+                {product.priceFormatted}
+              </p>
+              <span className={`text-[8px] transition-colors duration-300
+                ${isDark ? 'text-gray-500' : 'text-warm-gray/50'}
+              `}>
+                *Ref.
+              </span>
+            </div>
+
+            {/* Price disclaimer marquee - inline with price */}
+            {hasPriceDisclaimer && (
+              <div className={`mt-1 overflow-hidden rounded ${
+                isDark ? 'bg-maple/20' : 'bg-maple/10'
+              }`}>
+                <div className="flex items-center gap-3 py-0.5 animate-marquee whitespace-nowrap">
+                  <span className={`text-[8px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                    ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                  </span>
+                  <span className="text-maple text-[8px]">•</span>
+                  <span className={`text-[8px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                    ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                  </span>
+                  <span className="text-maple text-[8px]">•</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Description - compact */}
+          <p className={`text-xs mb-2 leading-snug transition-colors duration-300
+            ${isDark ? 'text-gray-400' : 'text-warm-gray'}
           `}>
             {product.description}
           </p>
 
-          {/* Specs */}
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          {/* Specs - compact pills */}
+          <div className="flex flex-wrap gap-1">
             {product.specs.map((spec, i) => (
               <span
                 key={i}
-                className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors duration-300
+                className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-colors duration-300
                   ${isDark
-                    ? 'bg-dark-surface text-gray-300'
+                    ? 'bg-dark-surface text-gray-400'
                     : 'bg-warm-cream text-warm-gray'
                   }
                 `}
@@ -299,43 +333,6 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
               </span>
             ))}
           </div>
-
-          {/* Spacer to push price and controls to bottom */}
-          <div className="flex-1" />
-
-          {/* Price row */}
-          <div className="flex items-end justify-between gap-2">
-            <p className={`text-xl font-bold transition-colors duration-300
-              ${isDark ? 'text-white' : 'text-warm-brown'}
-            `}>
-              {product.priceFormatted}
-            </p>
-
-            {/* Reference image disclaimer */}
-            <p className={`text-[9px] leading-tight text-right max-w-[60px] transition-colors duration-300
-              ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
-            `}>
-              *Imagen de referencia
-            </p>
-          </div>
-
-          {/* Price disclaimer marquee for unconfirmed prices */}
-          {hasPriceDisclaimer && (
-            <div className={`mt-1.5 overflow-hidden rounded ${
-              isDark ? 'bg-maple/20' : 'bg-maple/10'
-            }`}>
-              <div className="flex items-center gap-3 py-1 animate-marquee whitespace-nowrap">
-                <span className={`text-[9px] font-medium ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>
-                  ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
-                </span>
-                <span className="text-maple text-[9px]">•</span>
-                <span className={`text-[9px] font-medium ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>
-                  ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
-                </span>
-                <span className="text-maple text-[9px]">•</span>
-              </div>
-            </div>
-          )}
         </div>
       </motion.div>
 
