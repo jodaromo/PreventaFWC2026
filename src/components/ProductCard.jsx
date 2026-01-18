@@ -291,20 +291,22 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
               </span>
             </div>
 
-            {/* Price disclaimer marquee - inline with price */}
+            {/* Price disclaimer marquee - glassmorphism style */}
             {hasPriceDisclaimer && (
-              <div className={`mt-1 overflow-hidden rounded ${
-                isDark ? 'bg-maple/20' : 'bg-maple/10'
+              <div className={`mt-1 overflow-hidden rounded backdrop-blur-sm border ${
+                isDark
+                  ? 'bg-white/5 border-white/10'
+                  : 'bg-black/5 border-black/10'
               }`}>
                 <div className="flex items-center gap-3 py-0.5 animate-marquee whitespace-nowrap">
                   <span className={`text-[8px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
                     ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
                   </span>
-                  <span className="text-maple text-[8px]">•</span>
+                  <span className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
                   <span className={`text-[8px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
                     ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
                   </span>
-                  <span className="text-maple text-[8px]">•</span>
+                  <span className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
                 </div>
               </div>
             )}
