@@ -324,29 +324,29 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             {product.description}
           </p>
 
-          {/* Specs pills + Reference disclaimer */}
-          <div className="flex items-end justify-between gap-2">
-            <div className="flex flex-wrap gap-1.5">
-              {product.specs.map((spec, i) => (
-                <span
-                  key={i}
-                  className={`px-2 py-0.5 text-[11px] font-medium rounded-full transition-colors duration-300
-                    ${isDark
-                      ? 'bg-dark-surface text-gray-400'
-                      : 'bg-warm-cream text-warm-gray'
-                    }
-                  `}
-                >
-                  {spec}
-                </span>
-              ))}
-            </div>
-            <span className={`text-[9px] whitespace-nowrap transition-colors duration-300
-              ${isDark ? 'text-gray-600' : 'text-warm-gray/50'}
-            `}>
-              *Imagen de referencia
-            </span>
+          {/* Specs pills */}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {product.specs.map((spec, i) => (
+              <span
+                key={i}
+                className={`px-2 py-0.5 text-[11px] font-medium rounded-full transition-colors duration-300
+                  ${isDark
+                    ? 'bg-dark-surface text-gray-400'
+                    : 'bg-warm-cream text-warm-gray'
+                  }
+                `}
+              >
+                {spec}
+              </span>
+            ))}
           </div>
+
+          {/* Reference disclaimer - bottom left */}
+          <span className={`text-[9px] transition-colors duration-300
+            ${isDark ? 'text-gray-600' : 'text-warm-gray/50'}
+          `}>
+            *Imagen de referencia
+          </span>
         </div>
       </motion.div>
 
