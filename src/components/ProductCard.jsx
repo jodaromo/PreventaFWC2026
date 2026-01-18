@@ -182,6 +182,13 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           </div>
         )}
 
+        {/* Reference disclaimer - absolute top left of card */}
+        <span className={`absolute top-2 left-3 text-[9px] z-20 transition-colors duration-300
+          ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
+        `}>
+          *Imagen de referencia
+        </span>
+
         {/* Product Image */}
         <div className={`relative h-52 sm:h-60 flex items-center justify-center p-5 overflow-hidden group transition-colors duration-300
           ${isDark
@@ -189,13 +196,6 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
           }
         `}>
-          {/* Reference disclaimer - top left */}
-          <span className={`absolute top-3 left-3 text-[9px] z-10 transition-colors duration-300
-            ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
-          `}>
-            *Imagen de referencia
-          </span>
-
           <div className="relative transition-transform duration-300 ease-out group-hover:scale-105">
             <img
               src={getAssetPath(product.image)}
