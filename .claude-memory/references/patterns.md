@@ -41,6 +41,79 @@ const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% $
 ```
 **When to use**: Premium interactive cards, hero elements, mascot cards
 
+### 0.5. Real-Time Drag Carousel (NEW)
+```jsx
+// Carousel component - pass dragProgress motion value to cards
+const MascotCarousel = ({ items }) => {
+  const dragProgress = useMotionValue(0);
+  const CARD_WIDTH = 280;
+
+  return (
+    <motion.div
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.15}
+      onDrag={(e, info) => {
+        // Normalize drag: negative offset = positive progress (showing next)
+        const progress = -info.offset.x / CARD_WIDTH;
+        dragProgress.set(progress);
+      }}
+      onDragEnd={(e, info) => {
+        // Paginate based on velocity or offset
+        if (Math.abs(info.velocity.x) > 250) {
+          paginate(info.velocity.x > 0 ? -1 : 1);
+        } else if (Math.abs(info.offset.x) > CARD_WIDTH * 0.3) {
+          paginate(info.offset.x > 0 ? -1 : 1);
+        }
+        // Animate back to 0 with spring
+        animate(dragProgress, 0, { type: "spring", stiffness: 300, damping: 30 });
+      }}
+    >
+      {items.map((item, i) => (
+        <CarouselCard position={getPosition(i)} dragProgress={dragProgress} />
+      ))}
+    </motion.div>
+  );
+};
+
+// Card component - transforms based on drag progress
+const CarouselCard = ({ position, dragProgress }) => {
+  const CARD_SPACING = 120;
+
+  // Real-time position based on drag
+  const x = useTransform(dragProgress, (drag) => {
+    const effectivePos = position - drag;
+    return effectivePos * CARD_SPACING;
+  });
+
+  const scale = useTransform(dragProgress, (drag) => {
+    const dist = Math.abs(position - drag);
+    return dist >= 1.5 ? 0.7 : 1.0 - Math.min(dist, 1) * 0.15;
+  });
+
+  const opacity = useTransform(dragProgress, (drag) => {
+    const dist = Math.abs(position - drag);
+    return dist >= 1.5 ? 0 : 1.0 - Math.min(dist, 1) * 0.3;
+  });
+
+  const rotateY = useTransform(dragProgress, (drag) => {
+    const effectivePos = position - drag;
+    const t = Math.min(Math.abs(effectivePos), 1);
+    return effectivePos < 0 ? t * 15 : -t * 15;
+  });
+
+  return (
+    <motion.div style={{ x, scale, opacity }}>
+      <motion.div style={{ rotateY, transformStyle: 'preserve-3d' }}>
+        {/* content */}
+      </motion.div>
+    </motion.div>
+  );
+};
+```
+**Key insight**: Cards use `useTransform` on a shared `dragProgress` motion value, creating fluid real-time animations during drag (not just on release)
+**When to use**: Any swipeable carousel where cards should visually respond during drag gesture
+
 ### 1. Scroll-Triggered Reveal
 ```jsx
 <motion.div
