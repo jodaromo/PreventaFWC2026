@@ -111,7 +111,7 @@ const StatsBar = () => {
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url('${img('unnamed-8.jpg')}')` }}
+        style={{ backgroundImage: `url('${img('bg-collector-hands.jpg')}')` }}
       />
 
       {/* Overlay for readability - adjusts based on theme */}

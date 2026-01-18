@@ -9,9 +9,10 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
   const { isDark } = useTheme();
   const totalItems = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
 
-  // Check if user qualifies for free gift (2+ Caja Display = product ID 1)
+  // Check if user qualifies for free gift (1 free Pasta Blanda per every 2 Cajas)
   const boxQuantity = cart[1] || 0;
-  const qualifiesForGift = boxQuantity >= 2;
+  const freeAlbumCount = Math.floor(boxQuantity / 2);
+  const qualifiesForGift = freeAlbumCount > 0;
 
   return (
     <section id="products" className={`relative pt-8 sm:pt-10 pb-16 sm:pb-20 px-6 transition-colors duration-300
@@ -21,17 +22,17 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Light mode - Light stickers */}
         <div
-          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
+          className={`absolute inset-0 bg-cover bg-fixed bg-center bg-no-repeat transition-opacity duration-700
             ${isDark ? 'opacity-0' : 'opacity-[0.15]'}
           `}
-          style={{ backgroundImage: `url('${img('unnamed-4.jpg')}')` }}
+          style={{ backgroundImage: `url('${img('bg-vintage-stickers-light.jpg')}')` }}
         />
         {/* Dark mode - Dark stickers */}
         <div
-          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
+          className={`absolute inset-0 bg-cover bg-fixed bg-center bg-no-repeat transition-opacity duration-700
             ${isDark ? 'opacity-[0.25]' : 'opacity-0'}
           `}
-          style={{ backgroundImage: `url('${img('unnamed-7.jpg')}')` }}
+          style={{ backgroundImage: `url('${img('bg-stickers-dark.jpg')}')` }}
         />
       </div>
 
@@ -84,21 +85,48 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
                     </span>
                   </div>
                   <p className={`font-bold text-lg ${isDark ? 'text-white' : 'text-emerald-800'}`}>
-                    +1 Álbum Pasta Blanda
+                    +{freeAlbumCount} Álbum{freeAlbumCount > 1 ? 'es' : ''} Pasta Blanda
                   </p>
                   <p className={`text-sm ${isDark ? 'text-emerald-300/70' : 'text-emerald-600/80'}`}>
-                    Por llevar {boxQuantity} Cajas Display
+                    Por llevar {boxQuantity} Cajas Display (1 gratis cada 2 cajas)
                   </p>
                 </div>
                 <div className={`hidden sm:block w-16 h-16 rounded-lg overflow-hidden flex-shrink-0
                   ${isDark ? 'bg-dark-surface' : 'bg-white'}
                 `}>
                   <img
-                    src={img('Album_FWC_2026.png')}
+                    src={img('product-album.png')}
                     alt="Álbum Pasta Blanda"
                     className="w-full h-full object-contain p-1"
                   />
                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Promo Tip - Shows when close to unlocking gift (1 box) */}
+        <AnimatePresence>
+          {boxQuantity === 1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`mt-4 rounded-xl p-4 border-2 border-dashed
+                ${isDark
+                  ? 'bg-maple/10 border-maple/40'
+                  : 'bg-maple/5 border-maple/30'
+                }
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <Gift className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-maple' : 'text-maple'}`} />
+                <p className={`text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                  <span className="font-semibold">¡Estás a 1 caja de un regalo!</span>
+                  <span className={`ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                    Agrega otra Caja Display y recibe 1 Álbum Pasta Blanda gratis.
+                  </span>
+                </p>
               </div>
             </motion.div>
           )}

@@ -1,189 +1,331 @@
-import { motion } from 'framer-motion';
-import { Minus, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Minus, Plus, Sparkles, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { getAssetPath } from '../utils/assets';
+import { getAssetPath, img } from '../utils/assets';
 
-// Spring config for buttery hover feel
-const cardSpring = {
-  type: "spring",
-  stiffness: 400,
-  damping: 25,
-  mass: 0.5,
+
+// Static scarcity counter (placeholder)
+const SCARCITY_COUNT = 2;
+
+// Extra Stickers Modal Component - Uses Portal to render at document root
+const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
+  if (!isOpen) return null;
+
+  const modalContent = (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className={`fixed inset-0 backdrop-blur-sm z-[9999] ${isDark ? 'bg-black/70' : 'bg-black/50'}`}
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
+          >
+            <div className="pointer-events-auto w-full max-w-[360px]" onClick={(e) => e.stopPropagation()}>
+              {/* Themed modal */}
+              <div className={`rounded-2xl overflow-hidden shadow-2xl ${
+                isDark
+                  ? 'bg-[#1a1a1a] border border-white/10'
+                  : 'bg-white border border-warm-tan/30'
+              }`}>
+
+                {/* Hero section with card image */}
+                <div className={`relative h-48 flex items-center justify-center overflow-hidden ${
+                  isDark ? 'bg-black' : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
+                }`}>
+                  {/* Card image - centered and properly sized */}
+                  <img
+                    src={img('card-extra-blue.jpg')}
+                    alt="Extra Sticker Blue"
+                    className="h-44 w-auto object-contain"
+                  />
+
+                  {/* Gradient fade at bottom */}
+                  <div className={`absolute bottom-0 left-0 right-0 h-20 ${
+                    isDark
+                      ? 'bg-gradient-to-t from-[#1a1a1a] to-transparent'
+                      : 'bg-gradient-to-t from-white to-transparent'
+                  }`} />
+
+                  {/* Close button */}
+                  <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-white/10 hover:bg-white/20"
+                  >
+                    <X className="w-4 h-4 text-white/70" />
+                  </button>
+
+                  {/* Badge */}
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-maple/20 border border-maple/30 backdrop-blur-sm">
+                    <Sparkles className="w-3 h-3 text-maple" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-maple">Ultra Raro</span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-5">
+                  {/* Title */}
+                  <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    Extra Stickers
+                  </h3>
+                  <p className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                    Las láminas más codiciadas del álbum
+                  </p>
+
+                  {/* Stats row */}
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className={`text-center p-2.5 rounded-xl ${
+                      isDark ? 'bg-white/5' : 'bg-warm-cream'
+                    }`}>
+                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>1:100</p>
+                      <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Probabilidad</p>
+                    </div>
+                    <div className={`text-center p-2.5 rounded-xl ${
+                      isDark ? 'bg-white/5' : 'bg-warm-cream'
+                    }`}>
+                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>80</p>
+                      <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Total</p>
+                    </div>
+                    <div className={`text-center p-2.5 rounded-xl ${
+                      isDark ? 'bg-maple/10' : 'bg-maple/10'
+                    }`}>
+                      <p className={`text-lg font-bold scarcity-glow ${
+                        isDark ? 'text-maple' : 'text-maple'
+                      }`}>{SCARCITY_COUNT}</p>
+                      <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Encontrados</p>
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  <button
+                    onClick={onClose}
+                    className="w-full py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98]
+                      bg-maple text-white hover:bg-maple-dark"
+                  >
+                    ¡Quiero encontrar uno!
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
+  // Use portal to render at document body level, avoiding transform issues
+  return createPortal(modalContent, document.body);
 };
 
 const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
   const { isDark } = useTheme();
   const isSelected = quantity > 0;
+  const [showExtraStickersModal, setShowExtraStickersModal] = useState(false);
+
+  // Check if this is the Caja Display (product id 1)
+  const isCajaDisplay = product.id === 1;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      whileHover={{
-        y: -4,
-        transition: cardSpring,
-      }}
-      whileTap={{
-        scale: 0.98,
-        transition: { duration: 0.1 },
-      }}
-      className={`relative rounded-2xl overflow-hidden border-2 flex flex-col transition-colors duration-300
-        ${isDark
-          ? isSelected
-            ? 'bg-dark-bg-card border-maple shadow-xl shadow-maple/20'
-            : 'bg-dark-bg-card border-dark-border shadow-lg hover:shadow-xl hover:border-maple/50'
-          : isSelected
-            ? 'bg-white border-maple shadow-xl shadow-maple/20'
-            : 'bg-white border-warm-tan/30 shadow-lg hover:shadow-xl hover:border-maple/50'
-        }`}
-    >
-      {/* Badge - with dark background for contrast */}
-      {product.badge && (
-        <div className="absolute top-4 right-4 z-10">
-          <span className={`px-3 py-1.5 text-xs font-bold rounded-full shadow-lg border
-            ${product.badge === 'Popular'
-              ? 'bg-maple text-white border-maple-dark'
-              : ''}
-            ${product.badge === 'El Atajo'
-              ? 'bg-warm-brown text-white border-warm-brown'
-              : ''}
-          `}>
-            {product.badge}
-          </span>
-        </div>
-      )}
-
-      {/* Quantity indicator when selected */}
-      {isSelected && (
-        <div className="absolute top-4 left-4 z-10">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-maple">
-            <span className="font-bold text-sm text-white">{quantity}</span>
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        className={`relative rounded-2xl overflow-hidden border-2 flex flex-col transition-colors duration-300
+          ${isDark
+            ? isSelected
+              ? 'bg-dark-bg-card border-maple shadow-xl shadow-maple/20'
+              : 'bg-dark-bg-card border-dark-border shadow-lg'
+            : isSelected
+              ? 'bg-white border-maple shadow-xl shadow-maple/20'
+              : 'bg-white border-warm-tan/30 shadow-lg'
+          }`}
+      >
+        {/* Badge - with dark background for contrast */}
+        {product.badge && (
+          <div className="absolute top-4 right-4 z-10">
+            <span className={`px-3 py-1.5 text-xs font-bold rounded-full shadow-lg border
+              ${product.badge === 'Popular'
+                ? 'bg-maple text-white border-maple-dark'
+                : ''}
+              ${product.badge === 'El Atajo'
+                ? 'bg-warm-brown text-white border-warm-brown'
+                : ''}
+            `}>
+              {product.badge}
+            </span>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Product Image */}
-      <div className={`relative h-44 sm:h-52 flex items-center justify-center p-4 overflow-hidden group transition-colors duration-300
-        ${isDark
-          ? 'bg-gradient-to-b from-dark-bg-elevated to-dark-bg-card'
-          : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
-        }
-      `}>
-        <div className="relative transition-transform duration-300 ease-out group-hover:scale-105">
-          <img
-            src={getAssetPath(product.image)}
-            alt={product.name}
-            className="h-28 sm:h-36 w-auto object-contain drop-shadow-lg"
-          />
-        </div>
+        {/* Quantity indicator when selected */}
+        {isSelected && (
+          <div className="absolute top-4 left-4 z-10">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-maple">
+              <span className="font-bold text-sm text-white">{quantity}</span>
+            </div>
+          </div>
+        )}
 
-        {/* Quantity Controls - Bottom right of image */}
-        <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuantityChange(product.id, quantity - 1);
-            }}
-            disabled={quantity === 0}
-            whileTap={quantity > 0 ? { scale: 0.85 } : {}}
-            transition={{ type: "spring", stiffness: 500, damping: 20 }}
-            className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md
-              ${quantity === 0
-                ? isDark
-                  ? 'bg-dark-surface/80 text-gray-500 cursor-not-allowed'
-                  : 'bg-white/80 text-warm-gray cursor-not-allowed'
-                : isDark
-                  ? 'bg-dark-surface text-white hover:bg-dark-border'
-                  : 'bg-white text-warm-brown hover:bg-warm-cream-dark'
-              }
-            `}
-          >
-            <Minus className="w-3.5 h-3.5" />
-          </motion.button>
-
-          <motion.span
-            key={quantity}
-            initial={{ scale: 1.3, opacity: 0.5 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 500, damping: 25 }}
-            className={`w-5 text-center font-bold text-base tabular-nums
-              ${isDark ? 'text-white drop-shadow-lg' : 'text-warm-brown drop-shadow-sm'}
-            `}
-          >
-            {quantity}
-          </motion.span>
-
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuantityChange(product.id, quantity + 1);
-            }}
-            whileTap={{ scale: 0.85 }}
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 500, damping: 20 }}
-            className="w-7 h-7 rounded-full flex items-center justify-center shadow-lg
-              bg-maple text-white hover:bg-maple-dark"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Product Info */}
-      <div className="flex-1 p-5 sm:p-6 flex flex-col">
-        {/* Title */}
-        <h3 className={`text-lg sm:text-xl font-bold mb-2 transition-colors duration-300
-          ${isDark ? 'text-white' : 'text-warm-brown'}
+        {/* Product Image */}
+        <div className={`relative h-44 sm:h-52 flex items-center justify-center p-4 overflow-hidden group transition-colors duration-300
+          ${isDark
+            ? 'bg-gradient-to-b from-dark-bg-elevated to-dark-bg-card'
+            : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
+          }
         `}>
-          {product.name}
-        </h3>
+          <div className="relative transition-transform duration-300 ease-out group-hover:scale-105">
+            <img
+              src={getAssetPath(product.image)}
+              alt={product.name}
+              className="h-28 sm:h-36 w-auto object-contain drop-shadow-lg"
+            />
+          </div>
 
-        {/* Description */}
-        <p className={`text-sm mb-4 leading-relaxed transition-colors duration-300
-          ${isDark ? 'text-gray-300' : 'text-warm-gray'}
-        `}>
-          {product.description}
-        </p>
-
-        {/* Specs */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {product.specs.map((spec, i) => (
-            <span
-              key={i}
-              className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors duration-300
+          {/* Extra Stickers Badge - Only for Caja Display */}
+          {isCajaDisplay && (
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowExtraStickersModal(true);
+              }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className={`absolute bottom-3 left-3 z-10 flex items-center gap-1 px-2 py-1 rounded-md cursor-pointer transition-all
                 ${isDark
-                  ? 'bg-dark-surface text-gray-300'
-                  : 'bg-warm-cream text-warm-gray'
+                  ? 'bg-dark-surface/90 text-gray-300 hover:bg-dark-border hover:text-white border border-dark-border'
+                  : 'bg-white/90 text-warm-gray hover:bg-white hover:text-warm-brown border border-warm-tan/40'
+                }
+                backdrop-blur-sm shadow-sm
+              `}
+            >
+              <Sparkles className="w-3 h-3 text-maple" />
+              <span className="text-[9px] font-semibold">Extra Stickers</span>
+            </motion.button>
+          )}
+
+          {/* Quantity Controls - Bottom right of image */}
+          <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuantityChange(product.id, quantity - 1);
+              }}
+              disabled={quantity === 0}
+              whileTap={quantity > 0 ? { scale: 0.85 } : {}}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md
+                ${quantity === 0
+                  ? isDark
+                    ? 'bg-dark-surface/80 text-gray-500 cursor-not-allowed'
+                    : 'bg-white/80 text-warm-gray cursor-not-allowed'
+                  : isDark
+                    ? 'bg-dark-surface text-white hover:bg-dark-border'
+                    : 'bg-white text-warm-brown hover:bg-warm-cream-dark'
                 }
               `}
             >
-              {spec}
+              <Minus className="w-3.5 h-3.5" />
+            </motion.button>
+
+            <span
+              className={`w-5 text-center font-bold text-base tabular-nums
+                ${isDark ? 'text-white drop-shadow-lg' : 'text-warm-brown drop-shadow-sm'}
+              `}
+            >
+              {quantity}
             </span>
-          ))}
+
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuantityChange(product.id, quantity + 1);
+              }}
+              whileTap={{ scale: 0.85 }}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              className="w-7 h-7 rounded-full flex items-center justify-center shadow-lg
+                bg-maple text-white hover:bg-maple-dark"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </motion.button>
+          </div>
         </div>
 
-        {/* Spacer to push price and controls to bottom */}
-        <div className="flex-1" />
-
-        {/* Price + Disclaimer row */}
-        <div className="flex items-end justify-between gap-2">
-          <p className={`text-2xl sm:text-3xl font-bold transition-colors duration-300
+        {/* Product Info */}
+        <div className="flex-1 p-5 sm:p-6 flex flex-col">
+          {/* Title */}
+          <h3 className={`text-lg sm:text-xl font-bold mb-2 transition-colors duration-300
             ${isDark ? 'text-white' : 'text-warm-brown'}
           `}>
-            {product.priceFormatted.split(' ')[0]}
+            {product.name}
+          </h3>
+
+          {/* Description */}
+          <p className={`text-sm mb-4 leading-relaxed transition-colors duration-300
+            ${isDark ? 'text-gray-300' : 'text-warm-gray'}
+          `}>
+            {product.description}
           </p>
 
-          {/* Reference image disclaimer */}
-          <p className={`text-[10px] leading-tight text-right max-w-[100px] transition-colors duration-300
-            ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
-          `}>
-            *Imagen de referencia
-          </p>
+          {/* Specs */}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {product.specs.map((spec, i) => (
+              <span
+                key={i}
+                className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors duration-300
+                  ${isDark
+                    ? 'bg-dark-surface text-gray-300'
+                    : 'bg-warm-cream text-warm-gray'
+                  }
+                `}
+              >
+                {spec}
+              </span>
+            ))}
+          </div>
+
+          {/* Spacer to push price and controls to bottom */}
+          <div className="flex-1" />
+
+          {/* Price + Disclaimer row */}
+          <div className="flex items-end justify-between gap-2">
+            <p className={`text-2xl sm:text-3xl font-bold transition-colors duration-300
+              ${isDark ? 'text-white' : 'text-warm-brown'}
+            `}>
+              {product.priceFormatted.split(' ')[0]}
+            </p>
+
+            {/* Reference image disclaimer */}
+            <p className={`text-[10px] leading-tight text-right max-w-[100px] transition-colors duration-300
+              ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
+            `}>
+              *Imagen de referencia
+            </p>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+
+      {/* Extra Stickers Modal */}
+      <ExtraStickersModal
+        isOpen={showExtraStickersModal}
+        onClose={() => setShowExtraStickersModal(false)}
+        isDark={isDark}
+      />
+    </>
   );
 };
 

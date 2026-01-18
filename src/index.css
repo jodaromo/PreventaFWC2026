@@ -257,6 +257,48 @@ body {
   }
 }
 
+/* Scarcity Counter Glow Animation */
+@keyframes scarcityGlow {
+  0%, 100% {
+    text-shadow: 0 0 4px currentColor;
+    opacity: 1;
+  }
+  50% {
+    text-shadow: 0 0 12px currentColor, 0 0 20px currentColor;
+    opacity: 0.9;
+  }
+}
+
+.scarcity-glow {
+  animation: scarcityGlow 2s ease-in-out infinite;
+}
+
+/* Holographic card shimmer animation */
+@keyframes holoShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.holo-shimmer {
+  background-size: 200% 100%;
+  animation: holoShimmer 3s linear infinite;
+}
+
+/* Card float animation for carousel idle state */
+@keyframes cardFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+
 .stat-number {
   font-size: clamp(3rem, 8vw, 5rem);
   font-weight: 800;

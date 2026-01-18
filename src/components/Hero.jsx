@@ -81,14 +81,14 @@ const Hero = () => {
           className={`absolute inset-x-0 top-0 bottom-[-10%] bg-cover bg-top bg-no-repeat transition-opacity duration-700
             ${isDark ? 'opacity-0' : 'opacity-100'}
           `}
-          style={{ backgroundImage: `url('${img('unnamed-2.jpg')}')` }}
+          style={{ backgroundImage: `url('${img('bg-stadium-light.jpg')}')` }}
         />
         {/* Dark mode - Night stadium - positioned to crop bottom 10% */}
         <div
           className={`absolute inset-x-0 top-0 bottom-[-10%] bg-cover bg-top bg-no-repeat transition-opacity duration-700
             ${isDark ? 'opacity-100' : 'opacity-0'}
           `}
-          style={{ backgroundImage: `url('${img('unnamed-5.jpg')}')` }}
+          style={{ backgroundImage: `url('${img('bg-stadium-dark.jpg')}')` }}
         />
         {/* Overlay for text readability */}
         <div
@@ -151,7 +151,7 @@ const Hero = () => {
                 className="flex-shrink-0"
               >
                 <img
-                  src={img('2026-FIFA-World-Cup-logo.png')}
+                  src={img('logo-fifa-worldcup.png')}
                   alt="FIFA World Cup 2026"
                   className="h-20 sm:h-28 md:h-32 drop-shadow-lg"
                 />
@@ -262,7 +262,7 @@ const Hero = () => {
 
               {/* Mascots Image - 30% larger with organic float */}
               <motion.img
-                src={img('Maple__Zayu_y_Clutch_1.png')}
+                src={img('mascots-group.png')}
                 alt="Mascotas FIFA World Cup 2026 - Maple, Zayu y Clutch"
                 className="h-72 sm:h-96 md:h-[26rem] lg:h-[28.5rem] w-auto object-contain drop-shadow-2xl"
                 variants={floatVariants}

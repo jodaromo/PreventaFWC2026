@@ -33,7 +33,7 @@ const Footer = () => {
                 />
                 <div className={`w-px h-8 ${isDark ? 'bg-dark-border' : 'bg-warm-gray/30'}`} />
                 <img
-                  src={img('2026-FIFA-World-Cup-logo.png')}
+                  src={img('logo-fifa-worldcup.png')}
                   alt="FIFA World Cup 2026"
                   className="h-12"
                 />

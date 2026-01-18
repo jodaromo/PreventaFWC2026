@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Phone, CheckCircle, AlertCircle, Loader2, RefreshCw,
-  Sparkles, CreditCard, Gift, Calendar, MapPin, ChevronDown, Plus
+  MapPin, Gift, CreditCard, Calendar, Truck
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { products } from '../data/products';
@@ -11,200 +11,19 @@ import { getAssetPath } from '../utils/assets';
 // Google Apps Script Web App URL
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSr-KnzROWmdhHSCEjLGVUKojaTwgShiEx0viKdBZDqfT3RtJK323IrVSDBqSVDrgOMw/exec';
 
-// Info sections data generator (needs isDark for content)
-const getInfoSections = (isDark) => [
-  {
-    id: 'extra-stickers',
-    icon: Sparkles,
-    title: '¿Serás Uno de los Afortunados?',
-    subtitle: 'Los "Extra Stickers" Panini',
-    content: (
-      <div className="space-y-3">
-        <p className={isDark ? 'text-gray-300' : 'text-warm-gray'}>
-          Tienes <span className="font-semibold text-maple">1 chance en 100 sobres</span> de encontrar un Extra Sticker.
-        </p>
-        <div className="space-y-2">
-          {[
-            '20 jugadores legendarios y rookies',
-            'Cada jugador tiene 4 variaciones de color',
-            '80 láminas ultra-raras en total'
-          ].map((item, i) => (
-            <div key={i} className={`flex items-center gap-3 p-2.5 rounded-lg ${isDark ? 'bg-dark-surface' : 'bg-warm-cream-light/80'}`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-maple flex-shrink-0" />
-              <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>{item}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 'payment-plans',
-    icon: CreditCard,
-    title: 'Planes de Pago',
-    subtitle: 'Te lo ponemos fácil',
-    content: (
-      <div className="space-y-3">
-        <div className={`rounded-xl p-4 ${isDark ? 'bg-dark-surface' : 'bg-warm-cream-light/80'}`}>
-          <div className="flex items-center justify-between mb-1">
-            <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>Plan Flexible</p>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-maple/20 text-maple' : 'bg-maple/10 text-maple'}`}>4 cuotas</span>
-          </div>
-          <p className="text-xl font-bold text-maple">$130.000 <span className={`text-xs font-normal ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/ mes</span></p>
-          <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>Desde Febrero, primeros 5 días del mes</p>
-        </div>
-        <div className={`rounded-xl p-4 ${isDark ? 'bg-dark-surface' : 'bg-warm-cream-light/80'}`}>
-          <div className="flex items-center justify-between mb-1">
-            <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>Plan Rápido</p>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-maple/20 text-maple' : 'bg-maple/10 text-maple'}`}>2 cuotas</span>
-          </div>
-          <p className="text-xl font-bold text-maple">$260.000 <span className={`text-xs font-normal ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/ mes</span></p>
-          <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>Febrero y Abril, primeros 5 días</p>
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 'promo',
-    icon: Gift,
-    title: 'Promo: 2 Cajas',
-    subtitle: 'Regalo especial',
-    highlight: true,
-    content: (
-      <div className="space-y-3">
-        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-          Lleva <span className="font-semibold text-maple">2 Cajas de 104 sobres</span> y recibe:
-        </p>
-        <div className="space-y-2">
-          {[
-            { text: '1 Álbum Pasta Blanda GRATIS', highlight: true },
-            { text: 'Prioridad de Envío', highlight: false }
-          ].map((item, i) => (
-            <div key={i} className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-dark-surface' : 'bg-warm-cream-light/80'}`}>
-              <div className="w-5 h-5 rounded-full bg-maple/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-maple text-xs">✓</span>
-              </div>
-              <span className={`text-sm ${item.highlight ? 'font-semibold' : ''} ${isDark ? 'text-white' : 'text-warm-brown'}`}>{item.text}</span>
-            </div>
-          ))}
-        </div>
-        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
-          *El costo del envío es adicional.
-        </p>
-      </div>
-    ),
-  },
-  {
-    id: 'timeline',
-    icon: Calendar,
-    title: 'Cronograma',
-    subtitle: 'Fechas clave',
-    content: (
-      <div className="space-y-0">
-        {[
-          { date: 'Abril 2026', label: 'Recepción en bodega', isLast: false },
-          { date: 'Mayo 2026', label: 'Lanzamiento + despachos', isLast: false },
-          { date: 'Tu Ventaja', label: 'Mientras otros hacen filas, tú ya tendrás tu colección', isLast: true }
-        ].map((item, i) => (
-          <div key={i} className="flex gap-4">
-            {/* Timeline line */}
-            <div className="flex flex-col items-center">
-              <div className="w-3 h-3 rounded-full bg-maple flex-shrink-0" />
-              {!item.isLast && <div className={`w-0.5 h-full min-h-[40px] ${isDark ? 'bg-dark-border' : 'bg-warm-tan/50'}`} />}
-            </div>
-            {/* Content */}
-            <div className="pb-4">
-              <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>{item.date}</p>
-              <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>{item.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-];
-
-// Expandable Info Card (accordion style) - Unified maple color scheme
-const InfoCardAccordion = ({ section, isOpen, onToggle, isDark }) => {
-  const Icon = section.icon;
-
-  return (
-    <div
-      className={`rounded-2xl overflow-hidden transition-all duration-200
-        ${isDark
-          ? isOpen
-            ? 'bg-dark-bg-card ring-2 ring-maple shadow-lg shadow-maple/10'
-            : 'bg-dark-bg-card ring-1 ring-dark-border hover:ring-maple/40'
-          : isOpen
-            ? 'bg-white ring-2 ring-maple shadow-lg shadow-maple/10'
-            : 'bg-white ring-1 ring-warm-tan/40 shadow-sm hover:ring-maple/40 hover:shadow-md'
-        }
-      `}
-    >
-      {/* Header - Always visible */}
-      <button
-        onClick={onToggle}
-        className="w-full p-5 flex items-center gap-4 text-left group"
-      >
-        {/* Modern gradient icon container */}
-        <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 overflow-hidden
-          ${isOpen
-            ? 'bg-gradient-to-br from-maple to-maple-dark shadow-lg shadow-maple/30'
-            : isDark
-              ? 'bg-gradient-to-br from-dark-surface to-dark-border group-hover:from-maple/20 group-hover:to-maple/10'
-              : 'bg-gradient-to-br from-warm-cream-dark to-warm-tan/50 group-hover:from-maple/15 group-hover:to-maple/5'
-          }
-        `}>
-          {/* Subtle inner glow effect */}
-          <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
-            ${isOpen ? '' : 'bg-gradient-to-br from-maple/10 to-transparent'}
-          `} />
-          <Icon className={`w-5 h-5 relative z-10 transition-all duration-300
-            ${isOpen
-              ? 'text-white'
-              : isDark
-                ? 'text-gray-400 group-hover:text-maple'
-                : 'text-warm-gray group-hover:text-maple'
-            }
-          `} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>{section.title}</h4>
-          <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>{section.subtitle}</p>
-        </div>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200
-            ${isOpen
-              ? 'bg-maple/15'
-              : isDark ? 'bg-dark-surface group-hover:bg-dark-border' : 'bg-warm-cream-dark group-hover:bg-warm-tan/50'
-            }
-          `}
-        >
-          <ChevronDown className={`w-4 h-4 transition-colors duration-200 ${isOpen ? 'text-maple' : isDark ? 'text-gray-500' : 'text-warm-gray/60'}`} />
-        </motion.div>
-      </button>
-
-      {/* Expandable Content */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4">
-              {section.content}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+// Format currency in Colombian pesos
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 };
+
+// Get pasta blanda product info for free gift display
+const PASTA_BLANDA_PRODUCT = products.find(p => p.id === 3);
+const PASTA_BLANDA_PRICE = PASTA_BLANDA_PRODUCT?.price || 12990;
 
 const ReserveSection = ({ cart = {} }) => {
   const { isDark } = useTheme();
@@ -216,10 +35,7 @@ const ReserveSection = ({ cart = {} }) => {
   });
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState('idle');
-  const [openCardId, setOpenCardId] = useState(null);
-
-  // Get info sections with current theme
-  const infoSections = getInfoSections(isDark);
+  const [selectedPlan, setSelectedPlan] = useState('flexible'); // 'flexible' (4 payments) or 'rapido' (2 payments)
 
   // Get selected products from cart prop
   const selectedProducts = products
@@ -229,9 +45,33 @@ const ReserveSection = ({ cart = {} }) => {
   // Check if any products are selected
   const hasProducts = selectedProducts.length > 0;
 
-  // Check if user qualifies for free gift (2+ Caja Display = product ID 1)
+  // Calculate free albums: 1 free Pasta Blanda per every 2 Cajas
   const boxQuantity = cart[1] || 0;
-  const qualifiesForGift = boxQuantity >= 2;
+  const freeAlbumCount = Math.floor(boxQuantity / 2);
+  const qualifiesForGift = freeAlbumCount > 0;
+
+  // Calculate totals
+  const calculateTotals = () => {
+    // Sum of all purchased products
+    const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+
+    // Free albums value (for display purposes - they're free so don't add to total)
+    const freeAlbumsValue = freeAlbumCount * PASTA_BLANDA_PRICE;
+
+    // Total to pay is just the products (free albums are... free)
+    const totalToPay = productsTotal;
+
+    return {
+      productsTotal,
+      freeAlbumsValue,
+      totalToPay,
+      // Payment plans based on total
+      flexiblePayment: Math.ceil(totalToPay / 4), // 4 payments
+      rapidoPayment: Math.ceil(totalToPay / 2),   // 2 payments
+    };
+  };
+
+  const totals = calculateTotals();
 
   const formatProductsSummary = () => {
     return selectedProducts
@@ -286,13 +126,14 @@ const ReserveSection = ({ cart = {} }) => {
         albumPastaDura: cart[2] || 0,
         albumPastaBlanda: cart[3] || 0,
         sobreIndividual: cart[4] || 0,
-        regaloGratis: qualifiesForGift ? 1 : 0, // Free gift: 1 Album Pasta Blanda if 2+ boxes
+        regaloPastaBlanda: freeAlbumCount, // Number of free albums (1 per 2 boxes)
+        totalPagar: totals.totalToPay,
+        planPago: selectedPlan === 'flexible' ? '4 cuotas' : '2 cuotas',
+        cuotaMensual: selectedPlan === 'flexible' ? totals.flexiblePayment : totals.rapidoPayment,
         direccion: formData.direccion.trim(),
         ciudad: formData.ciudad.trim(),
       };
 
-      // Note: Google Apps Script Web Apps handle CORS automatically when deployed
-      // as "Anyone" can access. We use redirect:follow to handle the redirect properly.
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         headers: {
@@ -324,10 +165,6 @@ const ReserveSection = ({ cart = {} }) => {
   const handleNewReservation = () => {
     setFormData({ nombre: '', whatsapp: '', direccion: '', ciudad: '' });
     setSubmitStatus('idle');
-  };
-
-  const handleCardToggle = (id) => {
-    setOpenCardId(openCardId === id ? null : id);
   };
 
   // Common input styles
@@ -372,14 +209,16 @@ const ReserveSection = ({ cart = {} }) => {
           </p>
         </motion.div>
 
-        {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-          {/* Left: Form */}
+        {/* Main Layout: Form + Summary Side by Side */}
+        <div className="grid lg:grid-cols-5 gap-8 lg:gap-10 items-start">
+
+          {/* Left Column: Contact Form (3/5 width) */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
+            className="lg:col-span-3"
           >
             <div className={`rounded-2xl p-6 sm:p-8 shadow-xl ${isDark ? 'bg-dark-bg-card' : 'bg-white'}`}>
               <AnimatePresence mode="wait">
@@ -392,230 +231,133 @@ const ReserveSection = ({ cart = {} }) => {
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0, y: -20 }}
                   >
-                    {/* Nombre Field */}
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-warm-brown'}`}>
-                        Nombre
-                      </label>
-                      <div className="relative">
-                        <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
-                        <input
-                          type="text"
-                          value={formData.nombre}
-                          onChange={(e) => handleInputChange('nombre', e.target.value)}
-                          placeholder="Tu nombre"
-                          disabled={submitStatus === 'loading'}
-                          className={inputClassName(errors.nombre, submitStatus === 'loading')}
-                        />
-                      </div>
-                      {errors.nombre && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="mt-2 text-red-500 text-sm flex items-center gap-1"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          {errors.nombre}
-                        </motion.p>
-                      )}
-                    </div>
+                    {/* Personal Info Section */}
+                    <div className="space-y-4">
+                      <h3 className={`font-semibold text-sm flex items-center gap-2 ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                        <User className="w-4 h-4 text-maple" />
+                        Información de Contacto
+                      </h3>
 
-                    {/* WhatsApp Field */}
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-warm-brown'}`}>
-                        WhatsApp
-                      </label>
-                      <div className="relative">
-                        <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
-                        <input
-                          type="tel"
-                          value={formData.whatsapp}
-                          onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                          placeholder="300 123 4567"
-                          disabled={submitStatus === 'loading'}
-                          className={inputClassName(errors.whatsapp, submitStatus === 'loading')}
-                        />
-                      </div>
-                      {errors.whatsapp && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="mt-2 text-red-500 text-sm flex items-center gap-1"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          {errors.whatsapp}
-                        </motion.p>
-                      )}
-                    </div>
-
-                    {/* Products Section - Read-only display from cart */}
-                    <div className={`p-4 rounded-xl border ${isDark ? 'bg-dark-surface border-dark-border' : 'bg-warm-cream-light border-warm-tan/30'}`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <label className={`block text-sm font-medium ${isDark ? 'text-gray-400' : 'text-warm-brown'}`}>
-                          Productos
-                        </label>
-                        <button
-                          type="button"
-                          onClick={scrollToProducts}
-                          className={`text-xs font-medium flex items-center gap-1 transition-colors
-                            ${isDark ? 'text-maple hover:text-maple-light' : 'text-maple hover:text-maple-dark'}
-                          `}
-                        >
-                          <Plus className="w-3 h-3" />
-                          Agregar más
-                        </button>
-                      </div>
-
-                      {hasProducts ? (
-                        <div className="space-y-2">
-                          {selectedProducts.map((product) => (
-                            <button
-                              key={product.id}
-                              type="button"
-                              onClick={scrollToProducts}
-                              className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-all duration-200 group
-                                ${isDark
-                                  ? 'bg-dark-bg-card border-dark-border hover:border-maple/50'
-                                  : 'bg-white border-warm-tan/30 hover:border-maple/50'
-                                }
-                              `}
-                            >
-                              <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-warm-cream-light">
-                                <img
-                                  src={getAssetPath(product.image)}
-                                  alt={product.name}
-                                  className="w-full h-full object-contain"
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                                  {product.name}
-                                </p>
-                                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                                  {product.priceFormatted}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm
-                                  ${isDark ? 'bg-maple/20 text-maple' : 'bg-maple/10 text-maple'}
-                                `}>
-                                  {product.quantity}
-                                </span>
-                              </div>
-                            </button>
-                          ))}
-
-                          {/* Free Gift Item - Shows when 2+ boxes */}
-                          <AnimatePresence>
-                            {qualifiesForGift && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed
-                                  ${isDark
-                                    ? 'bg-emerald-900/20 border-emerald-500/40'
-                                    : 'bg-emerald-50 border-emerald-400/50'
-                                  }
-                                `}
-                              >
-                                <div className={`w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center
-                                  ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-100'}
-                                `}>
-                                  <Gift className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className={`font-medium text-sm truncate ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                                    Álbum Pasta Blanda
-                                  </p>
-                                  <p className={`text-xs ${isDark ? 'text-emerald-400/70' : 'text-emerald-600/80'}`}>
-                                    Regalo por {boxQuantity} Cajas
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                  <span className={`px-2 py-1 rounded-lg font-bold text-xs
-                                    ${isDark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}
-                                  `}>
-                                    GRATIS
-                                  </span>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                      {/* Nombre Field */}
+                      <div>
+                        <div className="relative">
+                          <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
+                          <input
+                            type="text"
+                            value={formData.nombre}
+                            onChange={(e) => handleInputChange('nombre', e.target.value)}
+                            placeholder="Tu nombre completo"
+                            disabled={submitStatus === 'loading'}
+                            className={inputClassName(errors.nombre, submitStatus === 'loading')}
+                          />
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={scrollToProducts}
-                          className={`w-full p-4 rounded-lg border-2 border-dashed text-center transition-all duration-200
-                            ${isDark
-                              ? 'border-dark-border hover:border-maple/50 text-gray-400 hover:text-maple'
-                              : 'border-warm-tan/50 hover:border-maple/50 text-warm-gray hover:text-maple'
-                            }
-                          `}
-                        >
-                          <Plus className="w-6 h-6 mx-auto mb-1 opacity-50" />
-                          <p className="text-sm font-medium">Seleccionar productos</p>
-                          <p className="text-xs opacity-75">Haz clic para ir a la sección de productos</p>
-                        </button>
-                      )}
+                        {errors.nombre && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-2 text-red-500 text-sm flex items-center gap-1"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            {errors.nombre}
+                          </motion.p>
+                        )}
+                      </div>
+
+                      {/* WhatsApp Field */}
+                      <div>
+                        <div className="relative">
+                          <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
+                          <input
+                            type="tel"
+                            value={formData.whatsapp}
+                            onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                            placeholder="300 123 4567"
+                            disabled={submitStatus === 'loading'}
+                            className={inputClassName(errors.whatsapp, submitStatus === 'loading')}
+                          />
+                        </div>
+                        {errors.whatsapp && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-2 text-red-500 text-sm flex items-center gap-1"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            {errors.whatsapp}
+                          </motion.p>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Dirección Field */}
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-warm-brown'}`}>
-                        Dirección
-                      </label>
-                      <div className="relative">
-                        <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
-                        <input
-                          type="text"
-                          value={formData.direccion}
-                          onChange={(e) => handleInputChange('direccion', e.target.value)}
-                          placeholder="Calle, número, barrio"
-                          disabled={submitStatus === 'loading'}
-                          className={inputClassName(errors.direccion, submitStatus === 'loading')}
-                        />
-                      </div>
-                      {errors.direccion && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="mt-2 text-red-500 text-sm flex items-center gap-1"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          {errors.direccion}
-                        </motion.p>
-                      )}
-                    </div>
+                    {/* Delivery Section */}
+                    <div className="space-y-4 pt-2">
+                      <h3 className={`font-semibold text-sm flex items-center gap-2 ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                        <Truck className="w-4 h-4 text-maple" />
+                        Dirección de Entrega
+                      </h3>
 
-                    {/* Ciudad Field */}
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-warm-brown'}`}>
-                        Ciudad
-                      </label>
-                      <div className="relative">
-                        <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
-                        <input
-                          type="text"
-                          value={formData.ciudad}
-                          onChange={(e) => handleInputChange('ciudad', e.target.value)}
-                          placeholder="Tu ciudad"
-                          disabled={submitStatus === 'loading'}
-                          className={inputClassName(errors.ciudad, submitStatus === 'loading')}
-                        />
+                      {/* Dirección Field */}
+                      <div>
+                        <div className="relative">
+                          <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
+                          <input
+                            type="text"
+                            value={formData.direccion}
+                            onChange={(e) => handleInputChange('direccion', e.target.value)}
+                            placeholder="Calle, número, barrio"
+                            disabled={submitStatus === 'loading'}
+                            className={inputClassName(errors.direccion, submitStatus === 'loading')}
+                          />
+                        </div>
+                        {errors.direccion && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-2 text-red-500 text-sm flex items-center gap-1"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            {errors.direccion}
+                          </motion.p>
+                        )}
                       </div>
-                      {errors.ciudad && (
-                        <motion.p
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="mt-2 text-red-500 text-sm flex items-center gap-1"
-                        >
-                          <AlertCircle className="w-4 h-4" />
-                          {errors.ciudad}
-                        </motion.p>
-                      )}
+
+                      {/* Ciudad Field */}
+                      <div>
+                        <div className="relative">
+                          <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
+                          <input
+                            type="text"
+                            value={formData.ciudad}
+                            onChange={(e) => handleInputChange('ciudad', e.target.value)}
+                            placeholder="Tu ciudad"
+                            disabled={submitStatus === 'loading'}
+                            className={inputClassName(errors.ciudad, submitStatus === 'loading')}
+                          />
+                        </div>
+                        {errors.ciudad && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-2 text-red-500 text-sm flex items-center gap-1"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            {errors.ciudad}
+                          </motion.p>
+                        )}
+                      </div>
+
+                      {/* Delivery Timeline Info */}
+                      <div className={`flex items-start gap-3 p-3 rounded-xl text-sm ${isDark ? 'bg-dark-surface' : 'bg-warm-cream-light/80'}`}>
+                        <Calendar className={`w-5 h-5 mt-0.5 flex-shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                        <div>
+                          <p className={`font-medium ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                            Entrega: Primera semana de Mayo 2026
+                          </p>
+                          <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                            Coincide con el lanzamiento oficial en Colombia
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Submit Button */}
@@ -637,7 +379,7 @@ const ReserveSection = ({ cart = {} }) => {
                           Enviando...
                         </>
                       ) : (
-                        'Enviar Reserva'
+                        'Confirmar Reserva'
                       )}
                     </button>
 
@@ -686,7 +428,7 @@ const ReserveSection = ({ cart = {} }) => {
                                 {product.quantity}x {product.name}
                               </span>
                               <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                                {product.priceFormatted}
+                                {formatCurrency(product.price * product.quantity)}
                               </span>
                             </div>
                           ))}
@@ -694,7 +436,7 @@ const ReserveSection = ({ cart = {} }) => {
                           {qualifiesForGift && (
                             <div className="flex items-center justify-between text-sm">
                               <span className={isDark ? 'text-emerald-300' : 'text-emerald-700'}>
-                                +1 Álbum Pasta Blanda
+                                +{freeAlbumCount} Álbum{freeAlbumCount > 1 ? 'es' : ''} Pasta Blanda
                               </span>
                               <span className={`text-xs font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                                 GRATIS
@@ -703,7 +445,14 @@ const ReserveSection = ({ cart = {} }) => {
                           )}
                         </div>
                         <div className={`border-t mt-3 pt-3 ${isDark ? 'border-dark-border' : 'border-warm-tan/30'}`}>
-                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                          <div className="flex justify-between items-center">
+                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>Total:</span>
+                            <span className="font-bold text-maple">{formatCurrency(totals.totalToPay)}</span>
+                          </div>
+                          <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                            Plan: {selectedPlan === 'flexible' ? '4 cuotas' : '2 cuotas'} de {formatCurrency(selectedPlan === 'flexible' ? totals.flexiblePayment : totals.rapidoPayment)}
+                          </p>
+                          <p className={`text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
                             📍 {formData.direccion}, {formData.ciudad}
                           </p>
                         </div>
@@ -759,29 +508,278 @@ const ReserveSection = ({ cart = {} }) => {
             </p>
           </motion.div>
 
-          {/* Right: Info Cards (Accordion Style) */}
+          {/* Right Column: Order Summary + Payment Plans (2/5 width) */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
+            className="lg:col-span-2 space-y-5"
           >
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-              Todo lo que Necesitas Saber
-            </h3>
+            {/* Order Summary Card */}
+            <div className={`rounded-2xl p-5 shadow-lg ${isDark ? 'bg-dark-bg-card' : 'bg-white'}`}>
+              <h3 className={`font-semibold text-sm mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                <CreditCard className="w-4 h-4 text-maple" />
+                Resumen del Pedido
+              </h3>
 
-            <div className="space-y-3">
-              {infoSections.map((section) => (
-                <InfoCardAccordion
-                  key={section.id}
-                  section={section}
-                  isOpen={openCardId === section.id}
-                  onToggle={() => handleCardToggle(section.id)}
-                  isDark={isDark}
-                />
-              ))}
+              {hasProducts ? (
+                <div className="space-y-3">
+                  {/* Product List */}
+                  {selectedProducts.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={scrollToProducts}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-200 group
+                        ${isDark
+                          ? 'bg-dark-surface border-dark-border hover:border-maple/50'
+                          : 'bg-warm-cream-light/50 border-warm-tan/30 hover:border-maple/50'
+                        }
+                      `}
+                    >
+                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white">
+                        <img
+                          src={getAssetPath(product.image)}
+                          alt={product.name}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                          {product.name}
+                        </p>
+                        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                          {product.quantity} × {product.priceFormatted}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                          {formatCurrency(product.price * product.quantity)}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+
+                  {/* Free Gift Item - Shows when 2+ boxes */}
+                  <AnimatePresence>
+                    {qualifiesForGift && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed
+                          ${isDark
+                            ? 'bg-emerald-900/20 border-emerald-500/40'
+                            : 'bg-emerald-50 border-emerald-400/50'
+                          }
+                        `}
+                      >
+                        <div className={`w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center
+                          ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-100'}
+                        `}>
+                          <Gift className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm truncate ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                            {freeAlbumCount} Álbum{freeAlbumCount > 1 ? 'es' : ''} Pasta Blanda
+                          </p>
+                          <p className={`text-xs ${isDark ? 'text-emerald-400/70' : 'text-emerald-600/80'}`}>
+                            Regalo por {boxQuantity} Cajas (1 c/2)
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 rounded-lg font-bold text-xs flex-shrink-0
+                          ${isDark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}
+                        `}>
+                          GRATIS
+                        </span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Subtotal / Total */}
+                  <div className={`border-t pt-3 mt-3 ${isDark ? 'border-dark-border' : 'border-warm-tan/30'}`}>
+                    {qualifiesForGift && (
+                      <div className="flex justify-between items-center mb-1">
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                          Valor del regalo:
+                        </span>
+                        <span className={`text-xs line-through ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+                          {formatCurrency(totals.freeAlbumsValue)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                        Total a Pagar:
+                      </span>
+                      <span className="font-bold text-xl text-maple">
+                        {formatCurrency(totals.totalToPay)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Add more button */}
+                  <button
+                    type="button"
+                    onClick={scrollToProducts}
+                    className={`w-full py-2 text-sm font-medium rounded-lg transition-colors
+                      ${isDark
+                        ? 'text-maple hover:bg-maple/10'
+                        : 'text-maple hover:bg-maple/5'
+                      }
+                    `}
+                  >
+                    + Agregar más productos
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={scrollToProducts}
+                  className={`w-full p-6 rounded-xl border-2 border-dashed text-center transition-all duration-200
+                    ${isDark
+                      ? 'border-dark-border hover:border-maple/50 text-gray-400 hover:text-maple'
+                      : 'border-warm-tan/50 hover:border-maple/50 text-warm-gray hover:text-maple'
+                    }
+                  `}
+                >
+                  <CreditCard className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="font-medium">Carrito vacío</p>
+                  <p className="text-xs opacity-75 mt-1">Haz clic para seleccionar productos</p>
+                </button>
+              )}
             </div>
 
+            {/* Payment Plans Card - Always visible */}
+            <div className={`rounded-2xl p-5 shadow-lg ${isDark ? 'bg-dark-bg-card' : 'bg-white'}`}>
+              <h3 className={`font-semibold text-sm mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                <Calendar className="w-4 h-4 text-maple" />
+                Plan de Pago
+              </h3>
+
+              <div className="space-y-3">
+                {/* Plan Flexible (4 payments) */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlan('flexible')}
+                  className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200
+                    ${selectedPlan === 'flexible'
+                      ? isDark
+                        ? 'border-maple bg-maple/10'
+                        : 'border-maple bg-maple/5'
+                      : isDark
+                        ? 'border-dark-border hover:border-maple/50 bg-dark-surface'
+                        : 'border-warm-tan/40 hover:border-maple/50 bg-warm-cream-light/50'
+                    }
+                  `}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
+                        ${selectedPlan === 'flexible'
+                          ? 'border-maple bg-maple'
+                          : isDark ? 'border-gray-600' : 'border-warm-tan'
+                        }
+                      `}>
+                        {selectedPlan === 'flexible' && (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        )}
+                      </div>
+                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                        Plan Flexible
+                      </span>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-maple/20 text-maple' : 'bg-maple/10 text-maple'}`}>
+                      4 cuotas
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-maple">
+                    {hasProducts ? formatCurrency(totals.flexiblePayment) : '$130.000'}
+                    <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/ mes</span>
+                  </p>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                    Feb, Mar, Abr, May — primeros 5 días
+                  </p>
+                </button>
+
+                {/* Plan Rápido (2 payments) */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlan('rapido')}
+                  className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200
+                    ${selectedPlan === 'rapido'
+                      ? isDark
+                        ? 'border-maple bg-maple/10'
+                        : 'border-maple bg-maple/5'
+                      : isDark
+                        ? 'border-dark-border hover:border-maple/50 bg-dark-surface'
+                        : 'border-warm-tan/40 hover:border-maple/50 bg-warm-cream-light/50'
+                    }
+                  `}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
+                        ${selectedPlan === 'rapido'
+                          ? 'border-maple bg-maple'
+                          : isDark ? 'border-gray-600' : 'border-warm-tan'
+                        }
+                      `}>
+                        {selectedPlan === 'rapido' && (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        )}
+                      </div>
+                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                        Plan Rápido
+                      </span>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-maple/20 text-maple' : 'bg-maple/10 text-maple'}`}>
+                      2 cuotas
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-maple">
+                    {hasProducts ? formatCurrency(totals.rapidoPayment) : '$260.000'}
+                    <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/ mes</span>
+                  </p>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                    Febrero y Abril — primeros 5 días
+                  </p>
+                </button>
+              </div>
+
+              {/* Payment info note */}
+              <p className={`text-xs mt-4 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+                * El costo del envío es adicional y se coordina al momento de la entrega.
+              </p>
+            </div>
+
+            {/* Promo Tip - Shows when close to unlocking gift */}
+            {boxQuantity === 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`rounded-xl p-4 border-2 border-dashed
+                  ${isDark
+                    ? 'bg-amber-900/20 border-amber-500/40'
+                    : 'bg-amber-50 border-amber-400/50'
+                  }
+                `}
+              >
+                <div className="flex items-start gap-3">
+                  <Gift className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
+                  <div>
+                    <p className={`font-medium text-sm ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+                      ¡Estás a 1 caja de un regalo!
+                    </p>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-amber-400/70' : 'text-amber-600/80'}`}>
+                      Agrega otra Caja Display y recibe 1 Álbum Pasta Blanda gratis.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </div>

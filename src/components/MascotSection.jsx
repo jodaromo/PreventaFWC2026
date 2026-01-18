@@ -729,13 +729,13 @@ const MascotSection = () => {
             className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
               ${isDark ? 'opacity-0' : 'opacity-[0.15]'}
             `}
-            style={{ backgroundImage: `url('${img('unnamed-3.jpg')}')` }}
+            style={{ backgroundImage: `url('${img('bg-ball-texture-light.jpg')}')` }}
           />
           <div
             className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700
               ${isDark ? 'opacity-[0.25]' : 'opacity-0'}
             `}
-            style={{ backgroundImage: `url('${img('unnamed-6.jpg')}')` }}
+            style={{ backgroundImage: `url('${img('bg-ball-texture-dark.jpg')}')` }}
           />
         </div>
 
