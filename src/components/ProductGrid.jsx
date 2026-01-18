@@ -15,7 +15,7 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
   const qualifiesForGift = freeAlbumCount > 0;
 
   return (
-    <section id="products" className={`relative pt-8 sm:pt-10 pb-16 sm:pb-20 px-6 transition-colors duration-300
+    <section id="products" className={`relative pt-6 sm:pt-8 pb-10 sm:pb-12 px-4 sm:px-6 transition-colors duration-300
       ${isDark ? 'bg-dark-bg-elevated' : 'bg-warm-cream-light'}
     `}>
       {/* Panini Stickers Background Images - Switch based on theme */}
@@ -138,7 +138,7 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.5 }}
-          className="text-center mt-12"
+          className="text-center mt-8"
         >
           {totalItems > 0 ? (
             <button

@@ -183,7 +183,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
         )}
 
         {/* Product Image */}
-        <div className={`relative h-44 sm:h-52 flex items-center justify-center p-4 overflow-hidden group transition-colors duration-300
+        <div className={`relative h-52 sm:h-60 flex items-center justify-center p-5 overflow-hidden group transition-colors duration-300
           ${isDark
             ? 'bg-gradient-to-b from-dark-bg-elevated to-dark-bg-card'
             : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
@@ -193,7 +193,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             <img
               src={getAssetPath(product.image)}
               alt={product.name}
-              className="h-28 sm:h-36 w-auto object-contain drop-shadow-lg"
+              className="h-36 sm:h-44 w-auto object-contain drop-shadow-lg"
             />
           </div>
 
@@ -267,24 +267,24 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           </div>
         </div>
 
-        {/* Product Info - Tighter layout with layered components */}
-        <div className="relative p-4 pt-3 flex flex-col">
-          {/* Title + Price block - tightly coupled */}
+        {/* Product Info */}
+        <div className="relative p-5 flex flex-col">
+          {/* Title + Price block */}
           <div className="mb-3">
-            <h3 className={`text-xl font-bold leading-tight transition-colors duration-300
+            <h3 className={`text-xl sm:text-2xl font-bold leading-tight transition-colors duration-300
               ${isDark ? 'text-white' : 'text-warm-brown'}
             `}>
               {product.name}
             </h3>
 
             {/* Price - secondary to title */}
-            <div className="flex items-baseline gap-2 mt-1.5">
-              <p className={`text-lg font-semibold transition-colors duration-300
+            <div className="flex items-baseline gap-2 mt-2">
+              <p className={`text-lg sm:text-xl font-semibold transition-colors duration-300
                 ${isDark ? 'text-gray-200' : 'text-warm-brown/80'}
               `}>
                 {product.priceFormatted}
               </p>
-              <span className={`text-[8px] transition-colors duration-300
+              <span className={`text-[9px] transition-colors duration-300
                 ${isDark ? 'text-gray-500' : 'text-warm-gray/50'}
               `}>
                 *Ref.
@@ -293,38 +293,38 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
 
             {/* Price disclaimer marquee - glassmorphism style */}
             {hasPriceDisclaimer && (
-              <div className={`mt-1 overflow-hidden rounded backdrop-blur-sm border ${
+              <div className={`mt-1.5 overflow-hidden rounded backdrop-blur-sm border ${
                 isDark
                   ? 'bg-white/5 border-white/10'
                   : 'bg-black/5 border-black/10'
               }`}>
                 <div className="flex items-center gap-3 py-0.5 animate-marquee whitespace-nowrap">
-                  <span className={`text-[8px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                  <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
                     ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
                   </span>
-                  <span className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
-                  <span className={`text-[8px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                  <span className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                  <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
                     ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
                   </span>
-                  <span className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                  <span className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Description - compact */}
-          <p className={`text-xs mb-2 leading-snug transition-colors duration-300
+          {/* Description */}
+          <p className={`text-sm mb-3 leading-relaxed transition-colors duration-300
             ${isDark ? 'text-gray-400' : 'text-warm-gray'}
           `}>
             {product.description}
           </p>
 
-          {/* Specs - compact pills */}
-          <div className="flex flex-wrap gap-1">
+          {/* Specs pills */}
+          <div className="flex flex-wrap gap-1.5">
             {product.specs.map((spec, i) => (
               <span
                 key={i}
-                className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-colors duration-300
+                className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors duration-300
                   ${isDark
                     ? 'bg-dark-surface text-gray-400'
                     : 'bg-warm-cream text-warm-gray'
