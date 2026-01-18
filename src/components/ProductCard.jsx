@@ -331,15 +331,15 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             {product.description}
           </p>
 
-          {/* Specs pills */}
-          <div className="flex flex-wrap gap-1.5">
+          {/* Specs pills - minimal */}
+          <div className="flex flex-wrap gap-1">
             {product.specs.map((spec, i) => (
               <span
                 key={i}
-                className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors duration-300
+                className={`px-2 py-0.5 text-[10px] font-medium rounded-md transition-colors duration-300
                   ${isDark
-                    ? 'bg-dark-surface text-gray-400'
-                    : 'bg-warm-cream text-warm-gray'
+                    ? 'bg-dark-surface/50 text-gray-500'
+                    : 'bg-warm-cream/70 text-warm-gray/80'
                   }
                 `}
               >
