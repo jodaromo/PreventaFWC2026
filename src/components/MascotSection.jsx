@@ -170,6 +170,8 @@ const mascots = [
 
 // Mascot Modal Component - Rich & Modern Design
 const MascotModal = ({ mascot, onClose, isDark }) => {
+  const scrollContainerRef = useRef(null);
+
   // Lock body scroll when modal is open
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow;
@@ -179,6 +181,26 @@ const MascotModal = ({ mascot, onClose, isDark }) => {
     };
   }, []);
 
+  // Prevent scroll from bleeding through to page
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const handleWheel = (e) => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      const isAtTop = scrollTop === 0;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
+
+      // If at boundaries and trying to scroll further, prevent it
+      if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
+        e.preventDefault();
+      }
+    };
+
+    scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
+    return () => scrollContainer.removeEventListener('wheel', handleWheel);
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -186,6 +208,7 @@ const MascotModal = ({ mascot, onClose, isDark }) => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
+      onWheel={(e) => e.stopPropagation()} // Stop wheel events from reaching page
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -197,9 +220,10 @@ const MascotModal = ({ mascot, onClose, isDark }) => {
         `}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Scrollable container with hidden scrollbar */}
+        {/* Scrollable container with scroll containment */}
         <div
-          className="max-h-[85vh] overflow-y-auto"
+          ref={scrollContainerRef}
+          className="max-h-[85vh] overflow-y-auto overscroll-contain"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
         >
           <style>{`div::-webkit-scrollbar { display: none; }`}</style>
@@ -451,10 +475,9 @@ const MascotSection = () => {
   // Motion value for tracking drag position in real-time
   const dragX = useMotionValue(0);
 
-  // Card width for calculating drag-to-index translation
-  const CARD_WIDTH = 280;
-  const DRAG_THRESHOLD = 50;
-  const VELOCITY_THRESHOLD = 500;
+  // Much lower thresholds for native feel
+  const DRAG_THRESHOLD = 20; // Reduced from 50 - triggers earlier
+  const VELOCITY_THRESHOLD = 200; // Reduced from 500 - flicks register easier
 
   const nextMascot = () => {
     setCurrentIndex((prev) => (prev + 1) % mascots.length);
@@ -464,22 +487,38 @@ const MascotSection = () => {
     setCurrentIndex((prev) => (prev - 1 + mascots.length) % mascots.length);
   };
 
-  // Handle scroll wheel with debounce feeling
+  // Handle scroll wheel - must use useEffect to add non-passive listener
   const wheelTimeout = useRef(null);
-  const handleWheel = (e) => {
-    e.preventDefault();
-    if (wheelTimeout.current) return;
 
-    if (e.deltaY > 0) {
-      nextMascot();
-    } else {
-      prevMascot();
-    }
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
 
-    wheelTimeout.current = setTimeout(() => {
-      wheelTimeout.current = null;
-    }, 300);
-  };
+    const handleWheel = (e) => {
+      // Prevent page scroll when wheeling on carousel
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (wheelTimeout.current) return;
+
+      if (e.deltaY > 0) {
+        nextMascot();
+      } else {
+        prevMascot();
+      }
+
+      wheelTimeout.current = setTimeout(() => {
+        wheelTimeout.current = null;
+      }, 250); // Slightly faster debounce
+    };
+
+    // Must use { passive: false } to allow preventDefault
+    carousel.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      carousel.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   // Handle drag start
   const handleDragStart = () => {
@@ -556,7 +595,6 @@ const MascotSection = () => {
             >
               <div
                 ref={carouselRef}
-                onWheel={handleWheel}
                 className="relative flex flex-col items-center"
               >
                 {/* Stacked cards container with swipe support */}
@@ -564,7 +602,8 @@ const MascotSection = () => {
                   className="relative w-[340px] sm:w-[400px] h-[380px] sm:h-[430px] flex items-center justify-center cursor-grab active:cursor-grabbing"
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.3}
+                  dragElastic={0.5} // Increased for more responsive feel
+                  dragMomentum={false} // We handle momentum ourselves
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   style={{ x: dragX, touchAction: 'pan-y' }}
