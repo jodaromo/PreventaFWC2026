@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Minus, Plus, Sparkles, X } from 'lucide-react';
+import { Minus, Plus, Sparkles, X, Info } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { getAssetPath, img } from '../utils/assets';
 
@@ -137,6 +137,8 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
 
   // Check if this is the Caja Display (product id 1)
   const isCajaDisplay = product.id === 1;
+  // Check if product has price disclaimer (unconfirmed price)
+  const hasPriceDisclaimer = product.priceDisclaimer;
 
   return (
     <>
@@ -301,21 +303,39 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           {/* Spacer to push price and controls to bottom */}
           <div className="flex-1" />
 
-          {/* Price + Disclaimer row */}
+          {/* Price row */}
           <div className="flex items-end justify-between gap-2">
-            <p className={`text-2xl sm:text-3xl font-bold transition-colors duration-300
+            <p className={`text-xl font-bold transition-colors duration-300
               ${isDark ? 'text-white' : 'text-warm-brown'}
             `}>
-              {product.priceFormatted.split(' ')[0]}
+              {product.priceFormatted}
             </p>
 
             {/* Reference image disclaimer */}
-            <p className={`text-[10px] leading-tight text-right max-w-[100px] transition-colors duration-300
+            <p className={`text-[9px] leading-tight text-right max-w-[60px] transition-colors duration-300
               ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
             `}>
               *Imagen de referencia
             </p>
           </div>
+
+          {/* Price disclaimer marquee for unconfirmed prices */}
+          {hasPriceDisclaimer && (
+            <div className={`mt-1.5 overflow-hidden rounded ${
+              isDark ? 'bg-maple/20' : 'bg-maple/10'
+            }`}>
+              <div className="flex items-center gap-3 py-1 animate-marquee whitespace-nowrap">
+                <span className={`text-[9px] font-medium ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>
+                  ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                </span>
+                <span className="text-maple text-[9px]">•</span>
+                <span className={`text-[9px] font-medium ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>
+                  ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                </span>
+                <span className="text-maple text-[9px]">•</span>
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
 
