@@ -273,18 +273,18 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                   }}
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
-                  className="relative flex items-center gap-1 cursor-pointer ml-1"
+                  className="relative flex flex-col items-center cursor-pointer ml-2"
                 >
                   <img
                     src={img('card-extra-blue.jpg')}
                     alt="Extra Sticker"
-                    className="w-8 h-10 object-cover object-top rounded-sm drop-shadow-lg -rotate-6"
+                    className="w-auto h-10 object-contain drop-shadow-lg -rotate-6 -mb-1"
                     style={{ mixBlendMode: isDark ? 'lighten' : 'multiply' }}
                   />
-                  <span className={`text-[9px] font-semibold leading-tight text-left transition-colors
+                  <span className={`text-[8px] font-semibold leading-tight text-center transition-colors
                     ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-warm-gray hover:text-warm-brown'}
                   `}>
-                    Extra<br/>Stickers
+                    Extra Stickers
                   </span>
                 </motion.button>
               )}
