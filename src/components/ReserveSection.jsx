@@ -9,7 +9,7 @@ import { products } from '../data/products';
 import { getAssetPath } from '../utils/assets';
 
 // Google Apps Script Web App URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwcMXQ5VFuqMB9iqV2BqlUUmt0Xx8lMOZcJgZ-gItI0RgrY3ka8ECmMMqcfRUKvlxEqg/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSr-KnzROWmdhHSCEjLGVUKojaTwgShiEx0viKdBZDqfT3RtJK323IrVSDBqSVDrgOMw/exec';
 
 // Info sections data generator (needs isDark for content)
 const getInfoSections = (isDark) => [

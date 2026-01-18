@@ -4,7 +4,7 @@ import { User, Phone, Mail, CheckCircle, AlertCircle, Loader2, RefreshCw } from 
 import { products } from '../data/products';
 
 // Google Apps Script Web App URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzVxAr5Kbgf5qrOYirg2P6_J9sIKSHkylP1wfBUmf8zQdTXsK0uqnW-LJ7TLDhbWptqg/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSr-KnzROWmdhHSCEjLGVUKojaTwgShiEx0viKdBZDqfT3RtJK323IrVSDBqSVDrgOMw/exec';
 
 const ContactForm = ({ cart }) => {
   const [formData, setFormData] = useState({
