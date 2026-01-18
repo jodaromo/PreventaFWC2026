@@ -273,15 +273,21 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                   }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md cursor-pointer transition-all
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg cursor-pointer transition-all
                     ${isDark
                       ? 'bg-dark-surface/90 text-gray-300 hover:bg-dark-border hover:text-white border border-dark-border'
                       : 'bg-warm-cream text-warm-gray hover:bg-warm-cream-dark hover:text-warm-brown border border-warm-tan/40'
                     }
                   `}
                 >
-                  <Sparkles className="w-3 h-3 text-maple" />
-                  <span className="text-[9px] font-semibold">Extra Stickers</span>
+                  <img
+                    src={img('card-extra-blue.jpg')}
+                    alt="Extra Sticker"
+                    className="w-5 h-7 object-cover object-top rounded-sm"
+                  />
+                  <span className="text-[9px] font-semibold leading-tight text-left">
+                    Extra<br/>Stickers
+                  </span>
                 </motion.button>
               )}
             </div>
