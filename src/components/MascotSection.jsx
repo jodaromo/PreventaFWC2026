@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { X, MapPin, ExternalLink } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { img } from '../utils/assets';
@@ -177,6 +177,15 @@ const mascots = [
 
 // Mascot Modal Component - Rich & Modern Design
 const MascotModal = ({ mascot, onClose, isDark }) => {
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -347,6 +356,16 @@ const MascotSection = () => {
     }
   };
 
+  // Handle swipe/drag gestures
+  const handleDragEnd = (event, info) => {
+    const swipeThreshold = 50;
+    if (info.offset.x < -swipeThreshold) {
+      nextMascot();
+    } else if (info.offset.x > swipeThreshold) {
+      prevMascot();
+    }
+  };
+
   return (
     <>
       <section id="mascotas" className={`relative flex-1 flex items-center py-16 sm:py-24 px-6 overflow-hidden transition-colors duration-300
@@ -388,8 +407,14 @@ const MascotSection = () => {
                 onWheel={handleWheel}
                 className="relative flex flex-col items-center"
               >
-                {/* Stacked cards container */}
-                <div className="relative w-[340px] sm:w-[400px] h-[380px] sm:h-[430px] flex items-center justify-center">
+                {/* Stacked cards container with swipe support */}
+                <motion.div
+                  className="relative w-[340px] sm:w-[400px] h-[380px] sm:h-[430px] flex items-center justify-center touch-pan-y"
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={handleDragEnd}
+                >
                   {mascots.map((mascot, index) => {
                     // Calculate circular offset (-1, 0, 1) wrapping around
                     let offset = index - currentIndex;
@@ -457,7 +482,7 @@ const MascotSection = () => {
                       </motion.button>
                     );
                   })}
-                </div>
+                </motion.div>
 
                 {/* Dots indicator */}
                 <div className="flex gap-2 mt-4">
