@@ -204,28 +204,6 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             />
           </div>
 
-          {/* Extra Stickers Badge - Only for Caja Display */}
-          {isCajaDisplay && (
-            <motion.button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowExtraStickersModal(true);
-              }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className={`absolute bottom-3 left-3 z-10 flex items-center gap-1 px-2 py-1 rounded-md cursor-pointer transition-all
-                ${isDark
-                  ? 'bg-dark-surface/90 text-gray-300 hover:bg-dark-border hover:text-white border border-dark-border'
-                  : 'bg-white/90 text-warm-gray hover:bg-white hover:text-warm-brown border border-warm-tan/40'
-                }
-                backdrop-blur-sm shadow-sm
-              `}
-            >
-              <Sparkles className="w-3 h-3 text-maple" />
-              <span className="text-[9px] font-semibold">Extra Stickers</span>
-            </motion.button>
-          )}
-
           {/* Quantity Controls - Bottom right of image */}
           <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
             <motion.button
@@ -278,11 +256,35 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
         <div className="relative p-5 flex flex-col">
           {/* Title + Price block */}
           <div className="mb-3">
-            <h3 className={`text-xl sm:text-2xl font-bold leading-tight transition-colors duration-300
-              ${isDark ? 'text-white' : 'text-warm-brown'}
-            `}>
-              {product.name}
-            </h3>
+            {/* Title row with Extra Stickers button */}
+            <div className="flex items-center gap-2">
+              <h3 className={`text-xl sm:text-2xl font-bold leading-tight transition-colors duration-300
+                ${isDark ? 'text-white' : 'text-warm-brown'}
+              `}>
+                {product.name}
+              </h3>
+
+              {/* Extra Stickers Badge - Only for Caja Display */}
+              {isCajaDisplay && (
+                <motion.button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowExtraStickersModal(true);
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md cursor-pointer transition-all
+                    ${isDark
+                      ? 'bg-dark-surface/90 text-gray-300 hover:bg-dark-border hover:text-white border border-dark-border'
+                      : 'bg-warm-cream text-warm-gray hover:bg-warm-cream-dark hover:text-warm-brown border border-warm-tan/40'
+                    }
+                  `}
+                >
+                  <Sparkles className="w-3 h-3 text-maple" />
+                  <span className="text-[9px] font-semibold">Extra Stickers</span>
+                </motion.button>
+              )}
+            </div>
 
             {/* Price - secondary to title */}
             <p className={`text-lg sm:text-xl font-semibold mt-2 transition-colors duration-300
