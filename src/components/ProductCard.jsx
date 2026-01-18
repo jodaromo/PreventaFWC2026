@@ -298,15 +298,27 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                   ? 'bg-white/5 border-white/10'
                   : 'bg-black/5 border-black/10'
               }`}>
-                <div className="flex items-center gap-3 py-0.5 animate-marquee whitespace-nowrap">
-                  <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
-                    ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
-                  </span>
-                  <span className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
-                  <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
-                    ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
-                  </span>
-                  <span className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                <div className="marquee-container py-0.5">
+                  <div className="marquee-track">
+                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                      ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                    </span>
+                    <span className={`text-[9px] mx-3 ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                      ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                    </span>
+                    <span className={`text-[9px] mx-3 ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                  </div>
+                  <div className="marquee-track" aria-hidden="true">
+                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                      ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                    </span>
+                    <span className={`text-[9px] mx-3 ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                      ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                    </span>
+                    <span className={`text-[9px] mx-3 ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                  </div>
                 </div>
               </div>
             )}
