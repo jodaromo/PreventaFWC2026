@@ -564,19 +564,19 @@ const MascotSection = () => {
                 className="grid grid-cols-3 gap-3 sm:gap-4"
               >
                 {/* Stadiums */}
-                <div className={`group relative p-4 rounded-2xl border transition-all duration-300 cursor-default
+                <div className={`group relative p-3 sm:p-4 rounded-2xl border transition-all duration-300 cursor-default
                   ${isDark
                     ? 'bg-dark-surface/50 border-dark-border hover:border-maple/50 hover:bg-dark-surface'
                     : 'bg-white/60 border-warm-tan/30 hover:border-maple/50 hover:shadow-lg'
                   }
                 `}>
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl sm:text-4xl">🏟️</div>
+                  <div className="flex flex-col sm:flex-row items-center sm:gap-3">
+                    <div className="text-2xl sm:text-4xl mb-1 sm:mb-0">🏟️</div>
                     <div className="flex-1 text-center">
-                      <div className={`font-fifa text-2xl sm:text-3xl font-normal ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                      <div className={`font-fifa text-xl sm:text-3xl font-normal ${isDark ? 'text-white' : 'text-warm-brown'}`}>
                         16
                       </div>
-                      <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      <div className={`text-[10px] sm:text-xs font-medium uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
                         Estadios
                       </div>
                     </div>
@@ -586,26 +586,26 @@ const MascotSection = () => {
                 </div>
 
                 {/* Countries */}
-                <div className={`group relative p-4 rounded-2xl border transition-all duration-300 cursor-default
+                <div className={`group relative p-3 sm:p-4 rounded-2xl border transition-all duration-300 cursor-default
                   ${isDark
                     ? 'bg-dark-surface/50 border-dark-border hover:border-amber-500/50 hover:bg-dark-surface'
                     : 'bg-white/60 border-warm-tan/30 hover:border-amber-500/50 hover:shadow-lg'
                   }
                 `}>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-center sm:gap-3">
                     {/* Flags in triad/triangle format */}
-                    <div className="flex flex-col items-center">
-                      <span className="text-lg sm:text-xl leading-none">🇲🇽</span>
+                    <div className="flex flex-col items-center mb-1 sm:mb-0">
+                      <span className="text-sm sm:text-xl leading-none">🇲🇽</span>
                       <div className="flex gap-0.5 -mt-0.5">
-                        <span className="text-lg sm:text-xl leading-none">🇨🇦</span>
-                        <span className="text-lg sm:text-xl leading-none">🇺🇸</span>
+                        <span className="text-sm sm:text-xl leading-none">🇨🇦</span>
+                        <span className="text-sm sm:text-xl leading-none">🇺🇸</span>
                       </div>
                     </div>
                     <div className="flex-1 text-center">
-                      <div className={`font-fifa text-2xl sm:text-3xl font-normal ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                      <div className={`font-fifa text-xl sm:text-3xl font-normal ${isDark ? 'text-white' : 'text-warm-brown'}`}>
                         3
                       </div>
-                      <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      <div className={`text-[10px] sm:text-xs font-medium uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
                         Países
                       </div>
                     </div>
@@ -615,19 +615,19 @@ const MascotSection = () => {
                 </div>
 
                 {/* Matches */}
-                <div className={`group relative p-4 rounded-2xl border transition-all duration-300 cursor-default
+                <div className={`group relative p-3 sm:p-4 rounded-2xl border transition-all duration-300 cursor-default
                   ${isDark
                     ? 'bg-dark-surface/50 border-dark-border hover:border-indigo-500/50 hover:bg-dark-surface'
                     : 'bg-white/60 border-warm-tan/30 hover:border-indigo-500/50 hover:shadow-lg'
                   }
                 `}>
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl sm:text-4xl">⚽</div>
+                  <div className="flex flex-col sm:flex-row items-center sm:gap-3">
+                    <div className="text-2xl sm:text-4xl mb-1 sm:mb-0">⚽</div>
                     <div className="flex-1 text-center">
-                      <div className={`font-fifa text-2xl sm:text-3xl font-normal ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                      <div className={`font-fifa text-xl sm:text-3xl font-normal ${isDark ? 'text-white' : 'text-warm-brown'}`}>
                         104
                       </div>
-                      <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      <div className={`text-[10px] sm:text-xs font-medium uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
                         Partidos
                       </div>
                     </div>
