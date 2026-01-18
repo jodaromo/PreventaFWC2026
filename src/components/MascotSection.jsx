@@ -1,15 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import { X, MapPin, ExternalLink } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { img } from '../utils/assets';
-
-// Mascot color mapping for dynamic text colors
-const mascotTextColors = {
-  maple: 'text-maple',      // Canada Red #B91C1C
-  zayu: 'text-zayu',        // Mexico Green #006847
-  clutch: 'text-clutch',    // USA Navy #1E3A8A
-};
 
 // Mascot data with full stories and stadiums
 const mascots = [
@@ -332,11 +325,136 @@ const MascotModal = ({ mascot, onClose, isDark }) => {
   );
 };
 
+// Individual Mascot Card with real-time drag tracking
+const MascotCard = ({
+  mascot,
+  isActive,
+  isLeft,
+  isRight,
+  isDragging,
+  dragX,
+  isDark,
+  onSelect,
+}) => {
+  // Base positions for each card state
+  const baseX = isActive ? 0 : isLeft ? -70 : 70;
+  const baseScale = isActive ? 1 : 0.82;
+  const baseOpacity = isActive ? 1 : 0.6;
+
+  // Transform drag position to card movement (cards follow finger with parallax effect)
+  // Active card moves 1:1, side cards move slightly less for depth
+  const dragInfluence = isActive ? 1 : 0.5;
+  const x = useTransform(dragX, (value) => baseX + value * dragInfluence);
+
+  // Scale responds to drag - cards grow/shrink as they approach center
+  const scale = useTransform(dragX, [-150, 0, 150], [
+    isLeft ? 0.95 : isActive ? 0.88 : 0.75,
+    baseScale,
+    isRight ? 0.95 : isActive ? 0.88 : 0.75,
+  ]);
+
+  // Opacity shifts with drag
+  const opacity = useTransform(dragX, [-150, 0, 150], [
+    isLeft ? 0.9 : isActive ? 0.7 : 0.4,
+    baseOpacity,
+    isRight ? 0.9 : isActive ? 0.7 : 0.4,
+  ]);
+
+  // Slight rotation for more organic feel
+  const rotate = useTransform(dragX, [-200, 0, 200], [
+    isActive ? -3 : isLeft ? -5 : 0,
+    0,
+    isActive ? 3 : isRight ? 5 : 0,
+  ]);
+
+  return (
+    <motion.button
+      onClick={onSelect}
+      className="absolute w-[240px] sm:w-[280px] h-[340px] sm:h-[390px] focus:outline-none select-none"
+      style={{
+        x,
+        scale,
+        opacity,
+        rotate,
+        zIndex: isActive ? 30 : 10,
+      }}
+      animate={!isDragging ? {
+        x: baseX,
+        scale: baseScale,
+        opacity: baseOpacity,
+        rotate: 0,
+      } : undefined}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8,
+      }}
+    >
+      <div className={`relative rounded-3xl overflow-hidden h-full w-full shadow-xl
+        ${isActive ? 'shadow-2xl' : 'shadow-lg'}
+        ${isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-black/5'}
+      `}>
+        {/* Mascot Image */}
+        <img
+          src={img(mascot.image)}
+          alt={mascot.name}
+          className="w-full h-full object-cover pointer-events-none"
+          draggable={false}
+        />
+
+        {/* Gradient overlay */}
+        <div className={`absolute inset-0 transition-opacity duration-200
+          ${isActive
+            ? 'bg-gradient-to-t from-black/80 via-black/20 to-transparent'
+            : 'bg-black/40'
+          }
+        `} />
+
+        {/* Flag - top right (active only) */}
+        {isActive && (
+          <motion.div
+            className="absolute top-4 right-4"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 400 }}
+          >
+            <span className="text-3xl drop-shadow-lg">{mascot.flag}</span>
+          </motion.div>
+        )}
+
+        {/* Content at bottom (active only) */}
+        {isActive && (
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 p-5"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05, duration: 0.2 }}
+          >
+            <h3 className="text-2xl sm:text-3xl font-bold mb-1 text-white">{mascot.name}</h3>
+            <p className="text-white/80 text-sm font-medium">{mascot.animal}</p>
+            <p className="text-white/60 text-sm">{mascot.country} • {mascot.stadiums.length} estadios</p>
+          </motion.div>
+        )}
+      </div>
+    </motion.button>
+  );
+};
+
 const MascotSection = () => {
   const [activeMascot, setActiveMascot] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const { isDark } = useTheme();
   const carouselRef = useRef(null);
+
+  // Motion value for tracking drag position in real-time
+  const dragX = useMotionValue(0);
+
+  // Card width for calculating drag-to-index translation
+  const CARD_WIDTH = 280;
+  const DRAG_THRESHOLD = 50;
+  const VELOCITY_THRESHOLD = 500;
 
   const nextMascot = () => {
     setCurrentIndex((prev) => (prev + 1) % mascots.length);
@@ -346,24 +464,58 @@ const MascotSection = () => {
     setCurrentIndex((prev) => (prev - 1 + mascots.length) % mascots.length);
   };
 
-  // Handle scroll wheel
+  // Handle scroll wheel with debounce feeling
+  const wheelTimeout = useRef(null);
   const handleWheel = (e) => {
     e.preventDefault();
+    if (wheelTimeout.current) return;
+
     if (e.deltaY > 0) {
       nextMascot();
     } else {
       prevMascot();
     }
+
+    wheelTimeout.current = setTimeout(() => {
+      wheelTimeout.current = null;
+    }, 300);
   };
 
-  // Handle swipe/drag gestures
+  // Handle drag start
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  // Handle swipe/drag gestures with velocity support
   const handleDragEnd = (event, info) => {
-    const swipeThreshold = 50;
-    if (info.offset.x < -swipeThreshold) {
-      nextMascot();
-    } else if (info.offset.x > swipeThreshold) {
-      prevMascot();
+    setIsDragging(false);
+
+    const offset = info.offset.x;
+    const velocity = info.velocity.x;
+
+    // Quick flick detection (velocity-based)
+    if (Math.abs(velocity) > VELOCITY_THRESHOLD) {
+      if (velocity < 0) {
+        nextMascot();
+      } else {
+        prevMascot();
+      }
     }
+    // Slow drag detection (distance-based)
+    else if (Math.abs(offset) > DRAG_THRESHOLD) {
+      if (offset < 0) {
+        nextMascot();
+      } else {
+        prevMascot();
+      }
+    }
+
+    // Animate drag position back to 0 with spring
+    animate(dragX, 0, {
+      type: "spring",
+      stiffness: 400,
+      damping: 30,
+    });
   };
 
   return (
@@ -409,11 +561,14 @@ const MascotSection = () => {
               >
                 {/* Stacked cards container with swipe support */}
                 <motion.div
-                  className="relative w-[340px] sm:w-[400px] h-[380px] sm:h-[430px] flex items-center justify-center touch-pan-y"
+                  className="relative w-[340px] sm:w-[400px] h-[380px] sm:h-[430px] flex items-center justify-center cursor-grab active:cursor-grabbing"
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.2}
+                  dragElastic={0.3}
+                  onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
+                  style={{ x: dragX, touchAction: 'pan-y' }}
+                  whileTap={{ cursor: 'grabbing' }}
                 >
                   {mascots.map((mascot, index) => {
                     // Calculate circular offset (-1, 0, 1) wrapping around
@@ -426,60 +581,25 @@ const MascotSection = () => {
                     const isRight = offset === 1;
 
                     return (
-                      <motion.button
+                      <MascotCard
                         key={mascot.id}
-                        onClick={() => {
-                          if (isActive) {
-                            setActiveMascot(mascot);
-                          } else {
-                            setCurrentIndex(index);
+                        mascot={mascot}
+                        isActive={isActive}
+                        isLeft={isLeft}
+                        isRight={isRight}
+                        isDragging={isDragging}
+                        dragX={dragX}
+                        isDark={isDark}
+                        onSelect={() => {
+                          if (!isDragging) {
+                            if (isActive) {
+                              setActiveMascot(mascot);
+                            } else {
+                              setCurrentIndex(index);
+                            }
                           }
                         }}
-                        className="absolute w-[240px] sm:w-[280px] h-[340px] sm:h-[390px] focus:outline-none"
-                        animate={{
-                          x: isActive ? 0 : isLeft ? -60 : 60,
-                          scale: isActive ? 1 : 0.85,
-                          zIndex: isActive ? 30 : 10,
-                          opacity: isActive ? 1 : 0.5,
-                        }}
-                        transition={{ type: "spring", stiffness: 260, damping: 26 }}
-                      >
-                        <div className={`relative rounded-3xl overflow-hidden h-full w-full shadow-xl
-                          ${isActive ? 'shadow-2xl' : 'shadow-lg'}
-                          ${isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-black/5'}
-                        `}>
-                          {/* Mascot Image */}
-                          <img
-                            src={img(mascot.image)}
-                            alt={mascot.name}
-                            className="w-full h-full object-cover"
-                          />
-
-                          {/* Gradient overlay */}
-                          <div className={`absolute inset-0
-                            ${isActive
-                              ? 'bg-gradient-to-t from-black/80 via-black/20 to-transparent'
-                              : 'bg-black/40'
-                            }
-                          `} />
-
-                          {/* Flag - top right (active only) */}
-                          {isActive && (
-                            <div className="absolute top-4 right-4">
-                              <span className="text-3xl drop-shadow-lg">{mascot.flag}</span>
-                            </div>
-                          )}
-
-                          {/* Content at bottom (active only) */}
-                          {isActive && (
-                            <div className="absolute bottom-0 left-0 right-0 p-5">
-                              <h3 className="text-2xl sm:text-3xl font-bold mb-1 text-white">{mascot.name}</h3>
-                              <p className="text-white/80 text-sm font-medium">{mascot.animal}</p>
-                              <p className="text-white/60 text-sm">{mascot.country} • {mascot.stadiums.length} estadios</p>
-                            </div>
-                          )}
-                        </div>
-                      </motion.button>
+                      />
                     );
                   })}
                 </motion.div>

@@ -3,6 +3,14 @@ import { Minus, Plus } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { getAssetPath } from '../utils/assets';
 
+// Spring config for buttery hover feel
+const cardSpring = {
+  type: "spring",
+  stiffness: 400,
+  damping: 25,
+  mass: 0.5,
+};
+
 const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
   const { isDark } = useTheme();
   const isSelected = quantity > 0;
@@ -13,7 +21,15 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className={`relative rounded-2xl overflow-hidden border-2 flex flex-col transition-all duration-300
+      whileHover={{
+        y: -4,
+        transition: cardSpring,
+      }}
+      whileTap={{
+        scale: 0.98,
+        transition: { duration: 0.1 },
+      }}
+      className={`relative rounded-2xl overflow-hidden border-2 flex flex-col transition-colors duration-300
         ${isDark
           ? isSelected
             ? 'bg-dark-bg-card border-maple shadow-xl shadow-maple/20'
@@ -22,7 +38,6 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             ? 'bg-white border-maple shadow-xl shadow-maple/20'
             : 'bg-white border-warm-tan/30 shadow-lg hover:shadow-xl hover:border-maple/50'
         }`}
-      style={{ transition: 'box-shadow 0.3s ease, border-color 0.3s ease' }}
     >
       {/* Badge - with dark background for contrast */}
       {product.badge && (
@@ -66,42 +81,53 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
 
         {/* Quantity Controls - Bottom right of image */}
         <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
-          <button
+          <motion.button
             onClick={(e) => {
               e.stopPropagation();
               onQuantityChange(product.id, quantity - 1);
             }}
             disabled={quantity === 0}
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150 ease-out shadow-md
+            whileTap={quantity > 0 ? { scale: 0.85 } : {}}
+            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+            className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md
               ${quantity === 0
                 ? isDark
                   ? 'bg-dark-surface/80 text-gray-500 cursor-not-allowed'
                   : 'bg-white/80 text-warm-gray cursor-not-allowed'
                 : isDark
-                  ? 'bg-dark-surface text-white hover:bg-dark-border active:scale-95'
-                  : 'bg-white text-warm-brown hover:bg-warm-cream-dark active:scale-95'
+                  ? 'bg-dark-surface text-white hover:bg-dark-border'
+                  : 'bg-white text-warm-brown hover:bg-warm-cream-dark'
               }
             `}
           >
             <Minus className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
 
-          <span className={`w-5 text-center font-bold text-base tabular-nums transition-colors duration-300
-            ${isDark ? 'text-white drop-shadow-lg' : 'text-warm-brown drop-shadow-sm'}
-          `}>
+          <motion.span
+            key={quantity}
+            initial={{ scale: 1.3, opacity: 0.5 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 25 }}
+            className={`w-5 text-center font-bold text-base tabular-nums
+              ${isDark ? 'text-white drop-shadow-lg' : 'text-warm-brown drop-shadow-sm'}
+            `}
+          >
             {quantity}
-          </span>
+          </motion.span>
 
-          <button
+          <motion.button
             onClick={(e) => {
               e.stopPropagation();
               onQuantityChange(product.id, quantity + 1);
             }}
-            className="w-7 h-7 rounded-full flex items-center justify-center active:scale-95 transition-all duration-150 ease-out shadow-lg
+            whileTap={{ scale: 0.85 }}
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+            className="w-7 h-7 rounded-full flex items-center justify-center shadow-lg
               bg-maple text-white hover:bg-maple-dark"
           >
             <Plus className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
         </div>
       </div>
 

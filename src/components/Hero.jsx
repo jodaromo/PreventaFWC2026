@@ -1,7 +1,25 @@
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { presaleStatus } from '../data/products';
 import { img } from '../utils/assets';
+import { useEffect } from 'react';
+
+// Custom organic float animation - more natural than CSS keyframes
+const floatVariants = {
+  animate: {
+    y: [0, -12, 0, -8, 0],
+    rotate: [0, 0.5, 0, -0.3, 0],
+    transition: {
+      duration: 6,
+      ease: [0.45, 0.05, 0.55, 0.95], // Custom bezier for organic feel
+      repeat: Infinity,
+      repeatType: "loop",
+    },
+  },
+};
+
+// Smooth progress bar easing - starts slow, accelerates, then eases out
+const progressBarEasing = [0.34, 1.56, 0.64, 1]; // Slight overshoot for satisfying feel
 
 // Calculate dynamic presale percentage and days left based on presaleStatus from products.js
 const getPresaleData = () => {
@@ -189,13 +207,18 @@ const Hero = () => {
                   </div>
                 </div>
 
-                {/* Progress bar */}
+                {/* Progress bar with satisfying overshoot */}
                 <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-warm-tan/50'}`}>
                   <motion.div
                     className="h-full rounded-full bg-gradient-to-r from-maple to-maple-light"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${presaleData.percentage}%` }}
-                    transition={{ duration: 1.2, delay: 0.7, ease: "easeOut" }}
+                    initial={{ width: 0, opacity: 0.7 }}
+                    animate={{ width: `${presaleData.percentage}%`, opacity: 1 }}
+                    transition={{
+                      duration: 1.4,
+                      delay: 0.7,
+                      ease: progressBarEasing,
+                      opacity: { duration: 0.3 }
+                    }}
                   />
                 </div>
 
@@ -237,11 +260,13 @@ const Hero = () => {
               {/* Background glow - mascot colors */}
               <div className="absolute inset-0 blur-3xl rounded-full -z-10 scale-110 bg-gradient-to-br from-maple/20 via-zayu/15 to-clutch/10" />
 
-              {/* Mascots Image - 30% larger */}
-              <img
+              {/* Mascots Image - 30% larger with organic float */}
+              <motion.img
                 src={img('Maple__Zayu_y_Clutch_1.png')}
                 alt="Mascotas FIFA World Cup 2026 - Maple, Zayu y Clutch"
-                className="h-72 sm:h-96 md:h-[26rem] lg:h-[28.5rem] w-auto object-contain drop-shadow-2xl animate-float"
+                className="h-72 sm:h-96 md:h-[26rem] lg:h-[28.5rem] w-auto object-contain drop-shadow-2xl"
+                variants={floatVariants}
+                animate="animate"
               />
 
               {/* Soft floating accents - mascot colors */}
@@ -280,18 +305,41 @@ const Hero = () => {
         <span className="text-base transition-transform duration-200 group-hover:translate-x-0.5">→</span>
       </motion.button>
 
-      {/* Scroll indicator - Bottom center */}
+      {/* Scroll indicator - Bottom center with organic bounce */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.8 }}
         className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden lg:block"
       >
-        <div className={`w-6 h-10 border-2 rounded-full flex items-start justify-center p-2 animate-bounce
-          ${isDark ? 'border-white/20' : 'border-warm-brown/20'}
-        `} style={{ animationDuration: '2s' }}>
-          <div className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-white/40' : 'bg-warm-brown/40'}`} />
-        </div>
+        <motion.div
+          className={`w-6 h-10 border-2 rounded-full flex items-start justify-center p-2
+            ${isDark ? 'border-white/20' : 'border-warm-brown/20'}
+          `}
+          animate={{
+            y: [0, 6, 0],
+          }}
+          transition={{
+            duration: 2,
+            ease: [0.45, 0, 0.55, 1], // Smooth in-out
+            repeat: Infinity,
+            repeatType: "loop",
+          }}
+        >
+          <motion.div
+            className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-white/40' : 'bg-warm-brown/40'}`}
+            animate={{
+              y: [0, 12, 0],
+              opacity: [0.4, 0.8, 0.4],
+            }}
+            transition={{
+              duration: 2,
+              ease: [0.45, 0, 0.55, 1],
+              repeat: Infinity,
+              repeatType: "loop",
+            }}
+          />
+        </motion.div>
       </motion.div>
     </section>
   );
