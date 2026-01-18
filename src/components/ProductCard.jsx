@@ -278,18 +278,11 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             </h3>
 
             {/* Price - secondary to title */}
-            <div className="flex items-baseline gap-2 mt-2">
-              <p className={`text-lg sm:text-xl font-semibold transition-colors duration-300
-                ${isDark ? 'text-gray-200' : 'text-warm-brown/80'}
-              `}>
-                {product.priceFormatted}
-              </p>
-              <span className={`text-[9px] transition-colors duration-300
-                ${isDark ? 'text-gray-500' : 'text-warm-gray/50'}
-              `}>
-                *Ref.
-              </span>
-            </div>
+            <p className={`text-lg sm:text-xl font-semibold mt-2 transition-colors duration-300
+              ${isDark ? 'text-gray-200' : 'text-warm-brown/80'}
+            `}>
+              {product.priceFormatted}
+            </p>
 
             {/* Price disclaimer marquee - glassmorphism style */}
             {hasPriceDisclaimer && (
@@ -331,21 +324,28 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             {product.description}
           </p>
 
-          {/* Specs pills */}
-          <div className="flex flex-wrap gap-1.5">
-            {product.specs.map((spec, i) => (
-              <span
-                key={i}
-                className={`px-2 py-0.5 text-[11px] font-medium rounded-full transition-colors duration-300
-                  ${isDark
-                    ? 'bg-dark-surface text-gray-400'
-                    : 'bg-warm-cream text-warm-gray'
-                  }
-                `}
-              >
-                {spec}
-              </span>
-            ))}
+          {/* Specs pills + Reference disclaimer */}
+          <div className="flex items-end justify-between gap-2">
+            <div className="flex flex-wrap gap-1.5">
+              {product.specs.map((spec, i) => (
+                <span
+                  key={i}
+                  className={`px-2 py-0.5 text-[11px] font-medium rounded-full transition-colors duration-300
+                    ${isDark
+                      ? 'bg-dark-surface text-gray-400'
+                      : 'bg-warm-cream text-warm-gray'
+                    }
+                  `}
+                >
+                  {spec}
+                </span>
+              ))}
+            </div>
+            <span className={`text-[9px] whitespace-nowrap transition-colors duration-300
+              ${isDark ? 'text-gray-600' : 'text-warm-gray/50'}
+            `}>
+              *Imagen de referencia
+            </span>
           </div>
         </div>
       </motion.div>
