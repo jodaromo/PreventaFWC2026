@@ -6,5 +6,5 @@ export default defineConfig({
   plugins: [react()],
   // For custom domain: use '/'
   // For GitHub Pages without custom domain: use '/fifa2026-landing/'
-  base: '/',
+  base: '/fifa2026-landing/',
 })
