@@ -257,32 +257,31 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           {/* Title + Price block */}
           <div className="mb-3">
             {/* Title row with Extra Stickers button */}
-            <div className="flex items-center gap-2">
+            <div className="relative">
               <h3 className={`text-xl sm:text-2xl font-bold leading-tight transition-colors duration-300
                 ${isDark ? 'text-white' : 'text-warm-brown'}
               `}>
                 {product.name}
               </h3>
 
-              {/* Extra Stickers Badge - Only for Caja Display */}
+              {/* Extra Stickers Badge - Only for Caja Display - Layered/Absolute */}
               {isCajaDisplay && (
                 <motion.button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowExtraStickersModal(true);
                   }}
-                  whileHover={{ scale: 1.08 }}
+                  whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="relative flex flex-col items-center cursor-pointer ml-2"
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="absolute -top-8 -right-2 flex flex-col items-center cursor-pointer z-10"
                 >
                   <img
                     src={img('card-extra-blue.png')}
                     alt="Extra Sticker"
-                    className="w-auto h-12 object-contain drop-shadow-lg"
-                    style={{ transform: 'perspective(200px) rotateY(-15deg) rotateX(5deg)' }}
+                    className="w-16 h-auto object-contain drop-shadow-xl"
                   />
-                  <span className={`text-[9px] font-medium tracking-wide -mt-1
+                  <span className={`text-[8px] font-semibold tracking-wide -mt-0.5
                     ${isDark ? 'text-gray-400' : 'text-warm-gray'}
                   `}>
                     Extra Stickers
