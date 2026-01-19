@@ -4,16 +4,8 @@ const ThemeContext = createContext(undefined);
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    // Check localStorage first
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('collectpoint-theme');
-      if (stored === 'dark' || stored === 'light') return stored;
-      // Check system preference
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
-    }
-    return 'light';
+    // Always default to dark mode
+    return 'dark';
   });
 
   useEffect(() => {

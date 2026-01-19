@@ -48,9 +48,9 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
                 }`}>
                   {/* Card image - centered and properly sized */}
                   <img
-                    src={img('card-extra-blue.jpg')}
-                    alt="Extra Sticker Blue"
-                    className="h-44 w-auto object-contain"
+                    src={img('extra-cards.png')}
+                    alt="Extra Stickers"
+                    className="h-40 w-auto object-contain"
                   />
 
                   {/* Gradient fade at bottom */}
@@ -59,6 +59,11 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
                       ? 'bg-gradient-to-t from-[#1a1a1a] to-transparent'
                       : 'bg-gradient-to-t from-white to-transparent'
                   }`} />
+
+                  {/* Reference disclaimer - bottom left */}
+                  <span className="absolute bottom-2 left-3 text-[9px] text-white/40 z-10">
+                    *Imagen de referencia
+                  </span>
 
                   {/* Close button */}
                   <button
@@ -182,27 +187,27 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           </div>
         )}
 
-        {/* Reference disclaimer - absolute top left of card */}
-        <span className={`absolute top-2 left-3 text-[9px] z-20 transition-colors duration-300
-          ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
-        `}>
-          *Imagen de referencia
-        </span>
-
         {/* Product Image */}
-        <div className={`relative h-52 sm:h-60 flex items-center justify-center p-5 overflow-hidden group transition-colors duration-300
+        <div className={`relative h-52 sm:h-60 flex items-center justify-center p-5 overflow-hidden transition-colors duration-300
           ${isDark
             ? 'bg-gradient-to-b from-dark-bg-elevated to-dark-bg-card'
             : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
           }
         `}>
-          <div className="relative transition-transform duration-300 ease-out group-hover:scale-105">
+          <div className="relative transition-transform duration-300 ease-out hover:scale-105">
             <img
               src={getAssetPath(product.image)}
               alt={product.name}
               className="h-36 sm:h-44 w-auto object-contain drop-shadow-lg"
             />
           </div>
+
+          {/* Reference disclaimer - bottom left of image */}
+          <span className={`absolute bottom-3 left-3 text-[9px] z-10 transition-colors duration-300
+            ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
+          `}>
+            *Imagen de referencia
+          </span>
 
           {/* Quantity Controls - Bottom right of image */}
           <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
@@ -253,7 +258,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
         </div>
 
         {/* Product Info */}
-        <div className="relative p-5 flex flex-col">
+        <div className="relative px-5 pt-3 pb-5 flex flex-col">
           {/* Title + Price block */}
           <div className="mb-3">
             {/* Title row with Extra Stickers button */}
@@ -264,66 +269,77 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                 {product.name}
               </h3>
 
-              {/* Extra Stickers Badge - Only for Caja Display - Layered/Absolute */}
+              {/* Extra Stickers Badge - Only for Caja Display - Duolingo-style tilt animation */}
               {isCajaDisplay && (
                 <motion.button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowExtraStickersModal(true);
                   }}
-                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileHover={{
+                    scale: 1.2,
+                    rotate: [0, -3, 3, -1.5, 0],
+                    y: -4
+                  }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  className="absolute -top-8 -right-2 flex flex-col items-center cursor-pointer z-10"
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 20,
+                    rotate: { duration: 0.6, ease: "easeInOut" }
+                  }}
+                  className="absolute top-2 right-3 flex flex-col items-center cursor-pointer z-10"
                 >
-                  <img
-                    src={img('card-extra-blue.png')}
-                    alt="Extra Sticker"
-                    className="w-16 h-auto object-contain drop-shadow-xl"
+                  <motion.img
+                    src={img('extra-cards.png')}
+                    alt="Extra Stickers"
+                    className="w-16 h-auto object-contain"
+                    style={{
+                      filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35))'
+                    }}
                   />
-                  <span className={`text-[8px] font-semibold tracking-wide -mt-0.5
-                    ${isDark ? 'text-gray-400' : 'text-warm-gray'}
-                  `}>
-                    Extra Stickers
+                  <span className="flex flex-col items-center mt-1">
+                    <span className="text-[8px] font-extrabold tracking-wider leading-tight gradient-text-animated">
+                      Extra
+                    </span>
+                    <span className="text-[8px] font-extrabold tracking-wider leading-tight gradient-text-animated-delay">
+                      Stickers
+                    </span>
                   </span>
                 </motion.button>
               )}
             </div>
 
             {/* Price - secondary to title */}
-            <p className={`text-lg sm:text-xl font-semibold mt-2 transition-colors duration-300
+            <p className={`text-lg sm:text-xl font-semibold mt-3 mb-1 transition-colors duration-300
               ${isDark ? 'text-gray-200' : 'text-warm-brown/80'}
             `}>
               {product.priceFormatted}
             </p>
 
-            {/* Price disclaimer marquee - glassmorphism style */}
+            {/* Price disclaimer marquee */}
             {hasPriceDisclaimer && (
-              <div className={`mt-1.5 overflow-hidden rounded backdrop-blur-sm border ${
-                isDark
-                  ? 'bg-white/5 border-white/10'
-                  : 'bg-black/5 border-black/10'
-              }`}>
+              <div className="mt-1.5 overflow-hidden">
                 <div className="marquee-container py-0.5">
                   <div className="marquee-track">
-                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
-                      ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      Precio no confirmado — se cobra el mayor hasta confirmación
                     </span>
-                    <span className={`text-[9px] mx-3 ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
-                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
-                      ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                    <span className={`text-[9px] mx-6 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}></span>
+                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      Precio no confirmado — se cobra el mayor hasta confirmación
                     </span>
-                    <span className={`text-[9px] mx-3 ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                    <span className={`text-[9px] mx-6 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}></span>
                   </div>
                   <div className="marquee-track" aria-hidden="true">
-                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
-                      ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      Precio no confirmado — se cobra el mayor hasta confirmación
                     </span>
-                    <span className={`text-[9px] mx-3 ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
-                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
-                      ⚡ Precio no confirmado — se cobra el mayor hasta confirmación
+                    <span className={`text-[9px] mx-6 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}></span>
+                    <span className={`text-[9px] font-medium ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      Precio no confirmado — se cobra el mayor hasta confirmación
                     </span>
-                    <span className={`text-[9px] mx-3 ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>•</span>
+                    <span className={`text-[9px] mx-6 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}></span>
                   </div>
                 </div>
               </div>

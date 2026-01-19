@@ -1,12 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Phone, CheckCircle, AlertCircle, Loader2, RefreshCw,
-  MapPin, Gift, CreditCard, Calendar, Truck
+  MapPin, Gift, CreditCard, Calendar, Truck, ChevronDown, Search, Home, Building2,
+  Map, X, Navigation, ExternalLink, Banknote
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { products } from '../data/products';
-import { getAssetPath } from '../utils/assets';
+import { getAssetPath, img } from '../utils/assets';
+import {
+  departments,
+  viaTypes,
+  propertyTypes,
+  getCitiesByDepartment,
+  getSortedDepartments
+} from '../data/colombiaLocations';
 
 // Google Apps Script Web App URL
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSr-KnzROWmdhHSCEjLGVUKojaTwgShiEx0viKdBZDqfT3RtJK323IrVSDBqSVDrgOMw/exec';
@@ -25,17 +33,696 @@ const formatCurrency = (amount) => {
 const PASTA_BLANDA_PRODUCT = products.find(p => p.id === 3);
 const PASTA_BLANDA_PRICE = PASTA_BLANDA_PRODUCT?.price || 12990;
 
+// Searchable Select Component
+const SearchableSelect = ({
+  options,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  hasError,
+  isDark,
+  icon: Icon,
+  searchable = true
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const filteredOptions = searchable && searchTerm
+    ? options.filter(opt =>
+        (typeof opt === 'string' ? opt : opt.name || opt.label)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      )
+    : options;
+
+  const displayValue = value
+    ? (typeof options[0] === 'string'
+        ? value
+        : options.find(o => o.id === value || o.value === value)?.name ||
+          options.find(o => o.id === value || o.value === value)?.label ||
+          value)
+    : '';
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+        setSearchTerm('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && inputRef.current && searchable) {
+      inputRef.current.focus();
+    }
+  }, [isOpen, searchable]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-3.5 border-2 rounded-xl text-left transition-all duration-200
+          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          ${isDark
+            ? `bg-dark-surface border-dark-border text-dark-text
+               ${isOpen ? 'border-maple' : ''}
+               ${hasError ? 'border-red-500' : ''}`
+            : `bg-white border-warm-tan/50 text-warm-brown
+               ${isOpen ? 'border-maple' : ''}
+               ${hasError ? 'border-red-400' : ''}`
+          }
+        `}
+      >
+        {Icon && (
+          <Icon className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none
+            ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}
+          />
+        )}
+        <span className={`block truncate ${!displayValue ? (isDark ? 'text-dark-text-subtle' : 'text-warm-gray') : ''}`}>
+          {displayValue || placeholder}
+        </span>
+        <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-transform duration-200
+          ${isOpen ? 'rotate-180' : ''} ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}
+        />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className={`absolute z-50 w-full mt-2 rounded-xl border-2 shadow-xl overflow-hidden
+              ${isDark ? 'bg-dark-bg-card border-dark-border' : 'bg-white border-warm-tan/30'}
+            `}
+          >
+            {searchable && (
+              <div className={`p-2 border-b ${isDark ? 'border-dark-border' : 'border-warm-tan/20'}`}>
+                <div className="relative">
+                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4
+                    ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}
+                  />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar..."
+                    className={`w-full pl-9 pr-3 py-2 rounded-lg text-sm outline-none
+                      ${isDark
+                        ? 'bg-dark-surface text-dark-text placeholder-dark-text-subtle'
+                        : 'bg-warm-cream-light text-warm-brown placeholder-warm-gray'
+                      }
+                    `}
+                  />
+                </div>
+              </div>
+            )}
+            <div className="max-h-48 overflow-y-auto">
+              {filteredOptions.length === 0 ? (
+                <div className={`p-3 text-sm text-center ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                  No se encontraron resultados
+                </div>
+              ) : (
+                filteredOptions.map((option, idx) => {
+                  const optValue = typeof option === 'string' ? option : (option.id || option.value);
+                  const optLabel = typeof option === 'string' ? option : (option.name || option.label);
+                  const isSelected = value === optValue;
+
+                  return (
+                    <button
+                      key={optValue + idx}
+                      type="button"
+                      onClick={() => {
+                        onChange(optValue);
+                        setIsOpen(false);
+                        setSearchTerm('');
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-sm transition-colors
+                        ${isSelected
+                          ? isDark
+                            ? 'bg-maple/20 text-maple'
+                            : 'bg-maple/10 text-maple'
+                          : isDark
+                            ? 'text-dark-text hover:bg-dark-surface'
+                            : 'text-warm-brown hover:bg-warm-cream-light'
+                        }
+                      `}
+                    >
+                      {optLabel}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Google Geocoding API Key
+const GOOGLE_GEOCODING_API_KEY = 'AIzaSyCJalpjrmMFRBMGqUd0SJsLmx77FVzUSfM';
+
+// Helper function to parse Colombian address from Google Geocoding response
+const parseGoogleAddress = (result) => {
+  const components = result.address_components || [];
+  const fullAddress = result.formatted_address || '';
+
+  // Extract components
+  let route = '';
+  let streetNumber = '';
+  let city = '';
+  let state = '';
+
+  for (const component of components) {
+    const types = component.types || [];
+    if (types.includes('route')) {
+      route = component.long_name;
+    } else if (types.includes('street_number')) {
+      streetNumber = component.long_name;
+    } else if (types.includes('locality')) {
+      city = component.long_name;
+    } else if (types.includes('administrative_area_level_1')) {
+      state = component.long_name;
+    }
+  }
+
+  // Parse Colombian address patterns from route
+  // e.g., "Carrera 7", "Calle 72", "Avenida 19"
+  const viaPatterns = [
+    { pattern: /^(Carrera|Cra\.?|Cr\.?)\s*(\d+[A-Za-z]?)/i, type: 'Carrera' },
+    { pattern: /^(Calle|Cl\.?)\s*(\d+[A-Za-z]?)/i, type: 'Calle' },
+    { pattern: /^(Avenida|Av\.?|Avenida Calle|Avenida Carrera)\s*(\d+[A-Za-z]?)/i, type: 'Avenida' },
+    { pattern: /^(Diagonal|Dg\.?)\s*(\d+[A-Za-z]?)/i, type: 'Diagonal' },
+    { pattern: /^(Transversal|Tv\.?|Trans\.?)\s*(\d+[A-Za-z]?)/i, type: 'Transversal' },
+    { pattern: /^(Circular)\s*(\d+[A-Za-z]?)/i, type: 'Circular' },
+  ];
+
+  let viaType = '';
+  let viaNumber = '';
+
+  for (const { pattern, type } of viaPatterns) {
+    const match = route.match(pattern);
+    if (match) {
+      viaType = type;
+      viaNumber = match[2];
+      break;
+    }
+  }
+
+  // Try to extract cross street info from full address (e.g., "#72-13")
+  let cruceNumber = '';
+  let placaNumber = '';
+  const crossMatch = fullAddress.match(/#\s*(\d+[A-Za-z]?)(?:\s*-\s*(\d+))?/);
+  if (crossMatch) {
+    cruceNumber = crossMatch[1] || '';
+    placaNumber = crossMatch[2] || '';
+  }
+
+  return {
+    viaType,
+    viaNumber,
+    cruceNumber,
+    placaNumber,
+    route,
+    streetNumber,
+    city,
+    state,
+    fullAddress
+  };
+};
+
+// Google Maps Location Picker Modal
+const GoogleMapsModal = ({ isOpen, onClose, onSelectAddress, isDark }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mapCenter, setMapCenter] = useState({ lat: 4.6097, lng: -74.0817 }); // Bogotá default
+  const [selectedAddress, setSelectedAddress] = useState(null); // Now stores full data
+  const [isLoading, setIsLoading] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const inputRef = useRef(null);
+
+  // Auto-fill options
+  const [autoFillOptions, setAutoFillOptions] = useState({
+    departmentCity: true,
+    address: true,
+  });
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedAddress(null);
+      setSearchQuery('');
+      setLocationError('');
+    }
+  }, [isOpen]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  // Helper function to call geocoding API with retry
+  const geocodeWithRetry = async (url, retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === 'OK') {
+        return data;
+      }
+
+      // If rate limited or denied, wait and retry
+      if (data.status === 'OVER_QUERY_LIMIT' || data.status === 'REQUEST_DENIED') {
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Wait 1s, 2s, 3s
+          continue;
+        }
+      }
+
+      return data; // Return the error response on last try
+    }
+  };
+
+  // Get user's current location
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Tu navegador no soporta geolocalización');
+      return;
+    }
+
+    setIsLoading(true);
+    setLocationError('');
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setMapCenter({ lat: latitude, lng: longitude });
+
+        // Reverse geocode using Google Geocoding API with retry
+        try {
+          const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&language=es&key=${GOOGLE_GEOCODING_API_KEY}`;
+          const data = await geocodeWithRetry(url);
+          console.log('Google Geocoding response:', data);
+
+          if (data.status === 'OK' && data.results && data.results.length > 0) {
+            const parsed = parseGoogleAddress(data.results[0]);
+            setSelectedAddress(parsed);
+          } else if (data.status === 'REQUEST_DENIED') {
+            console.error('API Error:', data.error_message);
+            setLocationError('Error de API. Intenta de nuevo en unos segundos.');
+          } else if (data.status === 'OVER_QUERY_LIMIT') {
+            setLocationError('Demasiadas solicitudes. Intenta en unos segundos.');
+          } else {
+            setLocationError(`No pudimos obtener la dirección. (${data.status})`);
+          }
+        } catch (err) {
+          console.error('Geocoding error:', err);
+          setLocationError('Error al obtener la dirección. Intenta de nuevo.');
+        }
+
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        setLocationError('No pudimos obtener tu ubicación. Verifica los permisos del navegador.');
+        setIsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  // Search for an address using Google Geocoding API
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsLoading(true);
+    setLocationError('');
+
+    try {
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(searchQuery + ', Colombia')}&language=es&key=${GOOGLE_GEOCODING_API_KEY}`;
+      const data = await geocodeWithRetry(url);
+
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const location = result.geometry.location;
+        setMapCenter({ lat: location.lat, lng: location.lng });
+        const parsed = parseGoogleAddress(result);
+        setSelectedAddress(parsed);
+      } else if (data.status === 'ZERO_RESULTS') {
+        setLocationError('No se encontró la dirección. Intenta con más detalles.');
+      } else if (data.status === 'REQUEST_DENIED' || data.status === 'OVER_QUERY_LIMIT') {
+        setLocationError('Demasiadas solicitudes. Intenta en unos segundos.');
+      } else {
+        setLocationError('Error al buscar la dirección. Intenta de nuevo.');
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      setLocationError('Error al buscar la dirección. Intenta de nuevo.');
+    }
+
+    setIsLoading(false);
+  };
+
+  // Use selected address and close
+  const handleUseAddress = () => {
+    if (selectedAddress && onSelectAddress) {
+      onSelectAddress(selectedAddress, autoFillOptions);
+    }
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  // Google Maps embed URL with marker
+  const mapEmbedUrl = `https://www.google.com/maps?q=${mapCenter.lat},${mapCenter.lng}&z=17&output=embed`;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+        {/* Modal Content */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2 }}
+          onClick={(e) => e.stopPropagation()}
+          className={`relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden
+            ${isDark ? 'bg-dark-bg-card' : 'bg-white'}
+          `}
+        >
+          {/* Header */}
+          <div className={`flex items-center justify-between p-4 border-b
+            ${isDark ? 'border-dark-border' : 'border-warm-tan/30'}
+          `}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-xl ${isDark ? 'bg-maple/20' : 'bg-maple/10'}`}>
+                <Map className="w-5 h-5 text-maple" />
+              </div>
+              <div>
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                  Buscar Dirección
+                </h3>
+                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                  Busca o usa tu ubicación actual
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-xl transition-colors
+                ${isDark ? 'hover:bg-dark-surface text-gray-400' : 'hover:bg-warm-cream-light text-warm-gray'}
+              `}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Search Bar */}
+          <div className={`p-4 border-b ${isDark ? 'border-dark-border' : 'border-warm-tan/30'}`}>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5
+                  ${isDark ? 'text-gray-500' : 'text-warm-gray'}
+                `} />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Ej: Carrera 7 con Calle 72, Bogotá"
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 outline-none transition-colors
+                    ${isDark
+                      ? 'bg-dark-surface border-dark-border text-dark-text placeholder-dark-text-subtle focus:border-maple'
+                      : 'bg-warm-cream-light border-warm-tan/30 text-warm-brown placeholder-warm-gray focus:border-maple'
+                    }
+                  `}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearch();
+                    }
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleSearch}
+                disabled={isLoading || !searchQuery.trim()}
+                className="px-4 py-3 rounded-xl font-medium bg-maple text-white hover:bg-maple-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+              </button>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                disabled={isLoading}
+                className={`px-4 py-3 rounded-xl font-medium transition-colors
+                  ${isDark
+                    ? 'bg-dark-surface border-2 border-dark-border text-dark-text hover:border-maple'
+                    : 'bg-warm-cream-light border-2 border-warm-tan/30 text-warm-brown hover:border-maple'
+                  }
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                `}
+                title="Usar mi ubicación"
+              >
+                <Navigation className="w-5 h-5" />
+              </button>
+            </div>
+
+            {locationError && (
+              <p className="mt-2 text-red-500 text-sm flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {locationError}
+              </p>
+            )}
+          </div>
+
+          {/* Map Container */}
+          <div className="relative w-full h-64 sm:h-72">
+            <iframe
+              src={mapEmbedUrl}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Google Maps"
+              className="w-full h-full"
+            />
+            {isLoading && (
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-white animate-spin" />
+              </div>
+            )}
+          </div>
+
+          {/* Selected Address */}
+          <div className={`p-4 border-t ${isDark ? 'border-dark-border' : 'border-warm-tan/30'}`}>
+            {selectedAddress ? (
+              <div className="space-y-3">
+                <div className={`p-3 rounded-xl ${isDark ? 'bg-dark-surface' : 'bg-warm-cream-light'}`}>
+                  <p className={`text-xs font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                    Dirección encontrada:
+                  </p>
+                  <p className={`text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    {selectedAddress.fullAddress}
+                  </p>
+                </div>
+
+                {/* Auto-fill Options */}
+                <div className={`p-3 rounded-xl ${isDark ? 'bg-dark-surface' : 'bg-warm-cream-light'}`}>
+                  <p className={`text-xs font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                    ¿Qué deseas autocompletar?
+                  </p>
+                  <div className="space-y-2">
+                    {/* Department & City Toggle */}
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <div
+                        onClick={() => setAutoFillOptions(prev => ({ ...prev, departmentCity: !prev.departmentCity }))}
+                        className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${
+                          autoFillOptions.departmentCity
+                            ? 'bg-maple'
+                            : isDark ? 'bg-dark-border' : 'bg-warm-tan/50'
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
+                            autoFillOptions.departmentCity ? 'translate-x-4' : ''
+                          }`}
+                        />
+                      </div>
+                      <span className={`text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                        Departamento y Ciudad
+                      </span>
+                      {selectedAddress.city && (
+                        <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>
+                          ({selectedAddress.city})
+                        </span>
+                      )}
+                    </label>
+
+                    {/* Address Toggle */}
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <div
+                        onClick={() => setAutoFillOptions(prev => ({ ...prev, address: !prev.address }))}
+                        className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${
+                          autoFillOptions.address
+                            ? 'bg-maple'
+                            : isDark ? 'bg-dark-border' : 'bg-warm-tan/50'
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
+                            autoFillOptions.address ? 'translate-x-4' : ''
+                          }`}
+                        />
+                      </div>
+                      <span className={`text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                        Dirección
+                      </span>
+                      {selectedAddress.viaType && (
+                        <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>
+                          ({selectedAddress.viaType} {selectedAddress.viaNumber}{selectedAddress.cruceNumber ? ` #${selectedAddress.cruceNumber}` : ''})
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors
+                      ${isDark
+                        ? 'bg-dark-surface border-2 border-dark-border text-dark-text hover:border-maple'
+                        : 'bg-warm-cream-light border-2 border-warm-tan/30 text-warm-brown hover:border-maple'
+                      }
+                    `}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleUseAddress}
+                    className="flex-1 px-4 py-3 rounded-xl font-medium bg-maple text-white hover:bg-maple-dark transition-colors flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Usar dirección
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className={`text-sm text-center ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                Busca una dirección o usa el botón de ubicación para encontrar tu dirección
+              </p>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 const ReserveSection = ({ cart = {} }) => {
   const { isDark } = useTheme();
   const [formData, setFormData] = useState({
     nombre: '',
     whatsapp: '',
-    direccion: '',
-    ciudad: '',
+    // New structured address fields
+    departamento: 'bogota', // Default to Bogotá
+    ciudad: 'Bogotá',
+    viaType: '',
+    viaNumber: '',
+    cruceNumber: '',
+    placaNumber: '',
+    propertyType: '',
+    propertyDetail: '', // Apto 301, Torre A, etc.
+    notas: '',
   });
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState('idle');
-  const [selectedPlan, setSelectedPlan] = useState('flexible'); // 'flexible' (4 payments) or 'rapido' (2 payments)
+  const [selectedPlan, setSelectedPlan] = useState('flexible');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('nequi');
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
+  // Payment methods data
+  const paymentMethods = [
+    { id: 'llave', name: 'Llave', description: 'Transferencia rápida', color: 'bg-blue-500', logo: 'Bre_B_Logo.png' },
+    { id: 'nequi', name: 'Nequi', description: 'Pago móvil', color: 'bg-[#E6007E]', logo: 'Nequi_Logo.png' },
+    { id: 'davibank', name: 'DaviBank', description: 'Pago móvil', color: 'bg-[#ED1C24]', logo: 'DaviBank_Logo.png' },
+    { id: 'bancolombia', name: 'Bancolombia', description: 'Transferencia', color: 'bg-[#FDDA24]', logo: 'bancolombia_logo.png' },
+    { id: 'distribuidor', name: 'Coordinar', description: 'Con distribuidor', color: 'bg-gray-500', logo: 'Coordinate_logo.png' },
+    { id: 'efectivo', name: 'Efectivo', description: 'Pago en efectivo', color: 'bg-emerald-600', icon: Banknote },
+  ];
+
+  // Get cities for selected department
+  const availableCities = getCitiesByDepartment(formData.departamento);
+  const sortedDepartments = getSortedDepartments();
+
+  // Build formatted address string
+  const buildFormattedAddress = () => {
+    let address = '';
+    if (formData.viaType && formData.viaNumber) {
+      const viaInfo = viaTypes.find(v => v.value === formData.viaType);
+      address = `${viaInfo?.abbr || formData.viaType} ${formData.viaNumber}`;
+      if (formData.cruceNumber) {
+        address += ` #${formData.cruceNumber}`;
+        if (formData.placaNumber) {
+          address += `-${formData.placaNumber}`;
+        }
+      }
+    }
+    if (formData.propertyType) {
+      const propDetail = formData.propertyDetail ? ` ${formData.propertyDetail}` : '';
+      if (address) {
+        address += `, ${formData.propertyType}${propDetail}`;
+      } else {
+        address = `${formData.propertyType}${propDetail}`;
+      }
+    }
+    return address;
+  };
+
+  const formattedAddress = buildFormattedAddress();
+
+  // Check if all required fields are filled (for showing payment section)
+  const allFieldsFilled =
+    formData.nombre.trim() !== '' &&
+    formData.whatsapp.trim() !== '' &&
+    formData.departamento !== '' &&
+    formData.ciudad !== '' &&
+    formData.viaType !== '' &&
+    formData.viaNumber.trim() !== '' &&
+    formData.cruceNumber.trim() !== '';
 
   // Get selected products from cart prop
   const selectedProducts = products
@@ -52,22 +739,16 @@ const ReserveSection = ({ cart = {} }) => {
 
   // Calculate totals
   const calculateTotals = () => {
-    // Sum of all purchased products
     const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
-
-    // Free albums value (for display purposes - they're free so don't add to total)
     const freeAlbumsValue = freeAlbumCount * PASTA_BLANDA_PRICE;
-
-    // Total to pay is just the products (free albums are... free)
     const totalToPay = productsTotal;
 
     return {
       productsTotal,
       freeAlbumsValue,
       totalToPay,
-      // Payment plans based on total
-      flexiblePayment: Math.ceil(totalToPay / 4), // 4 payments
-      rapidoPayment: Math.ceil(totalToPay / 2),   // 2 payments
+      flexiblePayment: Math.ceil(totalToPay / 4),
+      rapidoPayment: Math.ceil(totalToPay / 2),
     };
   };
 
@@ -79,7 +760,6 @@ const ReserveSection = ({ cart = {} }) => {
       .join(', ') || 'Selecciona productos';
   };
 
-  // Scroll to products section
   const scrollToProducts = () => {
     document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -97,12 +777,28 @@ const ReserveSection = ({ cart = {} }) => {
       newErrors.whatsapp = 'Ingresa un número válido';
     }
 
-    if (!formData.direccion.trim()) {
-      newErrors.direccion = 'La dirección es requerida';
+    if (!formData.departamento) {
+      newErrors.departamento = 'Selecciona un departamento';
     }
 
-    if (!formData.ciudad.trim()) {
-      newErrors.ciudad = 'La ciudad es requerida';
+    if (!formData.ciudad) {
+      newErrors.ciudad = 'Selecciona una ciudad';
+    }
+
+    if (!formData.viaType) {
+      newErrors.viaType = 'Selecciona el tipo de vía';
+    }
+
+    if (!formData.viaNumber.trim()) {
+      newErrors.viaNumber = 'Ingresa el número de la vía';
+    }
+
+    if (!formData.cruceNumber.trim()) {
+      newErrors.cruceNumber = 'Ingresa el número de cruce';
+    }
+
+    if (!selectedPaymentMethod) {
+      newErrors.paymentMethod = 'Selecciona un método de pago';
     }
 
     setErrors(newErrors);
@@ -117,8 +813,8 @@ const ReserveSection = ({ cart = {} }) => {
     setSubmitStatus('loading');
 
     try {
-      // Get individual product quantities from cart
-      // Product IDs: 1=Caja Display, 2=Álbum Pasta Dura, 3=Álbum Pasta Blanda, 4=Sobre Individual
+      const deptName = sortedDepartments.find(d => d.id === formData.departamento)?.name || formData.departamento;
+
       const payload = {
         nombre: formData.nombre.trim(),
         whatsapp: formData.whatsapp.trim(),
@@ -126,12 +822,17 @@ const ReserveSection = ({ cart = {} }) => {
         albumPastaDura: cart[2] || 0,
         albumPastaBlanda: cart[3] || 0,
         sobreIndividual: cart[4] || 0,
-        regaloPastaBlanda: freeAlbumCount, // Number of free albums (1 per 2 boxes)
+        regaloPastaBlanda: freeAlbumCount,
         totalPagar: totals.totalToPay,
-        planPago: selectedPlan === 'flexible' ? '4 cuotas' : '2 cuotas',
-        cuotaMensual: selectedPlan === 'flexible' ? totals.flexiblePayment : totals.rapidoPayment,
-        direccion: formData.direccion.trim(),
-        ciudad: formData.ciudad.trim(),
+        planPago: selectedPlan === 'directo' ? 'Pago directo' : selectedPlan === 'flexible' ? '4 cuotas' : '2 cuotas',
+        cuotaMensual: selectedPlan === 'directo' ? totals.totalToPay : selectedPlan === 'flexible' ? totals.flexiblePayment : totals.rapidoPayment,
+        metodoPago: paymentMethods.find(m => m.id === selectedPaymentMethod)?.name || selectedPaymentMethod,
+        direccion: formattedAddress,
+        ciudad: formData.ciudad,
+        departamento: deptName,
+        tipoInmueble: formData.propertyType || '',
+        detalleInmueble: formData.propertyDetail || '',
+        notas: formData.notas || '',
       };
 
       await fetch(GOOGLE_SCRIPT_URL, {
@@ -151,7 +852,17 @@ const ReserveSection = ({ cart = {} }) => {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+
+      // Reset city when department changes
+      if (field === 'departamento') {
+        const cities = getCitiesByDepartment(value);
+        newData.ciudad = cities[0] || '';
+      }
+
+      return newData;
+    });
 
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -163,13 +874,40 @@ const ReserveSection = ({ cart = {} }) => {
   };
 
   const handleNewReservation = () => {
-    setFormData({ nombre: '', whatsapp: '', direccion: '', ciudad: '' });
+    setFormData({
+      nombre: '',
+      whatsapp: '',
+      departamento: 'bogota',
+      ciudad: 'Bogotá',
+      viaType: '',
+      viaNumber: '',
+      cruceNumber: '',
+      placaNumber: '',
+      propertyType: '',
+      propertyDetail: '',
+      notas: '',
+    });
     setSubmitStatus('idle');
   };
 
   // Common input styles
   const inputClassName = (hasError, isDisabled) => `
     w-full pl-12 pr-4 py-3.5 border-2 rounded-xl
+    focus:outline-none appearance-none
+    ${isDark
+      ? `bg-dark-surface border-dark-border text-dark-text placeholder-dark-text-subtle
+         focus:border-maple
+         ${hasError ? 'border-red-500 focus:border-red-500' : ''}`
+      : `bg-white border-warm-tan/50 text-warm-brown placeholder-warm-gray
+         focus:border-maple
+         ${hasError ? 'border-red-400 focus:border-red-400' : ''}`
+    }
+    ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+    transition-colors duration-200
+  `;
+
+  const smallInputClassName = (hasError, isDisabled) => `
+    w-full px-3 py-3.5 border-2 rounded-xl text-center
     focus:outline-none appearance-none
     ${isDark
       ? `bg-dark-surface border-dark-border text-dark-text placeholder-dark-text-subtle
@@ -212,7 +950,7 @@ const ReserveSection = ({ cart = {} }) => {
         {/* Main Layout: Form + Summary Side by Side */}
         <div className="grid lg:grid-cols-5 gap-8 lg:gap-10 items-start">
 
-          {/* Left Column: Contact Form (3/5 width) */}
+          {/* Left Column: Contact Form with Payment Plan (3/5 width) */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -296,54 +1034,229 @@ const ReserveSection = ({ cart = {} }) => {
                         Dirección de Entrega
                       </h3>
 
-                      {/* Dirección Field */}
-                      <div>
-                        <div className="relative">
-                          <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
-                          <input
-                            type="text"
-                            value={formData.direccion}
-                            onChange={(e) => handleInputChange('direccion', e.target.value)}
-                            placeholder="Calle, número, barrio"
+                      {/* Department & City Row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Departamento */}
+                        <div>
+                          <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                            Departamento
+                          </label>
+                          <SearchableSelect
+                            options={sortedDepartments}
+                            value={formData.departamento}
+                            onChange={(val) => handleInputChange('departamento', val)}
+                            placeholder="Seleccionar..."
                             disabled={submitStatus === 'loading'}
-                            className={inputClassName(errors.direccion, submitStatus === 'loading')}
+                            hasError={errors.departamento}
+                            isDark={isDark}
+                            icon={MapPin}
                           />
+                          {errors.departamento && (
+                            <motion.p
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="mt-2 text-red-500 text-sm flex items-center gap-1"
+                            >
+                              <AlertCircle className="w-4 h-4" />
+                              {errors.departamento}
+                            </motion.p>
+                          )}
                         </div>
-                        {errors.direccion && (
+
+                        {/* Ciudad */}
+                        <div>
+                          <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                            Ciudad
+                          </label>
+                          <SearchableSelect
+                            options={availableCities}
+                            value={formData.ciudad}
+                            onChange={(val) => handleInputChange('ciudad', val)}
+                            placeholder="Seleccionar..."
+                            disabled={submitStatus === 'loading' || !formData.departamento}
+                            hasError={errors.ciudad}
+                            isDark={isDark}
+                            icon={Building2}
+                          />
+                          {errors.ciudad && (
+                            <motion.p
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="mt-2 text-red-500 text-sm flex items-center gap-1"
+                            >
+                              <AlertCircle className="w-4 h-4" />
+                              {errors.ciudad}
+                            </motion.p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Address Structure */}
+                      <div>
+                        <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                          Dirección
+                        </label>
+                        {/* Address fields row */}
+                        <div className="flex items-center gap-2 w-full max-w-full overflow-x-auto sm:overflow-x-visible">
+                          {/* Via Type */}
+                          <div className="flex-[2] min-w-[100px]">
+                            <SearchableSelect
+                              options={viaTypes}
+                              value={formData.viaType}
+                              onChange={(val) => handleInputChange('viaType', val)}
+                              placeholder="Calle"
+                              disabled={submitStatus === 'loading'}
+                              hasError={errors.viaType}
+                              isDark={isDark}
+                              searchable={false}
+                            />
+                          </div>
+
+                          {/* Via Number */}
+                          <div className="flex-1 min-w-[50px]">
+                            <input
+                              type="text"
+                              value={formData.viaNumber}
+                              onChange={(e) => handleInputChange('viaNumber', e.target.value)}
+                              placeholder="45"
+                              disabled={submitStatus === 'loading'}
+                              className={smallInputClassName(errors.viaNumber, submitStatus === 'loading')}
+                            />
+                          </div>
+
+                          <span className={`text-lg font-bold flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>#</span>
+
+                          {/* Cruce Number */}
+                          <div className="flex-1 min-w-[50px]">
+                            <input
+                              type="text"
+                              value={formData.cruceNumber}
+                              onChange={(e) => handleInputChange('cruceNumber', e.target.value)}
+                              placeholder="23"
+                              disabled={submitStatus === 'loading'}
+                              className={smallInputClassName(errors.cruceNumber, submitStatus === 'loading')}
+                            />
+                          </div>
+
+                          <span className={`text-lg font-bold flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>-</span>
+
+                          {/* Placa Number */}
+                          <div className="flex-1 min-w-[50px]">
+                            <input
+                              type="text"
+                              value={formData.placaNumber}
+                              onChange={(e) => handleInputChange('placaNumber', e.target.value)}
+                              placeholder="10"
+                              disabled={submitStatus === 'loading'}
+                              className={smallInputClassName(false, submitStatus === 'loading')}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Google Maps Button - on its own row */}
+                        <motion.button
+                          type="button"
+                          onClick={() => setIsMapModalOpen(true)}
+                          disabled={submitStatus === 'loading'}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className={`mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all duration-200 w-full
+                            ${isDark
+                              ? 'bg-dark-surface border-dark-border text-gray-300 hover:border-maple hover:text-maple'
+                              : 'bg-white border-warm-tan/50 text-warm-gray hover:border-maple hover:text-maple'
+                            }
+                            ${submitStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}
+                          `}
+                        >
+                          <Map className="w-5 h-5" />
+                          <span className="text-sm font-medium">Buscar dirección en Google Maps</span>
+                        </motion.button>
+                        {(errors.viaType || errors.viaNumber || errors.cruceNumber) && (
                           <motion.p
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="mt-2 text-red-500 text-sm flex items-center gap-1"
                           >
                             <AlertCircle className="w-4 h-4" />
-                            {errors.direccion}
+                            Completa la dirección
                           </motion.p>
+                        )}
+                        {/* Preview */}
+                        {formattedAddress && (
+                          <p className={`mt-2 text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                            Vista previa: <span className={isDark ? 'text-white' : 'text-warm-brown'}>{formattedAddress}</span>
+                          </p>
                         )}
                       </div>
 
-                      {/* Ciudad Field */}
-                      <div>
-                        <div className="relative">
-                          <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${isDark ? 'text-gray-500' : 'text-warm-gray'}`} />
-                          <input
-                            type="text"
-                            value={formData.ciudad}
-                            onChange={(e) => handleInputChange('ciudad', e.target.value)}
-                            placeholder="Tu ciudad"
+                      {/* Property Type Row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Property Type */}
+                        <div>
+                          <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                            Tipo de inmueble (opcional)
+                          </label>
+                          <SearchableSelect
+                            options={propertyTypes}
+                            value={formData.propertyType}
+                            onChange={(val) => handleInputChange('propertyType', val)}
+                            placeholder="Seleccionar..."
                             disabled={submitStatus === 'loading'}
-                            className={inputClassName(errors.ciudad, submitStatus === 'loading')}
+                            hasError={false}
+                            isDark={isDark}
+                            icon={Home}
+                            searchable={false}
                           />
                         </div>
-                        {errors.ciudad && (
-                          <motion.p
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="mt-2 text-red-500 text-sm flex items-center gap-1"
-                          >
-                            <AlertCircle className="w-4 h-4" />
-                            {errors.ciudad}
-                          </motion.p>
-                        )}
+
+                        {/* Property Detail */}
+                        <div>
+                          <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                            Detalle (opcional)
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.propertyDetail}
+                            onChange={(e) => handleInputChange('propertyDetail', e.target.value)}
+                            placeholder="Apto 301, Torre A..."
+                            disabled={submitStatus === 'loading'}
+                            className={`w-full px-4 py-3.5 border-2 rounded-xl focus:outline-none transition-colors duration-200
+                              ${isDark
+                                ? 'bg-dark-surface border-dark-border text-dark-text placeholder-dark-text-subtle focus:border-maple'
+                                : 'bg-white border-warm-tan/50 text-warm-brown placeholder-warm-gray focus:border-maple'
+                              }
+                              ${submitStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}
+                            `}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Notes Field */}
+                      <div>
+                        <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                          Notas adicionales (opcional)
+                        </label>
+                        <textarea
+                          value={formData.notas}
+                          onChange={(e) => {
+                            if (e.target.value.length <= 300) {
+                              handleInputChange('notas', e.target.value);
+                            }
+                          }}
+                          placeholder="Indicaciones especiales para la entrega..."
+                          disabled={submitStatus === 'loading'}
+                          rows={2}
+                          className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none resize-none transition-colors duration-200
+                            ${isDark
+                              ? 'bg-dark-surface border-dark-border text-dark-text placeholder-dark-text-subtle focus:border-maple'
+                              : 'bg-white border-warm-tan/50 text-warm-brown placeholder-warm-gray focus:border-maple'
+                            }
+                            ${submitStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}
+                          `}
+                        />
+                        <p className={`text-xs mt-1 text-right ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+                          {formData.notas.length}/300
+                        </p>
                       </div>
 
                       {/* Delivery Timeline Info */}
@@ -359,6 +1272,218 @@ const ReserveSection = ({ cart = {} }) => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Payment Plan Section - Appears after all fields are filled */}
+                    <AnimatePresence>
+                      {allFieldsFilled && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <motion.div
+                            initial={{ y: 20 }}
+                            animate={{ y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
+                            className="space-y-4 pt-2"
+                          >
+                            {/* Combined Payment Method & Plan Selection */}
+                            <h3 className={`font-semibold text-sm flex items-center gap-2 ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                              <CreditCard className="w-4 h-4 text-maple" />
+                              Método y Plan de Pago
+                            </h3>
+
+                              <div className="flex gap-3">
+                                {/* Selected method - vertical card with payment plan options */}
+                                <div
+                                  className={`w-32 flex-shrink-0 p-3 rounded-xl border-2 transition-all duration-200 flex flex-col
+                                    ${isDark
+                                      ? 'border-dark-border bg-dark-surface'
+                                      : 'border-warm-tan/30 bg-warm-cream-light/50'
+                                    }
+                                  `}
+                                >
+                                  {/* Logo + name centered */}
+                                  <div className="flex flex-col items-center mb-3">
+                                    {(() => {
+                                      const method = paymentMethods.find(m => m.id === selectedPaymentMethod);
+                                      const IconComponent = method?.icon;
+                                      return method?.logo ? (
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ring-2 ring-maple ring-offset-2 ${isDark ? 'ring-offset-dark-surface bg-white' : 'ring-offset-warm-cream-light bg-white'}`}>
+                                          <img
+                                            src={getAssetPath(`images/${method.logo}`)}
+                                            alt={method.name}
+                                            className="w-10 h-10 object-contain"
+                                          />
+                                        </div>
+                                      ) : IconComponent ? (
+                                        <div
+                                          className={`w-12 h-12 rounded-xl flex items-center justify-center text-white ring-2 ring-maple ring-offset-2 ${isDark ? 'ring-offset-dark-surface' : 'ring-offset-warm-cream-light'}
+                                            ${method?.color}
+                                          `}
+                                        >
+                                          <IconComponent className="w-6 h-6" />
+                                        </div>
+                                      ) : (
+                                        <div
+                                          className={`w-12 h-12 rounded-xl flex items-center justify-center text-white text-base font-bold ring-2 ring-maple ring-offset-2 ${isDark ? 'ring-offset-dark-surface' : 'ring-offset-warm-cream-light'}
+                                            ${method?.color}
+                                          `}
+                                        >
+                                          {method?.name.substring(0, 2).toUpperCase()}
+                                        </div>
+                                      );
+                                    })()}
+                                    <p className={`text-sm font-extrabold mt-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                                      {paymentMethods.find(m => m.id === selectedPaymentMethod)?.name}
+                                    </p>
+                                  </div>
+
+                                  {/* Plan selection buttons - vertical */}
+                                  <div className="flex flex-col gap-1.5 mt-auto">
+                                    {/* Pago Directo */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedPlan('directo')}
+                                      className={`w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
+                                        ${selectedPlan === 'directo'
+                                          ? 'bg-maple text-white'
+                                          : isDark
+                                            ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
+                                            : 'bg-white text-warm-gray hover:bg-warm-tan/20'
+                                        }
+                                      `}
+                                    >
+                                      <p className={`text-[10px] ${selectedPlan === 'directo' ? 'font-bold' : 'font-medium'}`}>Directo</p>
+                                    </button>
+
+                                    {/* 2 Cuotas */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedPlan('rapido')}
+                                      className={`w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
+                                        ${selectedPlan === 'rapido'
+                                          ? 'bg-maple text-white'
+                                          : isDark
+                                            ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
+                                            : 'bg-white text-warm-gray hover:bg-warm-tan/20'
+                                        }
+                                      `}
+                                    >
+                                      <p className={`text-[10px] ${selectedPlan === 'rapido' ? 'font-bold' : 'font-medium'}`}>2 Cuotas</p>
+                                    </button>
+
+                                    {/* 4 Cuotas */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedPlan('flexible')}
+                                      className={`w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
+                                        ${selectedPlan === 'flexible'
+                                          ? 'bg-maple text-white'
+                                          : isDark
+                                            ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
+                                            : 'bg-white text-warm-gray hover:bg-warm-tan/20'
+                                        }
+                                      `}
+                                    >
+                                      <p className={`text-[10px] ${selectedPlan === 'flexible' ? 'font-bold' : 'font-medium'}`}>4 Cuotas</p>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Plan details + other payment methods */}
+                                <div className="flex-1 flex flex-col gap-3">
+                                  {/* Plan details card */}
+                                  <div
+                                    className={`flex-1 p-4 rounded-xl border-2 transition-all duration-300
+                                      ${isDark
+                                        ? 'border-maple/50 bg-maple/5'
+                                        : 'border-maple/50 bg-maple/5'
+                                      }
+                                    `}
+                                  >
+                                    <p className={`text-[10px] uppercase tracking-wide mb-1 ${isDark ? 'text-maple/70' : 'text-maple/70'}`}>
+                                      {selectedPlan === 'directo' ? 'Pago Único' : selectedPlan === 'rapido' ? '2 Cuotas' : '4 Cuotas'}
+                                    </p>
+                                    <p className={`text-2xl font-bold text-maple`}>
+                                      {selectedPlan === 'directo'
+                                        ? (hasProducts ? formatCurrency(totals.totalToPay) : '$520.000')
+                                        : selectedPlan === 'rapido'
+                                          ? (hasProducts ? formatCurrency(totals.rapidoPayment) : '$260.000')
+                                          : (hasProducts ? formatCurrency(totals.flexiblePayment) : '$130.000')
+                                      }
+                                      {selectedPlan !== 'directo' && (
+                                        <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/mes</span>
+                                      )}
+                                    </p>
+                                    <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                                      {selectedPlan === 'directo'
+                                        ? 'Un solo pago, sin cuotas'
+                                        : selectedPlan === 'rapido'
+                                          ? 'Febrero y Abril — primeros 5 días'
+                                          : 'Feb, Mar, Abr, May — primeros 5 días'
+                                      }
+                                    </p>
+                                  </div>
+
+                                  {/* Other payment methods - horizontal row */}
+                                  <div className="flex gap-2">
+                                    {paymentMethods
+                                      .filter(m => m.id !== selectedPaymentMethod)
+                                      .map((method) => (
+                                        <button
+                                          key={method.id}
+                                          type="button"
+                                          onClick={() => setSelectedPaymentMethod(method.id)}
+                                          disabled={submitStatus === 'loading'}
+                                          className={`flex-1 py-3 px-2 rounded-xl border-2 text-center transition-all duration-200 hover:scale-[1.02] active:scale-95 flex flex-col items-center justify-center
+                                            ${submitStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}
+                                            ${isDark
+                                              ? 'border-dark-border hover:border-maple/50 bg-dark-surface'
+                                              : 'border-warm-tan/40 hover:border-maple/50 bg-warm-cream-light/50'
+                                            }
+                                          `}
+                                        >
+                                          {method.logo ? (
+                                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white">
+                                              <img
+                                                src={getAssetPath(`images/${method.logo}`)}
+                                                alt={method.name}
+                                                className="w-6 h-6 object-contain"
+                                              />
+                                            </div>
+                                          ) : method.icon ? (
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white
+                                              ${method.color}
+                                            `}>
+                                              <method.icon className="w-5 h-5" />
+                                            </div>
+                                          ) : (
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold
+                                              ${method.color}
+                                            `}>
+                                              {method.name.substring(0, 2).toUpperCase()}
+                                            </div>
+                                          )}
+                                          <p className={`text-[9px] font-medium mt-1.5 truncate w-full ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                                            {method.name}
+                                          </p>
+                                        </button>
+                                      ))}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Payment info note */}
+                              <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+                                * El costo del envío es adicional y se coordina al momento de la entrega.
+                              </p>
+                          </motion.div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Submit Button */}
                     <button
@@ -432,7 +1557,6 @@ const ReserveSection = ({ cart = {} }) => {
                               </span>
                             </div>
                           ))}
-                          {/* Show gift in success summary */}
                           {qualifiesForGift && (
                             <div className="flex items-center justify-between text-sm">
                               <span className={isDark ? 'text-emerald-300' : 'text-emerald-700'}>
@@ -453,7 +1577,7 @@ const ReserveSection = ({ cart = {} }) => {
                             Plan: {selectedPlan === 'flexible' ? '4 cuotas' : '2 cuotas'} de {formatCurrency(selectedPlan === 'flexible' ? totals.flexiblePayment : totals.rapidoPayment)}
                           </p>
                           <p className={`text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                            📍 {formData.direccion}, {formData.ciudad}
+                            📍 {formattedAddress}, {formData.ciudad}
                           </p>
                         </div>
                       </div>
@@ -508,7 +1632,7 @@ const ReserveSection = ({ cart = {} }) => {
             </p>
           </motion.div>
 
-          {/* Right Column: Order Summary + Payment Plans (2/5 width) */}
+          {/* Right Column: Order Summary Only (2/5 width) */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -576,10 +1700,12 @@ const ReserveSection = ({ cart = {} }) => {
                           }
                         `}
                       >
-                        <div className={`w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center
-                          ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-100'}
-                        `}>
-                          <Gift className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white">
+                          <img
+                            src={img('product-album.png')}
+                            alt="Álbum Pasta Blanda"
+                            className="w-full h-full object-contain"
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`font-medium text-sm truncate ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
@@ -652,109 +1778,6 @@ const ReserveSection = ({ cart = {} }) => {
               )}
             </div>
 
-            {/* Payment Plans Card - Always visible */}
-            <div className={`rounded-2xl p-5 shadow-lg ${isDark ? 'bg-dark-bg-card' : 'bg-white'}`}>
-              <h3 className={`font-semibold text-sm mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                <Calendar className="w-4 h-4 text-maple" />
-                Plan de Pago
-              </h3>
-
-              <div className="space-y-3">
-                {/* Plan Flexible (4 payments) */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlan('flexible')}
-                  className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200
-                    ${selectedPlan === 'flexible'
-                      ? isDark
-                        ? 'border-maple bg-maple/10'
-                        : 'border-maple bg-maple/5'
-                      : isDark
-                        ? 'border-dark-border hover:border-maple/50 bg-dark-surface'
-                        : 'border-warm-tan/40 hover:border-maple/50 bg-warm-cream-light/50'
-                    }
-                  `}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
-                        ${selectedPlan === 'flexible'
-                          ? 'border-maple bg-maple'
-                          : isDark ? 'border-gray-600' : 'border-warm-tan'
-                        }
-                      `}>
-                        {selectedPlan === 'flexible' && (
-                          <div className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </div>
-                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                        Plan Flexible
-                      </span>
-                    </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-maple/20 text-maple' : 'bg-maple/10 text-maple'}`}>
-                      4 cuotas
-                    </span>
-                  </div>
-                  <p className="text-2xl font-bold text-maple">
-                    {hasProducts ? formatCurrency(totals.flexiblePayment) : '$130.000'}
-                    <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/ mes</span>
-                  </p>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                    Feb, Mar, Abr, May — primeros 5 días
-                  </p>
-                </button>
-
-                {/* Plan Rápido (2 payments) */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlan('rapido')}
-                  className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200
-                    ${selectedPlan === 'rapido'
-                      ? isDark
-                        ? 'border-maple bg-maple/10'
-                        : 'border-maple bg-maple/5'
-                      : isDark
-                        ? 'border-dark-border hover:border-maple/50 bg-dark-surface'
-                        : 'border-warm-tan/40 hover:border-maple/50 bg-warm-cream-light/50'
-                    }
-                  `}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
-                        ${selectedPlan === 'rapido'
-                          ? 'border-maple bg-maple'
-                          : isDark ? 'border-gray-600' : 'border-warm-tan'
-                        }
-                      `}>
-                        {selectedPlan === 'rapido' && (
-                          <div className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </div>
-                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                        Plan Rápido
-                      </span>
-                    </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-maple/20 text-maple' : 'bg-maple/10 text-maple'}`}>
-                      2 cuotas
-                    </span>
-                  </div>
-                  <p className="text-2xl font-bold text-maple">
-                    {hasProducts ? formatCurrency(totals.rapidoPayment) : '$260.000'}
-                    <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/ mes</span>
-                  </p>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                    Febrero y Abril — primeros 5 días
-                  </p>
-                </button>
-              </div>
-
-              {/* Payment info note */}
-              <p className={`text-xs mt-4 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
-                * El costo del envío es adicional y se coordina al momento de la entrega.
-              </p>
-            </div>
-
             {/* Promo Tip - Shows when close to unlocking gift */}
             {boxQuantity === 1 && (
               <motion.div
@@ -783,6 +1806,64 @@ const ReserveSection = ({ cart = {} }) => {
           </motion.div>
         </div>
       </div>
+
+      {/* Google Maps Modal */}
+      <GoogleMapsModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+        onSelectAddress={(addressData, options = { departmentCity: true, address: true }) => {
+          // Fill in department and city if option is enabled
+          if (options.departmentCity && (addressData.state || addressData.city)) {
+            // Find matching department
+            const normalizeStr = (str) => str?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') || '';
+            const stateNorm = normalizeStr(addressData.state);
+            const cityNorm = normalizeStr(addressData.city);
+
+            // Special handling for Bogotá
+            if (stateNorm.includes('bogota') || cityNorm.includes('bogota')) {
+              handleInputChange('department', 'bogota');
+              setTimeout(() => handleInputChange('city', 'Bogotá'), 50);
+            } else {
+              // Find department by name match
+              const matchedDept = departments.find(dept => {
+                const deptNorm = normalizeStr(dept.name);
+                return deptNorm.includes(stateNorm) || stateNorm.includes(deptNorm);
+              });
+
+              if (matchedDept) {
+                handleInputChange('department', matchedDept.id);
+                // Find matching city within department
+                setTimeout(() => {
+                  const matchedCity = matchedDept.cities.find(city => {
+                    const cityListNorm = normalizeStr(city);
+                    return cityListNorm.includes(cityNorm) || cityNorm.includes(cityListNorm);
+                  });
+                  if (matchedCity) {
+                    handleInputChange('city', matchedCity);
+                  }
+                }, 50);
+              }
+            }
+          }
+
+          // Fill in the address fields if option is enabled
+          if (options.address) {
+            if (addressData.viaType) {
+              handleInputChange('viaType', addressData.viaType);
+            }
+            if (addressData.viaNumber) {
+              handleInputChange('viaNumber', addressData.viaNumber);
+            }
+            if (addressData.cruceNumber) {
+              handleInputChange('cruceNumber', addressData.cruceNumber);
+            }
+            if (addressData.placaNumber) {
+              handleInputChange('placaNumber', addressData.placaNumber);
+            }
+          }
+        }}
+        isDark={isDark}
+      />
     </section>
   );
 };

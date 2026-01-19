@@ -273,6 +273,49 @@ body {
   animation: scarcityGlow 2s ease-in-out infinite;
 }
 
+/* Gradient text animation - smooth left to right wave */
+@keyframes gradientWave {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: -100% 50%;
+  }
+}
+
+.gradient-text-animated {
+  background: linear-gradient(
+    90deg,
+    #8b5cf6,
+    #3b82f6,
+    #22c55e,
+    #ef4444,
+    #8b5cf6
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientWave 2s linear infinite;
+}
+
+.gradient-text-animated-delay {
+  background: linear-gradient(
+    90deg,
+    #8b5cf6,
+    #3b82f6,
+    #22c55e,
+    #ef4444,
+    #8b5cf6
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientWave 2s linear infinite;
+  animation-delay: 0.25s;
+}
+
 /* Holographic card shimmer animation */
 @keyframes holoShimmer {
   0% {

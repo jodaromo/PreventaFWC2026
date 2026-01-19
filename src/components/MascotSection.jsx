@@ -168,9 +168,41 @@ const mascots = [
   },
 ];
 
-// Mascot Modal Component - Rich & Modern Design
-const MascotModal = ({ mascot, onClose, isDark }) => {
+// Mascot Modal Component - Card flies from carousel, spins 3 times, reveals info behind
+const MascotModal = ({ mascot, onClose, isDark, cardRect }) => {
   const scrollContainerRef = useRef(null);
+  const [phase, setPhase] = useState('flying'); // 'flying' -> 'spinning' -> 'revealed'
+  const rotateY = useMotionValue(0);
+
+  // Initial card dimensions from carousel
+  const initialWidth = cardRect ? cardRect.width : 280;
+  const initialHeight = cardRect ? cardRect.height : 390;
+
+  // Final expanded card dimensions (comfortable reading size)
+  const expandedWidth = Math.min(420, window.innerWidth - 32);
+  const expandedHeight = Math.min(580, window.innerHeight - 80);
+
+  // Calculate initial position from card rect (center of card to center of screen)
+  const initialX = cardRect ? cardRect.left + cardRect.width / 2 - window.innerWidth / 2 : 0;
+  const initialY = cardRect ? cardRect.top + cardRect.height / 2 - window.innerHeight / 2 : 0;
+
+  // Animation sequence: fly in -> spin 1 time -> reveal back
+  useEffect(() => {
+    // Phase 1: Fly to center
+    const flyTimer = setTimeout(() => {
+      setPhase('spinning');
+      // Phase 2: Spin 1 time (360 degrees) + half (180) to show back = 540 total
+      animate(rotateY, 540, {
+        duration: 0.8,
+        ease: [0.4, 0, 0.2, 1], // Smooth ease-in-out
+        onComplete: () => {
+          setPhase('revealed');
+        }
+      });
+    }, 400); // Wait for fly-in to complete
+
+    return () => clearTimeout(flyTimer);
+  }, [rotateY]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -191,7 +223,6 @@ const MascotModal = ({ mascot, onClose, isDark }) => {
       const isAtTop = scrollTop === 0;
       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
 
-      // If at boundaries and trying to scroll further, prevent it
       if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
         e.preventDefault();
       }
@@ -201,149 +232,272 @@ const MascotModal = ({ mascot, onClose, isDark }) => {
     return () => scrollContainer.removeEventListener('wheel', handleWheel);
   }, []);
 
+  const handleClose = () => {
+    // Quick spin back and fly away fast
+    animate(rotateY, 0, {
+      duration: 0.4,
+      ease: [0.4, 0, 0.2, 1],
+    });
+    setPhase('flying');
+    setTimeout(onClose, 300);
+  };
+
+  // Determine which face to show based on rotation
+  const showBack = useTransform(rotateY, (value) => {
+    // Show back when between 90-270, 450-630, 810-990, 1170-1350, etc.
+    const normalized = value % 360;
+    return normalized > 90 && normalized < 270;
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
-      onWheel={(e) => e.stopPropagation()} // Stop wheel events from reaching page
+      onClick={handleClose}
+      onWheel={(e) => e.stopPropagation()}
     >
+      {/* 3D perspective container */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className={`rounded-3xl max-w-lg w-full max-h-[85vh] shadow-2xl overflow-hidden
-          ${isDark ? 'bg-dark-bg-card' : 'bg-white'}
-        `}
+        initial={{
+          x: initialX,
+          y: initialY,
+          width: initialWidth,
+          height: initialHeight,
+        }}
+        animate={{
+          x: phase !== 'flying' || !cardRect ? 0 : initialX,
+          y: phase !== 'flying' || !cardRect ? 0 : initialY,
+          width: phase !== 'flying' ? expandedWidth : initialWidth,
+          height: phase !== 'flying' ? expandedHeight : initialHeight,
+        }}
+        exit={{
+          x: initialX,
+          y: initialY,
+          width: initialWidth,
+          height: initialHeight,
+          opacity: 0
+        }}
+        transition={{
+          type: "spring",
+          damping: 28,
+          stiffness: 300,
+          mass: 0.8
+        }}
+        style={{
+          perspective: 1200,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Scrollable container with scroll containment */}
-        <div
-          ref={scrollContainerRef}
-          className="max-h-[85vh] overflow-y-auto overscroll-contain"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        {/* Flipping card container */}
+        <motion.div
+          className="relative w-full h-full"
+          style={{
+            rotateY,
+            transformStyle: 'preserve-3d',
+          }}
         >
-          <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-
-          {/* Hero Header */}
-          <div className="relative h-56 sm:h-64 overflow-hidden">
-            <div
-              className="absolute inset-0 bg-cover bg-center scale-105"
-              style={{ backgroundImage: `url(${img(mascot.image)})` }}
+          {/* FRONT FACE - Mascot Card (visible at 0°, 360°, etc.) */}
+          <div
+            className="absolute inset-0 w-full h-full rounded-3xl overflow-hidden shadow-2xl"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'translateZ(1px)', // Force front face to be on top in 3D space
+            }}
+          >
+            <img
+              src={img(mascot.image)}
+              alt={mascot.name}
+              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 flex items-center justify-center transition-all"
+            {/* Flag - hide when back is showing */}
+            <div
+              className="absolute top-4 right-4 z-20"
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+              }}
             >
-              <X className="w-4 h-4 text-white" />
-            </button>
+              <span className="text-3xl drop-shadow-lg">{mascot.flag}</span>
+            </div>
 
-            {/* Hero text */}
-            <div className="absolute bottom-0 left-0 right-0 p-6">
-              <div className="flex items-center gap-2 text-white/80 text-sm mb-2">
-                <span className="text-2xl">{mascot.flag}</span>
-                <span className="font-medium">{mascot.country} • {mascot.animal}</span>
-              </div>
-              <h3 className="text-4xl font-extrabold tracking-tight text-white">{mascot.name}</h3>
+            {/* Card front info - hide when back is showing */}
+            <div
+              className="absolute bottom-0 left-0 right-0 p-5 z-20"
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+              }}
+            >
+              <h3 className="text-2xl sm:text-3xl font-bold mb-1 text-white">{mascot.name}</h3>
+              <p className="text-white/80 text-sm font-medium">{mascot.animal}</p>
+              <p className="text-white/60 text-sm">{mascot.country} • {mascot.stadiums.length} estadios</p>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-5">
-            {/* Story */}
-            <div>
-              <h4 className={`text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                📖 Su Historia
-              </h4>
-              <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-                {mascot.story}
-              </p>
+          {/* BACK FACE - Information (visible at 180°, 540°, etc.) */}
+          <div
+            className={`absolute inset-0 w-full h-full rounded-3xl overflow-hidden shadow-2xl
+              ${isDark ? 'bg-dark-bg-card' : 'bg-white'}
+            `}
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg) translateZ(0px)',
+            }}
+          >
+            {/* Translucent inverted front - mascot image as subtle background */}
+            <div
+              className="absolute inset-0 pointer-events-none z-0"
+              style={{
+                transform: 'scaleX(-1)',
+              }}
+            >
+              <img
+                src={img(mascot.image)}
+                alt=""
+                className="w-full h-full object-cover"
+                style={{
+                  opacity: isDark ? 0.06 : 0.07,
+                  filter: 'blur(0.5px)',
+                }}
+              />
+              {/* Inverted gradient overlay */}
+              <div
+                className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"
+                style={{ opacity: isDark ? 0.5 : 0.4 }}
+              />
             </div>
 
-            {/* Culture */}
-            <div>
-              <h4 className={`text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                🌎 Significado Cultural
-              </h4>
-              <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-                {mascot.culture}
-              </p>
-            </div>
+            {/* Scrollable container with scroll containment */}
+            <div
+              ref={scrollContainerRef}
+              className="h-full overflow-y-auto overscroll-contain relative z-10"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+            >
+              <style>{`div::-webkit-scrollbar { display: none; }`}</style>
 
-            {/* Fun Fact */}
-            <div>
-              <h4 className={`text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                🎉 Dato Curioso
-              </h4>
-              <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-                {mascot.funFact}
-              </p>
-            </div>
-
-            {/* Calendar */}
-            <div>
-              <h4 className={`text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                📅 Calendario
-              </h4>
-              <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-                {mascot.calendarHighlight}
-              </p>
-              <p className={`text-sm mt-1 font-medium ${isDark ? 'text-maple-light' : 'text-maple'}`}>
-                ⚽ {mascot.matches}
-              </p>
-            </div>
-
-            {/* Stadiums */}
-            <div>
-              <h4 className={`text-sm font-bold mb-3 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                🏟️ {mascot.stadiums.length} Estadios en {mascot.country}
-              </h4>
-              <div className="space-y-1">
-                {mascot.stadiums.map((stadium, index) => (
-                  <a
-                    key={index}
-                    href={stadium.mapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center justify-between py-2.5 group transition-colors
-                      ${isDark ? 'hover:bg-dark-surface/50' : 'hover:bg-warm-cream/80'}
-                      rounded-xl px-3 -mx-3
+              {/* Header with mascot name - centered */}
+              <div className={`sticky top-0 z-10 px-6 py-4 border-b backdrop-blur-md
+                ${isDark ? 'bg-dark-bg-card/90 border-dark-border' : 'bg-white/90 border-warm-tan/30'}
+              `}>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 text-center">
+                    <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                      {mascot.name}
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      {mascot.animal} • {mascot.country}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleClose}
+                    className={`absolute right-4 w-9 h-9 rounded-full flex items-center justify-center transition-all
+                      ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}
                     `}
                   >
-                    <div className="flex items-center gap-3">
-                      <MapPin className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-maple-light' : 'text-maple'}`} />
-                      <div>
-                        <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                          {stadium.name}
-                        </p>
-                        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                          {stadium.city} • {stadium.capacity}
-                        </p>
-                        {stadium.highlight && (
-                          <p className={`text-xs mt-0.5 font-medium ${isDark ? 'text-gray-400' : 'text-warm-brown/70'}`}>
-                            {stadium.highlight}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <ExternalLink className={`w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity
-                      ${isDark ? 'text-gray-400' : 'text-warm-gray'}
-                    `} />
-                  </a>
-                ))}
+                    <X className={`w-4 h-4 ${isDark ? 'text-white' : 'text-warm-brown'}`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-5">
+                {/* Story */}
+                <div>
+                  <h4 className={`text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    📖 Su Historia
+                  </h4>
+                  <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
+                    {mascot.story}
+                  </p>
+                </div>
+
+                {/* Culture */}
+                <div>
+                  <h4 className={`text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    🌎 Significado Cultural
+                  </h4>
+                  <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
+                    {mascot.culture}
+                  </p>
+                </div>
+
+                {/* Fun Fact */}
+                <div>
+                  <h4 className={`text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    🎉 Dato Curioso
+                  </h4>
+                  <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
+                    {mascot.funFact}
+                  </p>
+                </div>
+
+                {/* Calendar */}
+                <div>
+                  <h4 className={`text-sm font-bold mb-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    📅 Calendario
+                  </h4>
+                  <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
+                    {mascot.calendarHighlight}
+                  </p>
+                  <p className={`text-sm mt-1 font-medium ${isDark ? 'text-maple-light' : 'text-maple'}`}>
+                    ⚽ {mascot.matches}
+                  </p>
+                </div>
+
+                {/* Stadiums */}
+                <div>
+                  <h4 className={`text-sm font-bold mb-3 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    🏟️ {mascot.stadiums.length} Estadios en {mascot.country}
+                  </h4>
+                  <div className="space-y-1">
+                    {mascot.stadiums.map((stadium, index) => (
+                      <a
+                        key={index}
+                        href={stadium.mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-between py-2.5 group transition-colors
+                          ${isDark ? 'hover:bg-dark-surface/50' : 'hover:bg-warm-cream/80'}
+                          rounded-xl px-3 -mx-3
+                        `}
+                      >
+                        <div className="flex items-center gap-3">
+                          <MapPin className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-maple-light' : 'text-maple'}`} />
+                          <div>
+                            <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                              {stadium.name}
+                            </p>
+                            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                              {stadium.city} • {stadium.capacity}
+                            </p>
+                            {stadium.highlight && (
+                              <p className={`text-xs mt-0.5 font-medium ${isDark ? 'text-gray-400' : 'text-warm-brown/70'}`}>
+                                {stadium.highlight}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <ExternalLink className={`w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity
+                          ${isDark ? 'text-gray-400' : 'text-warm-gray'}
+                        `} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Bottom spacer for safe scrolling */}
+                <div className="h-4" />
               </div>
             </div>
-
-            {/* Bottom spacer for safe scrolling */}
-            <div className="h-4" />
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
@@ -356,6 +510,8 @@ const MascotCard = ({
   isDark,
   onSelect,
   onTap,
+  onSelectWithRect, // New: passes card rect for animation
+  isSelected, // New: hide card when it's "moved" to modal
 }) => {
   const cardRef = useRef(null);
   const isCenter = position === 0;
@@ -454,6 +610,10 @@ const MascotCard = ({
 
   // Card positioning based on slot
   const getCardStyle = () => {
+    // If this card is selected and moved to modal, make it invisible
+    if (isSelected) {
+      return { x: 0, scale: 1, opacity: 0, zIndex: 30, rotateY: 0 };
+    }
     if (position === 0) {
       return { x: 0, scale: 1, opacity: 1, zIndex: 30, rotateY: 0 };
     } else if (position === -1) {
@@ -485,7 +645,13 @@ const MascotCard = ({
           // Request orientation permission on tap (iOS needs user gesture)
           if (isCenter) {
             requestOrientationPermission();
-            onSelect();
+            // Get card rect and pass it for the fly animation
+            if (cardRef.current && onSelectWithRect) {
+              const rect = cardRef.current.getBoundingClientRect();
+              onSelectWithRect(rect);
+            } else {
+              onSelect();
+            }
           } else {
             onTap();
           }
@@ -565,7 +731,7 @@ const MascotCard = ({
 };
 
 // Fluid Carousel with swipe gestures
-const MascotCarousel = ({ mascots, currentIndex, setCurrentIndex, setActiveMascot, isDark }) => {
+const MascotCarousel = ({ mascots, currentIndex, setCurrentIndex, setActiveMascot, setActiveCardRect, isDark, activeMascot }) => {
   const containerRef = useRef(null);
   const dragX = useMotionValue(0);
   const dragXSmooth = useSpring(dragX, { stiffness: 300, damping: 30 });
@@ -627,6 +793,11 @@ const MascotCarousel = ({ mascots, currentIndex, setCurrentIndex, setActiveMasco
             isDark={isDark}
             onSelect={() => setActiveMascot(mascot)}
             onTap={() => setCurrentIndex(index)}
+            onSelectWithRect={(rect) => {
+              setActiveCardRect(rect);
+              setActiveMascot(mascot);
+            }}
+            isSelected={activeMascot?.id === mascot.id}
           />
         ))}
       </motion.div>
@@ -680,6 +851,7 @@ const MascotCarousel = ({ mascots, currentIndex, setCurrentIndex, setActiveMasco
 
 const MascotSection = () => {
   const [activeMascot, setActiveMascot] = useState(null);
+  const [activeCardRect, setActiveCardRect] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const { isDark } = useTheme();
   const carouselRef = useRef(null);
@@ -755,7 +927,9 @@ const MascotSection = () => {
                 currentIndex={currentIndex}
                 setCurrentIndex={setCurrentIndex}
                 setActiveMascot={setActiveMascot}
+                setActiveCardRect={setActiveCardRect}
                 isDark={isDark}
+                activeMascot={activeMascot}
               />
             </motion.div>
 
@@ -942,8 +1116,12 @@ const MascotSection = () => {
         {activeMascot && (
           <MascotModal
             mascot={activeMascot}
-            onClose={() => setActiveMascot(null)}
+            onClose={() => {
+              setActiveMascot(null);
+              setActiveCardRect(null);
+            }}
             isDark={isDark}
+            cardRect={activeCardRect}
           />
         )}
       </AnimatePresence>

@@ -20,74 +20,35 @@ const Footer = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {/* Main footer content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 items-start">
+          {/* Main footer content - Centered layout */}
+          <div className="flex flex-col items-center gap-6">
 
-            {/* Left: Trust signals - Panini + FIFA logos */}
-            <div className="flex flex-col items-center md:items-start">
-              <div className="flex items-center gap-4 mb-4">
-                <img
-                  src={img('panini-logo.svg')}
-                  alt="Panini"
-                  className="h-8 rounded"
-                />
-                <div className={`w-px h-8 ${isDark ? 'bg-dark-border' : 'bg-warm-gray/30'}`} />
-                <img
-                  src={img('logo-fifa-worldcup.png')}
-                  alt="FIFA World Cup 2026"
-                  className="h-12"
-                />
-              </div>
-              <p className={`text-sm text-center md:text-left transition-colors duration-300
+            {/* Logos side by side */}
+            <div className="flex items-center gap-6">
+              <img
+                src={img('panini-logo.svg')}
+                alt="Panini"
+                className="h-10 rounded"
+              />
+              <div className={`w-px h-12 ${isDark ? 'bg-dark-border' : 'bg-warm-gray/30'}`} />
+              <img
+                src={img('logo-fifa-worldcup.png')}
+                alt="FIFA World Cup 2026"
+                className="h-16"
+              />
+            </div>
+
+            {/* Text below logos */}
+            <div className="text-center">
+              <p className={`text-sm transition-colors duration-300
                 ${isDark ? 'text-gray-400' : 'text-warm-brown'}
               `}>
                 <span className="text-zayu">✓</span> Distribuidor autorizado Panini
               </p>
-            </div>
-
-            {/* Center: Navigation links */}
-            <div className="flex justify-center">
-              <nav className="flex items-center gap-8 text-sm">
-                <a
-                  href="#products"
-                  className={`transition-colors duration-200
-                    ${isDark
-                      ? 'text-gray-400 hover:text-maple'
-                      : 'text-warm-gray hover:text-maple'
-                    }
-                  `}
-                >
-                  Productos
-                </a>
-                <a
-                  href="#contact"
-                  className={`transition-colors duration-200
-                    ${isDark
-                      ? 'text-gray-400 hover:text-maple'
-                      : 'text-warm-gray hover:text-maple'
-                    }
-                  `}
-                >
-                  Contacto
-                </a>
-              </nav>
-            </div>
-
-            {/* Right: Legal/copyright */}
-            <div className="flex flex-col items-center md:items-end text-center md:text-right">
-              <p className={`text-xs leading-relaxed transition-colors duration-300
-                ${isDark ? 'text-gray-400' : 'text-warm-gray'}
-              `}>
-                © {currentYear} Collect Point.
-                <br />
-                Todos los derechos reservados.
-              </p>
-              <p className={`text-xs mt-2 leading-relaxed transition-colors duration-300
+              <p className={`text-xs mt-2 transition-colors duration-300
                 ${isDark ? 'text-gray-500' : 'text-warm-gray'}
               `}>
-                FIFA World Cup 2026™ y Panini®
-                <br />
-                son marcas registradas.
+                © {currentYear} Collect Point · FIFA World Cup 2026™ y Panini® son marcas registradas
               </p>
             </div>
           </div>

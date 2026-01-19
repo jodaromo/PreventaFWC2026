@@ -66,10 +66,12 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
               `}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0
-                  ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-100'}
-                `}>
-                  <Gift className={`w-7 h-7 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
+                  <img
+                    src={img('product-album.png')}
+                    alt="Álbum Pasta Blanda"
+                    className="w-full h-full object-contain drop-shadow-md"
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -90,15 +92,6 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
                   <p className={`text-sm ${isDark ? 'text-emerald-300/70' : 'text-emerald-600/80'}`}>
                     Por llevar {boxQuantity} Cajas Display (1 gratis cada 2 cajas)
                   </p>
-                </div>
-                <div className={`hidden sm:block w-16 h-16 rounded-lg overflow-hidden flex-shrink-0
-                  ${isDark ? 'bg-dark-surface' : 'bg-white'}
-                `}>
-                  <img
-                    src={img('product-album.png')}
-                    alt="Álbum Pasta Blanda"
-                    className="w-full h-full object-contain p-1"
-                  />
                 </div>
               </div>
             </motion.div>

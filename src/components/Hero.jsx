@@ -126,130 +126,130 @@ const Hero = () => {
 
           {/* LEFT SIDE - Text Content (7 cols) */}
           <div className="order-2 lg:order-1 lg:col-span-7">
-            {/* Headline with FIFA Logo - Aligned container */}
-            <div className="flex items-start gap-4 sm:gap-5 mb-6 max-w-[520px]">
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className={`text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight flex-1 transition-colors duration-300
-                  ${isDark ? 'text-white' : 'text-warm-brown'}
-                `}
-              >
-                La Colección
-                <br />
-                <span className="text-maple">
-                  Más Grande
-                </span>
-              </motion.h1>
+            {/* Content container with FIFA logo on right */}
+            <div className="flex items-stretch gap-6 sm:gap-8">
+              {/* Left column: Text + Hook + Button */}
+              <div className="flex-1 max-w-[520px]">
+                {/* Headline */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <h1 className={`text-5xl sm:text-6xl md:text-7xl font-extrabold leading-tight transition-colors duration-300
+                    ${isDark ? 'text-white' : 'text-warm-brown'}
+                  `}>
+                    La Colección
+                    <br />
+                    <span className="text-maple">Más Grande</span>{' '}
+                    <span className={`text-3xl sm:text-4xl md:text-5xl font-semibold ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>de</span>
+                  </h1>
+                  {/* Panini Logo - full width of container */}
+                  <motion.img
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.35 }}
+                    src={img('panini-logo.svg')}
+                    alt="Panini"
+                    className="w-full h-auto mt-3 drop-shadow-md"
+                  />
+                </motion.div>
 
-              {/* FIFA World Cup Logo */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex-shrink-0"
-              >
-                <img
-                  src={img('logo-fifa-worldcup.png')}
-                  alt="FIFA World Cup 2026"
-                  className="h-20 sm:h-28 md:h-32 drop-shadow-lg"
-                />
-              </motion.div>
-            </div>
+                {/* Subheadline */}
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className={`text-lg sm:text-xl mb-8 mt-6 leading-relaxed transition-colors duration-300
+                    ${isDark ? 'text-gray-300' : 'text-warm-gray'}
+                  `}
+                >
+                  48 selecciones, 980 figuritas y la edición de lujo que todo coleccionista necesita. La historia del fútbol en tus manos.
+                </motion.p>
 
-            {/* Subheadline - Same max-width */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className={`text-base sm:text-lg mb-8 max-w-[520px] leading-relaxed transition-colors duration-300
-                ${isDark ? 'text-gray-300' : 'text-warm-gray'}
-              `}
-            >
-              48 selecciones, 980 figuritas y la edición de lujo que todo coleccionista necesita. La historia del fútbol en tus manos.
-            </motion.p>
-
-            {/* URGENCY CARD - Psychological hooks with scarcity */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="max-w-[420px]"
-            >
-              <div className={`rounded-2xl p-4 sm:p-5 border backdrop-blur-sm transition-all duration-300
-                ${isDark
-                  ? 'bg-white/5 border-white/10'
-                  : 'bg-white/70 border-warm-tan/40 shadow-lg'
-                }
-              `}>
-                {/* Top row: Percentage + Closing countdown */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl sm:text-4xl font-bold text-maple">
-                      {presaleData.percentage}%
-                    </span>
-                    <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                      reservado
-                    </span>
-                  </div>
-                  {/* Days countdown badge - inside pill */}
-                  <div className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5
-                    ${presaleData.daysLeft <= 5
-                      ? 'bg-red-500/20 text-red-500 animate-pulse'
-                      : isDark
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'bg-amber-500/20 text-amber-600'
+                {/* URGENCY CARD - Full width */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                  className="w-full"
+                >
+                  <div className={`rounded-2xl p-5 sm:p-6 border backdrop-blur-sm transition-all duration-300
+                    ${isDark
+                      ? 'bg-white/5 border-white/10'
+                      : 'bg-white/70 border-warm-tan/40 shadow-lg'
                     }
                   `}>
-                    <span className="text-base">⏳</span>
-                    <span>{presaleData.daysLeft} días para cierre</span>
+                    {/* Top row: Percentage + Closing countdown */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl sm:text-5xl font-bold text-maple">
+                          {presaleData.percentage}%
+                        </span>
+                        <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                          reservado
+                        </span>
+                      </div>
+                      {/* Days countdown badge */}
+                      <div className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2
+                        ${presaleData.daysLeft <= 5
+                          ? 'bg-red-500/20 text-red-500 animate-pulse'
+                          : isDark
+                            ? 'bg-amber-500/20 text-amber-400'
+                            : 'bg-amber-500/20 text-amber-600'
+                        }
+                      `}>
+                        <span className="text-lg">⏳</span>
+                        <span>{presaleData.daysLeft} días para cierre</span>
+                      </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className={`w-full h-3 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-warm-tan/50'}`}>
+                      <motion.div
+                        className="h-full rounded-full bg-gradient-to-r from-maple to-maple-light"
+                        initial={{ width: 0, opacity: 0.7 }}
+                        animate={{ width: `${presaleData.percentage}%`, opacity: 1 }}
+                        transition={{
+                          duration: 1.4,
+                          delay: 0.7,
+                          ease: progressBarEasing,
+                          opacity: { duration: 0.3 }
+                        }}
+                      />
+                    </div>
+
+                    {/* Scarcity message */}
+                    <p className={`text-sm mt-3 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+                      🔥 <span className="font-medium">{100 - presaleData.percentage}% disponible</span> — Los primeros aseguran precio de preventa
+                    </p>
                   </div>
-                </div>
+                </motion.div>
 
-                {/* Progress bar with satisfying overshoot */}
-                <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-warm-tan/50'}`}>
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-maple to-maple-light"
-                    initial={{ width: 0, opacity: 0.7 }}
-                    animate={{ width: `${presaleData.percentage}%`, opacity: 1 }}
-                    transition={{
-                      duration: 1.4,
-                      delay: 0.7,
-                      ease: progressBarEasing,
-                      opacity: { duration: 0.3 }
-                    }}
-                  />
-                </div>
-
-                {/* Scarcity message */}
-                <p className={`text-xs mt-2.5 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
-                  🔥 <span className="font-medium">{100 - presaleData.percentage}% disponible</span> — Los primeros aseguran precio de preventa
-                </p>
+                {/* CTA Button - Matches hook card width */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7, duration: 0.5 }}
+                  className="mt-6 w-full"
+                >
+                  <button
+                    onClick={scrollToProducts}
+                    className="w-full font-bold py-5 px-10 rounded-full shadow-lg
+                      bg-maple text-white text-xl
+                      shadow-maple/25 hover:bg-maple-dark hover:shadow-maple/40 hover:shadow-xl hover:scale-[1.02]
+                      active:scale-[0.98] active:shadow-md
+                      transition-all duration-150 ease-out"
+                  >
+                    Ver productos y reservar
+                  </button>
+                </motion.div>
               </div>
-            </motion.div>
 
-            {/* CTA Button - Below urgency panel with proper spacing */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-              className="mt-6 max-w-[520px]"
-            >
-              <button
-                onClick={scrollToProducts}
-                className="w-full sm:w-auto font-bold py-4 px-10 rounded-full shadow-lg
-                  bg-maple text-white
-                  shadow-maple/25 hover:bg-maple-dark hover:shadow-maple/40 hover:shadow-xl hover:scale-[1.03]
-                  active:scale-[0.98] active:shadow-md
-                  transition-all duration-150 ease-out text-lg"
-              >
-                Ver productos y reservar
-              </button>
-            </motion.div>
+            </div>
           </div>
 
-          {/* RIGHT SIDE - Mascots (5 cols) - Scaled down, pushed right */}
+          {/* RIGHT SIDE - Mascots (5 cols) - 25% bigger */}
           <div className="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center lg:justify-end lg:pr-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -260,11 +260,11 @@ const Hero = () => {
               {/* Background glow - mascot colors */}
               <div className="absolute inset-0 blur-3xl rounded-full -z-10 scale-110 bg-gradient-to-br from-maple/20 via-zayu/15 to-clutch/10" />
 
-              {/* Mascots Image - 30% larger with organic float */}
+              {/* Mascots Image - 40% bigger */}
               <motion.img
                 src={img('mascots-group.png')}
                 alt="Mascotas FIFA World Cup 2026 - Maple, Zayu y Clutch"
-                className="h-72 sm:h-96 md:h-[26rem] lg:h-[28.5rem] w-auto object-contain drop-shadow-2xl"
+                className="h-[25rem] sm:h-[34rem] md:h-[36rem] lg:h-[40rem] w-auto object-contain drop-shadow-2xl"
                 variants={floatVariants}
                 animate="animate"
               />
@@ -283,27 +283,36 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Mascot link - Bottom right corner with breathing room */}
-      <motion.button
+      {/* FIFA Logo + Mascot link - Bottom right corner (hidden on mobile) */}
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.6 }}
-        onClick={scrollToMascots}
-        className={`absolute bottom-8 right-8 lg:right-12 text-sm
-          transition-all duration-200 ease-out
-          flex items-center gap-1.5
-          group
-          ${isDark ? 'text-gray-400 hover:text-white' : 'text-warm-gray hover:text-warm-brown'}
-        `}
+        transition={{ delay: 0.8, duration: 0.6 }}
+        className="hidden sm:flex absolute bottom-6 right-8 lg:right-12 flex-col items-end gap-3"
       >
-        <span className="relative">
-          Conoce las mascotas
-          <span className={`absolute bottom-0 left-0 w-0 h-px group-hover:w-full transition-all duration-200
-            ${isDark ? 'bg-white' : 'bg-warm-brown'}
-          `} />
-        </span>
-        <span className="text-base transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-      </motion.button>
+        {/* FIFA World Cup Logo */}
+        <img
+          src={img('logo-fifa-worldcup.png')}
+          alt="FIFA World Cup 2026"
+          className="h-20 md:h-28 lg:h-32 w-auto drop-shadow-lg"
+        />
+
+        {/* Mascot link */}
+        <button
+          onClick={scrollToMascots}
+          className={`text-sm transition-all duration-200 ease-out flex items-center gap-1.5 group
+            ${isDark ? 'text-gray-400 hover:text-white' : 'text-warm-gray hover:text-warm-brown'}
+          `}
+        >
+          <span className="relative">
+            Conoce las mascotas
+            <span className={`absolute bottom-0 left-0 w-0 h-px group-hover:w-full transition-all duration-200
+              ${isDark ? 'bg-white' : 'bg-warm-brown'}
+            `} />
+          </span>
+          <span className="text-base transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+        </button>
+      </motion.div>
 
       {/* Scroll indicator - Bottom center with organic bounce */}
       <motion.div
