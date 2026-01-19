@@ -242,13 +242,6 @@ const MascotModal = ({ mascot, onClose, isDark, cardRect }) => {
     setTimeout(onClose, 300);
   };
 
-  // Determine which face to show based on rotation
-  const showBack = useTransform(rotateY, (value) => {
-    // Show back when between 90-270, 450-630, 810-990, 1170-1350, etc.
-    const normalized = value % 360;
-    return normalized > 90 && normalized < 270;
-  });
-
   return (
     <motion.div
       initial={{ opacity: 0 }}

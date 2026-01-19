@@ -1,8 +1,7 @@
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { presaleStatus } from '../data/products';
 import { img } from '../utils/assets';
-import { useEffect } from 'react';
 
 // Custom organic float animation - more natural than CSS keyframes
 const floatVariants = {
