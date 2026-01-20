@@ -181,25 +181,40 @@ const Hero = () => {
                   `}>
                     {/* Top row: Percentage + Closing countdown */}
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl sm:text-5xl font-bold text-maple">
+                      {/* Percentage with "reservado" below */}
+                      <div className="flex flex-col">
+                        <span className="text-3xl sm:text-4xl font-bold text-maple leading-none">
                           {presaleData.percentage}%
                         </span>
-                        <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                        <span className={`text-xs font-medium mt-0.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
                           reservado
                         </span>
                       </div>
-                      {/* Days countdown badge */}
-                      <div className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2
+                      {/* Days countdown badge - two lines with rotating hourglass */}
+                      <div className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2
                         ${presaleData.daysLeft <= 5
-                          ? 'bg-red-500/20 text-red-500 animate-pulse'
+                          ? 'bg-red-500/20 text-red-500'
                           : isDark
                             ? 'bg-amber-500/20 text-amber-400'
                             : 'bg-amber-500/20 text-amber-600'
                         }
                       `}>
-                        <span className="text-lg">⏳</span>
-                        <span>{presaleData.daysLeft} días para cierre</span>
+                        <motion.span
+                          className="text-sm"
+                          animate={{ rotate: [0, 180, 180, 360, 360] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            times: [0, 0.25, 0.5, 0.75, 1]
+                          }}
+                        >
+                          ⏳
+                        </motion.span>
+                        <div className="flex flex-col leading-tight">
+                          <span className="font-extrabold">{presaleData.daysLeft} días</span>
+                          <span className="font-medium opacity-80">para cierre</span>
+                        </div>
                       </div>
                     </div>
 

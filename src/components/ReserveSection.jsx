@@ -17,7 +17,7 @@ import {
 } from '../data/colombiaLocations';
 
 // Google Apps Script Web App URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSr-KnzROWmdhHSCEjLGVUKojaTwgShiEx0viKdBZDqfT3RtJK323IrVSDBqSVDrgOMw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlL8SO7_IxLsLEpb_LiFHPpXesxuaT6z5GfqT5-x46befzinr7P7-_fPbX3oUloCvs/exec';
 
 // Format currency in Colombian pesos
 const formatCurrency = (amount) => {
@@ -52,18 +52,18 @@ const SearchableSelect = ({
 
   const filteredOptions = searchable && searchTerm
     ? options.filter(opt =>
-        (typeof opt === 'string' ? opt : opt.name || opt.label)
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-      )
+      (typeof opt === 'string' ? opt : opt.name || opt.label)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    )
     : options;
 
   const displayValue = value
     ? (typeof options[0] === 'string'
-        ? value
-        : options.find(o => o.id === value || o.value === value)?.name ||
-          options.find(o => o.id === value || o.value === value)?.label ||
-          value)
+      ? value
+      : options.find(o => o.id === value || o.value === value)?.name ||
+      options.find(o => o.id === value || o.value === value)?.label ||
+      value)
     : '';
 
   useEffect(() => {
@@ -89,7 +89,7 @@ const SearchableSelect = ({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-3.5 border-2 rounded-xl text-left transition-all duration-200
+        className={`w-full ${Icon ? 'pl-10 sm:pl-12' : 'pl-3 sm:pl-4'} pr-8 sm:pr-10 py-3 sm:py-3.5 border-2 rounded-xl text-left transition-all duration-200 text-sm sm:text-base
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           ${isDark
             ? `bg-dark-surface border-dark-border text-dark-text
@@ -102,14 +102,14 @@ const SearchableSelect = ({
         `}
       >
         {Icon && (
-          <Icon className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none
+          <Icon className={`absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none
             ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}
           />
         )}
         <span className={`block truncate ${!displayValue ? (isDark ? 'text-dark-text-subtle' : 'text-warm-gray') : ''}`}>
           {displayValue || placeholder}
         </span>
-        <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-transform duration-200
+        <ChevronDown className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-transform duration-200
           ${isOpen ? 'rotate-180' : ''} ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}
         />
       </button>
@@ -121,7 +121,7 @@ const SearchableSelect = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            className={`absolute z-50 w-full mt-2 rounded-xl border-2 shadow-xl overflow-hidden
+            className={`absolute z-50 min-w-[180px] w-max max-w-[280px] mt-2 rounded-xl border-2 shadow-xl overflow-hidden
               ${isDark ? 'bg-dark-bg-card border-dark-border' : 'bg-white border-warm-tan/30'}
             `}
           >
@@ -567,16 +567,14 @@ const GoogleMapsModal = ({ isOpen, onClose, onSelectAddress, isDark }) => {
                     <label className="flex items-center gap-3 cursor-pointer">
                       <div
                         onClick={() => setAutoFillOptions(prev => ({ ...prev, departmentCity: !prev.departmentCity }))}
-                        className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${
-                          autoFillOptions.departmentCity
+                        className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${autoFillOptions.departmentCity
                             ? 'bg-maple'
                             : isDark ? 'bg-dark-border' : 'bg-warm-tan/50'
-                        }`}
+                          }`}
                       >
                         <div
-                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
-                            autoFillOptions.departmentCity ? 'translate-x-4' : ''
-                          }`}
+                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${autoFillOptions.departmentCity ? 'translate-x-4' : ''
+                            }`}
                         />
                       </div>
                       <span className={`text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
@@ -593,16 +591,14 @@ const GoogleMapsModal = ({ isOpen, onClose, onSelectAddress, isDark }) => {
                     <label className="flex items-center gap-3 cursor-pointer">
                       <div
                         onClick={() => setAutoFillOptions(prev => ({ ...prev, address: !prev.address }))}
-                        className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${
-                          autoFillOptions.address
+                        className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${autoFillOptions.address
                             ? 'bg-maple'
                             : isDark ? 'bg-dark-border' : 'bg-warm-tan/50'
-                        }`}
+                          }`}
                       >
                         <div
-                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
-                            autoFillOptions.address ? 'translate-x-4' : ''
-                          }`}
+                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${autoFillOptions.address ? 'translate-x-4' : ''
+                            }`}
                         />
                       </div>
                       <span className={`text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
@@ -815,32 +811,97 @@ const ReserveSection = ({ cart = {} }) => {
     try {
       const deptName = sortedDepartments.find(d => d.id === formData.departamento)?.name || formData.departamento;
 
+      // Compute payment plan text
+      let planPagoText = '4 cuotas'; // default
+      if (selectedPlan === 'directo') {
+        planPagoText = 'Pago directo';
+      } else if (selectedPlan === 'rapido') {
+        planPagoText = '2 cuotas';
+      } else if (selectedPlan === 'flexible') {
+        planPagoText = '4 cuotas';
+      }
+
+      // Compute cuota mensual
+      let cuotaMensualValue = totals.flexiblePayment; // default
+      if (selectedPlan === 'directo') {
+        cuotaMensualValue = totals.totalToPay;
+      } else if (selectedPlan === 'rapido') {
+        cuotaMensualValue = totals.rapidoPayment;
+      } else if (selectedPlan === 'flexible') {
+        cuotaMensualValue = totals.flexiblePayment;
+      }
+
+      // Get payment method name
+      const paymentMethodObj = paymentMethods.find(m => m.id === selectedPaymentMethod);
+      const metodoPagoText = paymentMethodObj ? paymentMethodObj.name : selectedPaymentMethod;
+
+      // Calculate total directly from cart to ensure it's never undefined
+      const cajaQty = cart[1] || 0;
+      const albumDuraQty = cart[2] || 0;
+      const albumBlandaQty = cart[3] || 0;
+      const sobreQty = cart[4] || 0;
+
+      // Get prices from products array
+      const cajaPrice = products.find(p => p.id === 1)?.price || 520000;
+      const albumDuraPrice = products.find(p => p.id === 2)?.price || 69890;
+      const albumBlandaPrice = products.find(p => p.id === 3)?.price || 12890;
+      const sobrePrice = products.find(p => p.id === 4)?.price || 4990;
+
+      // Calculate total directly
+      const calculatedTotal = (cajaQty * cajaPrice) + (albumDuraQty * albumDuraPrice) +
+        (albumBlandaQty * albumBlandaPrice) + (sobreQty * sobrePrice);
+
+      // Calculate cuota based on plan
+      let calculatedCuota = Math.ceil(calculatedTotal / 4); // default flexible
+      if (selectedPlan === 'directo') {
+        calculatedCuota = calculatedTotal;
+      } else if (selectedPlan === 'rapido') {
+        calculatedCuota = Math.ceil(calculatedTotal / 2);
+      }
+
+      // Build payload - ALL fields must be present, use 0 or '' as defaults
       const payload = {
-        nombre: formData.nombre.trim(),
-        whatsapp: formData.whatsapp.trim(),
-        cajaDisplay: cart[1] || 0,
-        albumPastaDura: cart[2] || 0,
-        albumPastaBlanda: cart[3] || 0,
-        sobreIndividual: cart[4] || 0,
-        regaloPastaBlanda: freeAlbumCount,
-        totalPagar: totals.totalToPay,
-        planPago: selectedPlan === 'directo' ? 'Pago directo' : selectedPlan === 'flexible' ? '4 cuotas' : '2 cuotas',
-        cuotaMensual: selectedPlan === 'directo' ? totals.totalToPay : selectedPlan === 'flexible' ? totals.flexiblePayment : totals.rapidoPayment,
-        metodoPago: paymentMethods.find(m => m.id === selectedPaymentMethod)?.name || selectedPaymentMethod,
-        direccion: formattedAddress,
-        ciudad: formData.ciudad,
-        departamento: deptName,
+        nombre: formData.nombre ? formData.nombre.trim() : '',
+        whatsapp: formData.whatsapp ? formData.whatsapp.trim() : '',
+        cajaDisplay: cajaQty,
+        albumPastaDura: albumDuraQty,
+        albumPastaBlanda: albumBlandaQty,
+        sobreIndividual: sobreQty,
+        regaloPastaBlanda: freeAlbumCount || 0,
+        totalPagar: calculatedTotal,
+        planPago: planPagoText,
+        cuotaMensual: calculatedCuota,
+        metodoPago: metodoPagoText,
+        direccion: formattedAddress || '',
+        ciudad: formData.ciudad || '',
+        departamento: deptName || '',
         tipoInmueble: formData.propertyType || '',
         detalleInmueble: formData.propertyDetail || '',
         notas: formData.notas || '',
       };
 
+      // Debug logging
+      console.log('=== FORM SUBMISSION DEBUG ===');
+      console.log('Cart:', cart);
+      console.log('Quantities - Caja:', cajaQty, 'Dura:', albumDuraQty, 'Blanda:', albumBlandaQty, 'Sobre:', sobreQty);
+      console.log('Calculated Total:', calculatedTotal);
+      console.log('selectedPlan state:', selectedPlan);
+      console.log('selectedPaymentMethod state:', selectedPaymentMethod);
+      console.log('Computed planPago:', planPagoText);
+      console.log('Computed metodoPago:', metodoPagoText);
+      console.log('Computed cuotaMensual:', calculatedCuota);
+      console.log('Full payload:', JSON.stringify(payload, null, 2));
+      console.log('=============================');
+
+      // Use a form-based approach that works reliably with Google Apps Script
+      // This avoids the issues with no-cors mode truncating data
+      const formBody = new URLSearchParams();
+      formBody.append('data', JSON.stringify(payload));
+
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
-        body: JSON.stringify(payload),
+        mode: 'no-cors',
+        body: formBody,
       });
 
       setSubmitStatus('success');
@@ -1096,10 +1157,10 @@ const ReserveSection = ({ cart = {} }) => {
                         <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
                           Dirección
                         </label>
-                        {/* Address fields row */}
-                        <div className="flex items-center gap-2 w-full max-w-full overflow-x-auto sm:overflow-x-visible">
-                          {/* Via Type */}
-                          <div className="flex-[2] min-w-[100px]">
+                        {/* Address fields - responsive grid layout */}
+                        <div className="grid grid-cols-12 gap-2 items-center">
+                          {/* Via Type - takes more space on mobile */}
+                          <div className="col-span-5 sm:col-span-4">
                             <SearchableSelect
                               options={viaTypes}
                               value={formData.viaType}
@@ -1113,7 +1174,7 @@ const ReserveSection = ({ cart = {} }) => {
                           </div>
 
                           {/* Via Number */}
-                          <div className="flex-1 min-w-[50px]">
+                          <div className="col-span-3 sm:col-span-2">
                             <input
                               type="text"
                               value={formData.viaNumber}
@@ -1124,10 +1185,10 @@ const ReserveSection = ({ cart = {} }) => {
                             />
                           </div>
 
-                          <span className={`text-lg font-bold flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>#</span>
+                          <span className={`col-span-1 text-center text-lg font-bold ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>#</span>
 
                           {/* Cruce Number */}
-                          <div className="flex-1 min-w-[50px]">
+                          <div className="col-span-3 sm:col-span-2">
                             <input
                               type="text"
                               value={formData.cruceNumber}
@@ -1138,10 +1199,11 @@ const ReserveSection = ({ cart = {} }) => {
                             />
                           </div>
 
-                          <span className={`text-lg font-bold flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>-</span>
+                          {/* Second row on mobile, same row on desktop */}
+                          <span className={`col-span-1 sm:col-span-1 text-center text-lg font-bold ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>-</span>
 
                           {/* Placa Number */}
-                          <div className="flex-1 min-w-[50px]">
+                          <div className="col-span-3 sm:col-span-2">
                             <input
                               type="text"
                               value={formData.placaNumber}
@@ -1295,18 +1357,21 @@ const ReserveSection = ({ cart = {} }) => {
                               Método y Plan de Pago
                             </h3>
 
-                              <div className="flex gap-3">
-                                {/* Selected method - vertical card with payment plan options */}
-                                <div
-                                  className={`w-32 flex-shrink-0 p-3 rounded-xl border-2 transition-all duration-200 flex flex-col
+                            {/* Mobile: Stacked layout, Desktop: Side by side */}
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              {/* Selected method - vertical card with payment plan options */}
+                              <div
+                                className={`w-full sm:w-28 md:w-32 flex-shrink-0 p-3 rounded-xl border-2 transition-all duration-200 flex flex-col
                                     ${isDark
-                                      ? 'border-dark-border bg-dark-surface'
-                                      : 'border-warm-tan/30 bg-warm-cream-light/50'
-                                    }
+                                    ? 'border-dark-border bg-dark-surface'
+                                    : 'border-warm-tan/30 bg-warm-cream-light/50'
+                                  }
                                   `}
-                                >
-                                  {/* Logo + name centered */}
-                                  <div className="flex flex-col items-center mb-3">
+                              >
+                                {/* Mobile: Horizontal layout, Desktop: Vertical */}
+                                <div className="flex sm:flex-col items-center gap-3 sm:gap-0 sm:mb-3">
+                                  {/* Logo */}
+                                  <div className="flex-shrink-0">
                                     {(() => {
                                       const method = paymentMethods.find(m => m.id === selectedPaymentMethod);
                                       const IconComponent = method?.icon;
@@ -1321,165 +1386,168 @@ const ReserveSection = ({ cart = {} }) => {
                                       ) : IconComponent ? (
                                         <div
                                           className={`w-12 h-12 rounded-xl flex items-center justify-center text-white ring-2 ring-maple ring-offset-2 ${isDark ? 'ring-offset-dark-surface' : 'ring-offset-warm-cream-light'}
-                                            ${method?.color}
-                                          `}
+                                              ${method?.color}
+                                            `}
                                         >
                                           <IconComponent className="w-6 h-6" />
                                         </div>
                                       ) : (
                                         <div
                                           className={`w-12 h-12 rounded-xl flex items-center justify-center text-white text-base font-bold ring-2 ring-maple ring-offset-2 ${isDark ? 'ring-offset-dark-surface' : 'ring-offset-warm-cream-light'}
-                                            ${method?.color}
-                                          `}
+                                              ${method?.color}
+                                            `}
                                         >
                                           {method?.name.substring(0, 2).toUpperCase()}
                                         </div>
                                       );
                                     })()}
-                                    <p className={`text-sm font-extrabold mt-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                                  </div>
+                                  {/* Name + Plan buttons on mobile */}
+                                  <div className="flex-1 sm:text-center">
+                                    <p className={`text-sm font-extrabold sm:mt-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
                                       {paymentMethods.find(m => m.id === selectedPaymentMethod)?.name}
                                     </p>
-                                  </div>
-
-                                  {/* Plan selection buttons - vertical */}
-                                  <div className="flex flex-col gap-1.5 mt-auto">
-                                    {/* Pago Directo */}
-                                    <button
-                                      type="button"
-                                      onClick={() => setSelectedPlan('directo')}
-                                      className={`w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
-                                        ${selectedPlan === 'directo'
-                                          ? 'bg-maple text-white'
-                                          : isDark
-                                            ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
-                                            : 'bg-white text-warm-gray hover:bg-warm-tan/20'
-                                        }
-                                      `}
-                                    >
-                                      <p className={`text-[10px] ${selectedPlan === 'directo' ? 'font-bold' : 'font-medium'}`}>Directo</p>
-                                    </button>
-
-                                    {/* 2 Cuotas */}
-                                    <button
-                                      type="button"
-                                      onClick={() => setSelectedPlan('rapido')}
-                                      className={`w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
-                                        ${selectedPlan === 'rapido'
-                                          ? 'bg-maple text-white'
-                                          : isDark
-                                            ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
-                                            : 'bg-white text-warm-gray hover:bg-warm-tan/20'
-                                        }
-                                      `}
-                                    >
-                                      <p className={`text-[10px] ${selectedPlan === 'rapido' ? 'font-bold' : 'font-medium'}`}>2 Cuotas</p>
-                                    </button>
-
-                                    {/* 4 Cuotas */}
-                                    <button
-                                      type="button"
-                                      onClick={() => setSelectedPlan('flexible')}
-                                      className={`w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
-                                        ${selectedPlan === 'flexible'
-                                          ? 'bg-maple text-white'
-                                          : isDark
-                                            ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
-                                            : 'bg-white text-warm-gray hover:bg-warm-tan/20'
-                                        }
-                                      `}
-                                    >
-                                      <p className={`text-[10px] ${selectedPlan === 'flexible' ? 'font-bold' : 'font-medium'}`}>4 Cuotas</p>
-                                    </button>
-                                  </div>
-                                </div>
-
-                                {/* Plan details + other payment methods */}
-                                <div className="flex-1 flex flex-col gap-3">
-                                  {/* Plan details card */}
-                                  <div
-                                    className={`flex-1 p-4 rounded-xl border-2 transition-all duration-300
-                                      ${isDark
-                                        ? 'border-maple/50 bg-maple/5'
-                                        : 'border-maple/50 bg-maple/5'
-                                      }
-                                    `}
-                                  >
-                                    <p className={`text-[10px] uppercase tracking-wide mb-1 ${isDark ? 'text-maple/70' : 'text-maple/70'}`}>
-                                      {selectedPlan === 'directo' ? 'Pago Único' : selectedPlan === 'rapido' ? '2 Cuotas' : '4 Cuotas'}
-                                    </p>
-                                    <p className={`text-2xl font-bold text-maple`}>
-                                      {selectedPlan === 'directo'
-                                        ? (hasProducts ? formatCurrency(totals.totalToPay) : '$520.000')
-                                        : selectedPlan === 'rapido'
-                                          ? (hasProducts ? formatCurrency(totals.rapidoPayment) : '$260.000')
-                                          : (hasProducts ? formatCurrency(totals.flexiblePayment) : '$130.000')
-                                      }
-                                      {selectedPlan !== 'directo' && (
-                                        <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/mes</span>
-                                      )}
-                                    </p>
-                                    <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                                      {selectedPlan === 'directo'
-                                        ? 'Un solo pago, sin cuotas'
-                                        : selectedPlan === 'rapido'
-                                          ? 'Febrero y Abril — primeros 5 días'
-                                          : 'Feb, Mar, Abr, May — primeros 5 días'
-                                      }
-                                    </p>
-                                  </div>
-
-                                  {/* Other payment methods - horizontal row */}
-                                  <div className="flex gap-2">
-                                    {paymentMethods
-                                      .filter(m => m.id !== selectedPaymentMethod)
-                                      .map((method) => (
-                                        <button
-                                          key={method.id}
-                                          type="button"
-                                          onClick={() => setSelectedPaymentMethod(method.id)}
-                                          disabled={submitStatus === 'loading'}
-                                          className={`flex-1 py-3 px-2 rounded-xl border-2 text-center transition-all duration-200 hover:scale-[1.02] active:scale-95 flex flex-col items-center justify-center
-                                            ${submitStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}
-                                            ${isDark
-                                              ? 'border-dark-border hover:border-maple/50 bg-dark-surface'
-                                              : 'border-warm-tan/40 hover:border-maple/50 bg-warm-cream-light/50'
-                                            }
+                                    {/* Plan selection buttons - horizontal on mobile, vertical on desktop */}
+                                    <div className="flex sm:flex-col gap-1.5 mt-2 sm:mt-3">
+                                      {/* Pago Directo */}
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedPlan('directo')}
+                                        className={`flex-1 sm:w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
+                                            ${selectedPlan === 'directo'
+                                            ? 'bg-maple text-white'
+                                            : isDark
+                                              ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
+                                              : 'bg-white text-warm-gray hover:bg-warm-tan/20'
+                                          }
                                           `}
-                                        >
-                                          {method.logo ? (
-                                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white">
-                                              <img
-                                                src={getAssetPath(`images/${method.logo}`)}
-                                                alt={method.name}
-                                                className="w-6 h-6 object-contain"
-                                              />
-                                            </div>
-                                          ) : method.icon ? (
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white
-                                              ${method.color}
-                                            `}>
-                                              <method.icon className="w-5 h-5" />
-                                            </div>
-                                          ) : (
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold
-                                              ${method.color}
-                                            `}>
-                                              {method.name.substring(0, 2).toUpperCase()}
-                                            </div>
-                                          )}
-                                          <p className={`text-[9px] font-medium mt-1.5 truncate w-full ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                                            {method.name}
-                                          </p>
-                                        </button>
-                                      ))}
+                                      >
+                                        <p className={`text-[10px] ${selectedPlan === 'directo' ? 'font-bold' : 'font-medium'}`}>Directo</p>
+                                      </button>
+
+                                      {/* 2 Cuotas */}
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedPlan('rapido')}
+                                        className={`flex-1 sm:w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
+                                            ${selectedPlan === 'rapido'
+                                            ? 'bg-maple text-white'
+                                            : isDark
+                                              ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
+                                              : 'bg-white text-warm-gray hover:bg-warm-tan/20'
+                                          }
+                                          `}
+                                      >
+                                        <p className={`text-[10px] ${selectedPlan === 'rapido' ? 'font-bold' : 'font-medium'}`}>2 Cuotas</p>
+                                      </button>
+
+                                      {/* 4 Cuotas */}
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedPlan('flexible')}
+                                        className={`flex-1 sm:w-full py-1.5 px-2 rounded-lg text-center transition-all duration-200 hover:scale-[1.02] active:scale-95
+                                            ${selectedPlan === 'flexible'
+                                            ? 'bg-maple text-white'
+                                            : isDark
+                                              ? 'bg-dark-bg-card text-gray-400 hover:bg-dark-border'
+                                              : 'bg-white text-warm-gray hover:bg-warm-tan/20'
+                                          }
+                                          `}
+                                      >
+                                        <p className={`text-[10px] ${selectedPlan === 'flexible' ? 'font-bold' : 'font-medium'}`}>4 Cuotas</p>
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
 
-                              {/* Payment info note */}
-                              <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
-                                * El costo del envío es adicional y se coordina al momento de la entrega.
-                              </p>
+                              {/* Plan details + other payment methods */}
+                              <div className="flex-1 flex flex-col gap-3 min-w-0">
+                                {/* Plan details card */}
+                                <div
+                                  className={`flex-1 p-4 rounded-xl border-2 transition-all duration-300
+                                      ${isDark
+                                      ? 'border-maple/50 bg-maple/5'
+                                      : 'border-maple/50 bg-maple/5'
+                                    }
+                                    `}
+                                >
+                                  <p className={`text-[10px] uppercase tracking-wide mb-1 ${isDark ? 'text-maple/70' : 'text-maple/70'}`}>
+                                    {selectedPlan === 'directo' ? 'Pago Único' : selectedPlan === 'rapido' ? '2 Cuotas' : '4 Cuotas'}
+                                  </p>
+                                  <p className={`text-xl sm:text-2xl font-bold text-maple`}>
+                                    {selectedPlan === 'directo'
+                                      ? (hasProducts ? formatCurrency(totals.totalToPay) : '$520.000')
+                                      : selectedPlan === 'rapido'
+                                        ? (hasProducts ? formatCurrency(totals.rapidoPayment) : '$260.000')
+                                        : (hasProducts ? formatCurrency(totals.flexiblePayment) : '$130.000')
+                                    }
+                                    {selectedPlan !== 'directo' && (
+                                      <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/mes</span>
+                                    )}
+                                  </p>
+                                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                                    {selectedPlan === 'directo'
+                                      ? 'Un solo pago, sin cuotas'
+                                      : selectedPlan === 'rapido'
+                                        ? 'Febrero y Abril — primeros 5 días'
+                                        : 'Feb, Mar, Abr, May — primeros 5 días'
+                                    }
+                                  </p>
+                                </div>
+
+                                {/* Other payment methods - grid on mobile, flex row on desktop */}
+                                <div className="grid grid-cols-5 sm:flex gap-1.5 sm:gap-2">
+                                  {paymentMethods
+                                    .filter(m => m.id !== selectedPaymentMethod)
+                                    .map((method) => (
+                                      <button
+                                        key={method.id}
+                                        type="button"
+                                        onClick={() => setSelectedPaymentMethod(method.id)}
+                                        disabled={submitStatus === 'loading'}
+                                        className={`sm:flex-1 py-2 sm:py-3 px-1 sm:px-2 rounded-xl border-2 text-center transition-all duration-200 hover:scale-[1.02] active:scale-95 flex flex-col items-center justify-center
+                                            ${submitStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}
+                                            ${isDark
+                                            ? 'border-dark-border hover:border-maple/50 bg-dark-surface'
+                                            : 'border-warm-tan/40 hover:border-maple/50 bg-warm-cream-light/50'
+                                          }
+                                          `}
+                                      >
+                                        {method.logo ? (
+                                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center bg-white">
+                                            <img
+                                              src={getAssetPath(`images/${method.logo}`)}
+                                              alt={method.name}
+                                              className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
+                                            />
+                                          </div>
+                                        ) : method.icon ? (
+                                          <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white
+                                              ${method.color}
+                                            `}>
+                                            <method.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                          </div>
+                                        ) : (
+                                          <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white text-[8px] sm:text-[10px] font-bold
+                                              ${method.color}
+                                            `}>
+                                            {method.name.substring(0, 2).toUpperCase()}
+                                          </div>
+                                        )}
+                                        <p className={`text-[7px] sm:text-[9px] font-medium mt-1 sm:mt-1.5 truncate w-full ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                                          {method.name}
+                                        </p>
+                                      </button>
+                                    ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Payment info note */}
+                            <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+                              * El costo del envío es adicional y se coordina al momento de la entrega.
+                            </p>
                           </motion.div>
                         </motion.div>
                       )}
