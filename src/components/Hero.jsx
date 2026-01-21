@@ -200,13 +200,13 @@ const Hero = () => {
                         }
                       `}>
                         <motion.span
-                          className="text-sm"
+                          className="text-sm inline-block origin-center"
                           animate={{ rotate: [0, 180, 180, 360, 360] }}
                           transition={{
-                            duration: 2,
+                            duration: 4,
                             repeat: Infinity,
                             ease: "easeInOut",
-                            times: [0, 0.25, 0.5, 0.75, 1]
+                            times: [0, 0.15, 0.5, 0.65, 1]
                           }}
                         >
                           ⏳

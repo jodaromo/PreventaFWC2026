@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Phone, CheckCircle, AlertCircle, Loader2, RefreshCw,
   MapPin, Gift, CreditCard, Calendar, Truck, ChevronDown, Search, Home, Building2,
-  Map, X, Navigation, ExternalLink, Banknote
+  Map, X, Navigation, ExternalLink, Banknote, Shield
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { products } from '../data/products';
@@ -649,6 +649,168 @@ const GoogleMapsModal = ({ isOpen, onClose, onSelectAddress, isDark }) => {
   );
 };
 
+// Privacy Policy Modal - Colombian Law 1581 Compliance
+const PrivacyPolicyModal = ({ isOpen, onClose, isDark }) => {
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        {/* Backdrop */}
+        <motion.div
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+        />
+
+        {/* Modal Content - iOS-style spring animation */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.85 }}
+          transition={{
+            type: "spring",
+            damping: 25,
+            stiffness: 300,
+            mass: 0.8,
+          }}
+          onClick={(e) => e.stopPropagation()}
+          className={`relative w-full max-w-lg max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden
+            ${isDark ? 'bg-dark-bg-card' : 'bg-white'}
+          `}
+        >
+          {/* Header */}
+          <div className={`sticky top-0 z-10 flex items-center justify-between p-4 border-b backdrop-blur-md
+            ${isDark ? 'bg-dark-bg-card/90 border-dark-border' : 'bg-white/90 border-warm-tan/30'}
+          `}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-xl ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-500/10'}`}>
+                <Shield className="w-5 h-5 text-emerald-500" />
+              </div>
+              <div>
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                  Política de Privacidad
+                </h3>
+                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                  Ley 1581 de 2012 (Colombia)
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-xl transition-colors
+                ${isDark ? 'hover:bg-dark-surface text-gray-400' : 'hover:bg-warm-cream-light text-warm-gray'}
+              `}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="overflow-y-auto max-h-[calc(85vh-80px)] p-5 space-y-5">
+            {/* Intro */}
+            <div className={`p-4 rounded-xl ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+              <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                🔒 <span className="font-semibold">Tu privacidad es importante.</span> CollectPoint cumple con la Ley Estatutaria 1581 de 2012 de Protección de Datos Personales en Colombia.
+              </p>
+            </div>
+
+            {/* What we collect */}
+            <div>
+              <h4 className={`text-sm font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                📋 ¿Qué datos recopilamos?
+              </h4>
+              <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
+                <li>• <strong>Nombre:</strong> para personalizar tu pedido</li>
+                <li>• <strong>WhatsApp:</strong> para coordinar entrega y pagos</li>
+                <li>• <strong>Dirección:</strong> para enviar tu pedido</li>
+              </ul>
+            </div>
+
+            {/* How we use it */}
+            <div>
+              <h4 className={`text-sm font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                ✅ ¿Cómo usamos tus datos?
+              </h4>
+              <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
+                <li>• <strong>Solo</strong> para procesar y entregar tu pedido</li>
+                <li>• Contactarte sobre el estado de tu reserva</li>
+                <li>• Coordinar pago y envío</li>
+              </ul>
+            </div>
+
+            {/* No selling */}
+            <div className={`p-4 rounded-xl border-2 ${isDark ? 'bg-dark-surface border-maple/30' : 'bg-maple/5 border-maple/20'}`}>
+              <h4 className={`text-sm font-bold mb-2 text-maple flex items-center gap-2`}>
+                🚫 Lo que NO hacemos
+              </h4>
+              <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
+                <li>• <strong>No vendemos</strong> tus datos a terceros</li>
+                <li>• <strong>No compartimos</strong> tu información con otras empresas</li>
+                <li>• <strong>No enviamos</strong> publicidad no solicitada</li>
+                <li>• <strong>No almacenamos</strong> datos de pago</li>
+              </ul>
+            </div>
+
+            {/* Your rights */}
+            <div>
+              <h4 className={`text-sm font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                ⚖️ Tus derechos (Ley 1581)
+              </h4>
+              <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
+                <li>• <strong>Acceso:</strong> solicitar copia de tus datos</li>
+                <li>• <strong>Rectificación:</strong> corregir información inexacta</li>
+                <li>• <strong>Cancelación:</strong> solicitar eliminación de tus datos</li>
+                <li>• <strong>Revocación:</strong> retirar tu consentimiento</li>
+              </ul>
+              <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+                Para ejercer tus derechos, contáctanos por WhatsApp.
+              </p>
+            </div>
+
+            {/* Legal basis */}
+            <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+              <p className="mb-1"><strong>Base legal:</strong> Ley Estatutaria 1581 de 2012, Decreto 1377 de 2013.</p>
+              <p><strong>Responsable:</strong> CollectPoint Colombia.</p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className={`sticky bottom-0 p-4 border-t ${isDark ? 'bg-dark-bg-card border-dark-border' : 'bg-white border-warm-tan/30'}`}>
+            <button
+              onClick={onClose}
+              className="w-full py-3 rounded-xl font-medium bg-maple text-white hover:bg-maple-dark transition-colors"
+            >
+              Entendido
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 const ReserveSection = ({ cart = {} }) => {
   const { isDark } = useTheme();
   const [formData, setFormData] = useState({
@@ -670,6 +832,7 @@ const ReserveSection = ({ cart = {} }) => {
   const [selectedPlan, setSelectedPlan] = useState('flexible');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('nequi');
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   // Payment methods data
   const paymentMethods = [
@@ -1554,6 +1717,23 @@ const ReserveSection = ({ cart = {} }) => {
                       )}
                     </AnimatePresence>
 
+                    {/* Privacy Policy Link */}
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <Shield className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                        No vendemos ni compartimos tus datos.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsPrivacyModalOpen(true)}
+                        className={`text-xs font-medium underline underline-offset-2 transition-colors
+                          ${isDark ? 'text-maple-light hover:text-maple' : 'text-maple hover:text-maple-dark'}
+                        `}
+                      >
+                        Ver política
+                      </button>
+                    </div>
+
                     {/* Submit Button */}
                     <button
                       type="submit"
@@ -1696,9 +1876,16 @@ const ReserveSection = ({ cart = {} }) => {
             </div>
 
             {/* Privacy note */}
-            <p className={`text-center text-xs mt-4 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-              Tus datos solo se usan para contactarte sobre tu pedido.
-            </p>
+            <button
+              type="button"
+              onClick={() => setIsPrivacyModalOpen(true)}
+              className={`text-center text-xs mt-4 flex items-center justify-center gap-1.5 mx-auto transition-colors
+                ${isDark ? 'text-gray-400 hover:text-gray-300' : 'text-warm-gray hover:text-warm-brown'}
+              `}
+            >
+              <Shield className="w-3 h-3" />
+              Ver política de privacidad
+            </button>
           </motion.div>
 
           {/* Right Column: Order Summary Only (2/5 width) */}
@@ -1931,6 +2118,13 @@ const ReserveSection = ({ cart = {} }) => {
             }
           }
         }}
+        isDark={isDark}
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
         isDark={isDark}
       />
     </section>
