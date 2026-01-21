@@ -17,7 +17,7 @@ import {
 } from '../data/colombiaLocations';
 
 // Google Apps Script Web App URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlL8SO7_IxLsLEpb_LiFHPpXesxuaT6z5GfqT5-x46befzinr7P7-_fPbX3oUloCvs/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTJa6BM6f2a8-Gbk1jS3PxnAfMqyNANgP3YR9f0szlUMrJK0S2090FbjhUDsZqkks8/exec';
 
 // Format currency in Colombian pesos
 const formatCurrency = (amount) => {
