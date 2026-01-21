@@ -220,13 +220,14 @@ const parseGoogleAddress = (result) => {
 
   // Parse Colombian address patterns from route
   // e.g., "Carrera 7", "Calle 72", "Avenida 19"
+  // Includes all common Colombian abbreviations for each via type
   const viaPatterns = [
-    { pattern: /^(Carrera|Cra\.?|Cr\.?)\s*(\d+[A-Za-z]?)/i, type: 'Carrera' },
-    { pattern: /^(Calle|Cl\.?)\s*(\d+[A-Za-z]?)/i, type: 'Calle' },
-    { pattern: /^(Avenida|Av\.?|Avenida Calle|Avenida Carrera)\s*(\d+[A-Za-z]?)/i, type: 'Avenida' },
-    { pattern: /^(Diagonal|Dg\.?)\s*(\d+[A-Za-z]?)/i, type: 'Diagonal' },
-    { pattern: /^(Transversal|Tv\.?|Trans\.?)\s*(\d+[A-Za-z]?)/i, type: 'Transversal' },
-    { pattern: /^(Circular)\s*(\d+[A-Za-z]?)/i, type: 'Circular' },
+    { pattern: /^(Carrera|Cra\.?|Cr\.?|Kr\.?|Kra\.?)\s*(\d+[A-Za-z]?)/i, type: 'Carrera' },
+    { pattern: /^(Calle|Cl\.?|Cll\.?)\s*(\d+[A-Za-z]?)/i, type: 'Calle' },
+    { pattern: /^(Avenida|Av\.?|Ave\.?|Avenida Calle|Avenida Carrera|Av\s*Calle|Av\s*Carrera)\s*(\d+[A-Za-z]?)/i, type: 'Avenida' },
+    { pattern: /^(Diagonal|Dg\.?|Diag\.?)\s*(\d+[A-Za-z]?)/i, type: 'Diagonal' },
+    { pattern: /^(Transversal|Tv\.?|Trans\.?|Trv\.?|Tr\.?)\s*(\d+[A-Za-z]?)/i, type: 'Transversal' },
+    { pattern: /^(Circular|Circ\.?)\s*(\d+[A-Za-z]?)/i, type: 'Circular' },
   ];
 
   let viaType = '';
@@ -568,8 +569,8 @@ const GoogleMapsModal = ({ isOpen, onClose, onSelectAddress, isDark }) => {
                       <div
                         onClick={() => setAutoFillOptions(prev => ({ ...prev, departmentCity: !prev.departmentCity }))}
                         className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${autoFillOptions.departmentCity
-                            ? 'bg-maple'
-                            : isDark ? 'bg-dark-border' : 'bg-warm-tan/50'
+                          ? 'bg-maple'
+                          : isDark ? 'bg-dark-border' : 'bg-warm-tan/50'
                           }`}
                       >
                         <div
@@ -592,8 +593,8 @@ const GoogleMapsModal = ({ isOpen, onClose, onSelectAddress, isDark }) => {
                       <div
                         onClick={() => setAutoFillOptions(prev => ({ ...prev, address: !prev.address }))}
                         className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${autoFillOptions.address
-                            ? 'bg-maple'
-                            : isDark ? 'bg-dark-border' : 'bg-warm-tan/50'
+                          ? 'bg-maple'
+                          : isDark ? 'bg-dark-border' : 'bg-warm-tan/50'
                           }`}
                       >
                         <div

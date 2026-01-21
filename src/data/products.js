@@ -57,7 +57,7 @@ export const products = [
 export const stats = [
   { number: 112, label: "Páginas", suffix: "" },
   { number: 48, label: "Equipos", suffix: "" },
-  { number: 7, label: "Por Sobre", suffix: "" },
+  { number: 7, label: "FICHAS POR SOBRE", suffix: "" },
 ];
 
 export const socialLinks = [
@@ -110,5 +110,5 @@ export const generateWhatsAppLink = (product, userData = null) => {
 export const presaleStatus = {
   percentage: 60,
   message: "Estado de la Preventa",
-  endDate: "2026-02-02",
+  endDate: "2026-02-08",
 };

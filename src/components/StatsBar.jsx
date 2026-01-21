@@ -176,7 +176,7 @@ const StatsBar = () => {
           className="flex flex-wrap justify-center gap-3 sm:gap-6 mb-16"
         >
           {[
-            { text: "Edición limitada 2026", color: "text-maple" },
+            { text: "Facilidades de pago", color: "text-maple" },
             { text: "Envío a todo Colombia", color: "text-zayu" },
             { text: "Entrega garantizada", color: "text-clutch" },
           ].map((item, index) => (
