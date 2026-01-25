@@ -56,7 +56,7 @@ export const products = [
 export const stats = [
   { number: 112, label: "Páginas", suffix: "" },
   { number: 48, label: "Equipos", suffix: "" },
-  { number: 7, label: "FICHAS POR SOBRE", suffix: "" },
+  { number: 7, label: "LÁMINAS POR SOBRE", suffix: "" },
 ];
 
 export const socialLinks = [

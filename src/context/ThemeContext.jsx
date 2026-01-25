@@ -4,8 +4,8 @@ const ThemeContext = createContext(undefined);
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    // Always default to dark mode
-    return 'dark';
+    // Always default to light mode
+    return 'light';
   });
 
   // Apply theme class to document

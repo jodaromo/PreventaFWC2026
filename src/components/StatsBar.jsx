@@ -145,7 +145,7 @@ const StatsBar = () => {
           <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-3 transition-colors duration-300
             ${isDark ? 'text-white' : 'text-warm-brown'}
           `}>
-            Figuritas Te Esperan
+            Láminas Te Esperan
           </h2>
           <p className={`text-lg transition-colors duration-300
             ${isDark ? 'text-gray-400' : 'text-warm-gray'}

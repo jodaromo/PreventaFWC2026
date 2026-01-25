@@ -164,7 +164,7 @@ const Hero = () => {
                     ${isDark ? 'text-gray-300' : 'text-warm-gray'}
                   `}
                 >
-                  48 selecciones, 980 figuritas y la edición de lujo que todo coleccionista necesita. La historia del fútbol en tus manos.
+                  48 selecciones, 980 láminas y la edición de lujo que todo coleccionista necesita. La historia del fútbol en tus manos.
                 </motion.p>
 
                 {/* URGENCY CARD - Full width */}
