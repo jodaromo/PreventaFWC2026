@@ -760,13 +760,13 @@ ${requestForm.fullName}`;
 
   const handleWhatsAppClick = () => {
     const message = buildWhatsAppMessage();
-    window.open(`https://wa.me/573001234567?text=${message}`, '_blank');
+    window.open(`https://wa.me/573162115581?text=${message}`, '_blank');
   };
 
   const handleEmailClick = () => {
     const subject = encodeURIComponent('Solicitud de Eliminación de Datos - Ley 1581');
     const body = buildEmailBody();
-    const mailtoUrl = `mailto:privacidad@collectpoint.co?subject=${subject}&body=${body}`;
+    const mailtoUrl = `mailto:collect.1.point@gmail.com?subject=${subject}&body=${body}`;
     window.open(mailtoUrl, '_self');
   };
 

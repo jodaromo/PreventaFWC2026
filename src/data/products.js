@@ -63,7 +63,7 @@ export const socialLinks = [
   {
     name: "WhatsApp",
     icon: "whatsapp",
-    url: "https://wa.me/PLACEHOLDER_NUMBER",
+    url: "https://wa.me/573162115581",
     qr: "/images/qr-whatsapp.png",
   },
   {
@@ -87,8 +87,7 @@ export const socialLinks = [
 ];
 
 // WhatsApp configuration
-// IMPORTANT: Replace with actual WhatsApp number (include country code without +)
-export const WHATSAPP_NUMBER = "PLACEHOLDER_NUMBER"; // e.g., "573001234567"
+export const WHATSAPP_NUMBER = "573162115581";
 
 export const generateWhatsAppLink = (product, userData = null) => {
   let message = `¡Hola! Me interesa:\n\n📦 ${product.name}\n💰 ${product.priceFormatted}\n\n`;
