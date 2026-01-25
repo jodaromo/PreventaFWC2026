@@ -8,9 +8,8 @@ Premium, Apple-inspired landing page for Panini collectibles presale (FIFA World
 - **Dark/Light theme toggle** - Full theme support throughout
 - **Framer Motion animations** - scroll reveals, hover states, micro-interactions, 3D card tilts
 - **Interactive mascot carousel** - Swipe gestures, device orientation tilt on mobile
-- **Extra Stickers modal** - Showcases rare holographic card variants
-- **Payment plan calculator** - Shows installment options for products
-- **Free album promo** - Automatic gift banners based on cart quantity
+- **Extra Stickers modal** - Showcases rare variant cards (Bronze, Silver, Gold, Red Messi)
+- **GPU-optimized images** - Crisp rendering on hover/transform
 - **Form with validation** - Collects name, phone, email before WhatsApp
 - **WhatsApp integration** - Pre-filled messages with user data
 - **Mobile responsive** - Works on all screen sizes
@@ -59,9 +58,11 @@ export const products = [
     id: 1,
     name: "Caja Display",
     description: "...",
-    price: 519990,
-    priceFormatted: "$519.990",
-    image: "/images/product-box.png",
+    price: 520000,
+    priceFormatted: "$520.000",
+    image: "/images/BoxHighQuality.png",
+    specs: ["104 sobres", "728 láminas"],
+    badge: "El Atajo",
     // ... other fields
   },
   // ... more products
@@ -74,22 +75,23 @@ export const products = [
 src/
 ├── components/
 │   ├── Header.jsx          # Fixed header with theme toggle
-│   ├── Hero.jsx            # Hero section with mascots and countdown
+│   ├── Hero.jsx            # Hero section with countdown
 │   ├── MascotSection.jsx   # Interactive 3D mascot carousel
-│   ├── ProductCard.jsx     # Product card with Extra Stickers modal
-│   ├── ProductGrid.jsx     # Product grid with gift banners
+│   ├── ProductCard.jsx     # Product card + Extra Stickers modal
+│   ├── ProductGrid.jsx     # Product grid container
 │   ├── StatsBar.jsx        # Animated stats counter
 │   ├── ReserveSection.jsx  # Reservation form section
-│   ├── ContactSection.jsx  # Contact/social links section
+│   ├── FabMenu.jsx         # Floating action button menu
 │   └── Footer.jsx          # Footer with logos
 ├── context/
 │   └── ThemeContext.jsx    # Dark/light theme provider
 ├── hooks/
 │   └── useScrollReveal.js  # Custom scroll animation hook
 ├── utils/
-│   └── assets.js           # Asset path helper for dev/prod
+│   └── assets.js           # Asset path helper (getAssetPath, img)
 ├── data/
-│   └── products.js         # Product & config data
+│   ├── products.js         # Product & config data
+│   └── colombiaLocations.js # City/department data
 ├── App.jsx                 # Main app component
 ├── main.jsx                # Entry point
 └── index.css               # Global styles + Tailwind
@@ -97,115 +99,100 @@ src/
 
 ## Image Assets
 
-All images follow a semantic naming convention in `public/images/`:
+Located in `public/images/`:
 
-### Naming Convention
+### Product Images (High Quality, Transparent)
+| File | Usage |
+|------|-------|
+| `BoxHighQuality.png` | Caja Display product |
+| `AlbumHighQuality.png` | Album (Pasta Dura/Blanda) |
+| `CardPackageHighQuality.png` | Sobre Individual |
 
-| Prefix | Purpose | Examples |
-|--------|---------|----------|
-| `bg-*` | Background images | `bg-stadium-light.jpg`, `bg-stickers-dark.jpg` |
-| `card-*` | Extra sticker variants | `card-extra-blue.jpg`, `card-extra-gold.jpg` |
-| `logo-*` | Brand logos | `logo-collectpoint.jpg`, `logo-fifa-worldcup.png` |
-| `mascots-*` | Mascot images | `mascots-group.png`, `Maple.avif` |
-| `product-*` | Product images | `product-box.png`, `product-album.png` |
-| `promo-*` | Promotional banners | `promo-banner.png` |
-| `qr-*` | Social media QR codes | `qr-whatsapp.png`, `qr-instagram.png` |
+### Extra Sticker Variants
+| File | Usage |
+|------|-------|
+| `BronzeVariant_clean.png` | Bronze Messi card |
+| `SilverVariant_clean.png` | Silver Messi card |
+| `GoldVariant_clean.png` | Gold Messi card |
+| `RedVariant_clean.png` | Red Messi card |
+| `CardBack.png` | Card back design |
 
-### Full Image List
+### Mascots
+| File | Usage |
+|------|-------|
+| `Zayu.avif` | Mexico mascot (Jaguar) |
+| `Clutch.avif` | USA mascot (Eagle) |
 
+### Logos & QR
+Located in `public/images/` with prefixes `logo-*`, `qr-*`
+
+## Color Palette
+
+### Light Mode
 ```
-public/images/
-├── Backgrounds
-│   ├── bg-ball-texture-dark.jpg    # Football texture (dark theme)
-│   ├── bg-ball-texture-light.jpg   # Football texture (light theme)
-│   ├── bg-collector-hands.jpg      # Stats bar background
-│   ├── bg-stadium-dark.jpg         # Stadium at night (dark hero)
-│   ├── bg-stadium-light.jpg        # Stadium with sunlight (light hero)
-│   ├── bg-stickers-dark.jpg        # Stickers on dark (dark products)
-│   └── bg-vintage-stickers-light.jpg # Vintage stickers (light products)
-├── Cards (Extra Stickers)
-│   ├── card-extra-blue.jpg         # Blue holographic variant
-│   ├── card-extra-gold.jpg         # Gold holographic variant
-│   ├── card-extra-green.jpg        # Green holographic variant
-│   └── card-extra-red.jpg          # Red holographic variant
-├── Logos
-│   ├── logo-collectpoint.jpg       # Collect Point logo
-│   ├── logo-fifa-2026.jpg          # FIFA 2026 logo
-│   ├── logo-fifa-worldcup.png      # FIFA World Cup logo
-│   └── panini-logo.svg             # Panini logo
-├── Mascots
-│   ├── Maple.avif                  # Canada mascot
-│   ├── Zayu.avif                   # Mexico mascot
-│   ├── Clutch.avif                 # USA mascot
-│   ├── mascots-group.png           # All three mascots
-│   └── mascots-group-alt.png       # Alternate group image
-├── Products
-│   ├── product-album.png           # Album (pasta dura/blanda)
-│   ├── product-box.png             # Display box
-│   └── product-pack-individual.png # Individual sticker pack
-├── Promo
-│   ├── promo-banner.png            # Promotional banner
-│   └── promo-presale-status.png    # Presale status graphic
-└── QR Codes
-    ├── qr-facebook.png             # Facebook QR
-    ├── qr-instagram.png            # Instagram QR
-    ├── qr-tiktok.png               # TikTok QR
-    └── qr-whatsapp.png             # WhatsApp QR
+Background:      #FAFAFA (warm-cream)
+Card:            #FFFFFF (white)
+Text Primary:    #171717 (warm-brown)
+Text Secondary:  #737373 (warm-gray)
+Border:          #E5E5E5 (warm-tan)
+Accent:          #E07B4C (maple)
 ```
 
-## Theme Colors
-
-The project uses a warm, maple-inspired color palette defined in `tailwind.config.js`:
-
-```javascript
-colors: {
-  'maple': '#C75B2C',           // Primary brand color
-  'maple-dark': '#A34820',      // Darker variant
-  'maple-light': '#E07B4C',     // Lighter variant
-  'warm-cream': '#FAF7F2',      // Light background
-  'warm-brown': '#3D2B1F',      // Dark text
-  'warm-tan': '#D4C4B0',        // Borders/accents
-  'zayu': '#16A34A',            // Mexico mascot green
-  'clutch': '#3B82F6',          // USA mascot blue
-  // Dark theme
-  'dark-bg': '#0a0a0a',
-  'dark-surface': '#1a1a1a',
-  'dark-border': '#2a2a2a',
-}
+### Dark Mode
 ```
+Background:      #1A1D21 (dark-bg)
+Card:            #2A2F38 (dark-bg-card)
+Elevated:        #242830 (dark-bg-elevated)
+Text Primary:    #F5F5F7 (white)
+Text Muted:      #A8ADB5 (dark-text-muted)
+Border:          #3D444D (dark-border)
+Accent:          #E07B4C (maple)
+```
+
+### Brand Colors
+```
+maple:           #E07B4C (primary accent)
+maple-dark:      #C96A3D (hover state)
+zayu:            #17A2B8 (teal - Mexico mascot)
+clutch:          #4361EE (blue - USA mascot)
+whatsapp:        #25D366
+```
+
+Full color definitions in `tailwind.config.js`
+
+## Animation Reference
+
+### Framer Motion Springs
+```jsx
+// Standard
+{ type: "spring", stiffness: 400, damping: 26 }
+
+// Snappy (cards)
+{ type: "spring", stiffness: 400, damping: 28 }
+```
+
+### Tailwind Animations
+- `animate-fade-in` - Fade in 0.6s
+- `animate-slide-up` - Slide up + fade 0.6s
+- `animate-float` - Floating 6s infinite
+- `animate-theme-spin` - Theme toggle 0.5s
+
+## Skill Reference
+
+A detailed codebase skill is available at `../fifa2026-skill/` with:
+- Complete file index
+- Color reference (light/dark)
+- Animation configs
+- Component patterns
+- Common issues & fixes
 
 ## Deployment
 
 The `dist/` folder contains the production build. Deploy to any static hosting:
 
-- **GitHub Pages**: Configured via `vite.config.js` with base path
 - **Vercel**: `vercel --prod`
 - **Netlify**: Drag & drop `dist/` folder
-- **Any CDN/Server**: Upload `dist/` contents
-
-### GitHub Pages Deployment
-
-```bash
-npm run build
-npm run deploy  # Uses gh-pages package
-```
-
-## Key Components
-
-### MascotSection
-- 3D tilt effect on center card (mouse + device orientation)
-- Swipe gestures for carousel navigation
-- Modal with mascot stories, stadiums, and maps links
-
-### ProductCard
-- Payment plan calculator (3, 6, 12 months)
-- Extra Stickers badge with modal popup
-- Quantity selector with gift promo banners
-
-### ThemeContext
-- Persists theme preference to localStorage
-- Smooth transitions between themes
-- Respects system preference on first load
+- **GitHub Pages**: Configure base path in `vite.config.js`
 
 ---
 

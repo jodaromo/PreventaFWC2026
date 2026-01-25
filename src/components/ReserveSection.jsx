@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Phone, CheckCircle, AlertCircle, Loader2, RefreshCw,
   MapPin, Gift, CreditCard, Calendar, Truck, ChevronDown, Search, Home, Building2,
-  Map, X, Navigation, ExternalLink, Banknote, Shield
+  Map, X, Navigation, ExternalLink, Banknote, Shield, Mail, MessageCircle,
+  FileText, Lock, Eye, Trash2, UserX, ChevronRight, Send
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { products } from '../data/products';
@@ -649,8 +650,39 @@ const GoogleMapsModal = ({ isOpen, onClose, onSelectAddress, isDark }) => {
   );
 };
 
-// Privacy Policy Modal - Colombian Law 1581 Compliance
+// Privacy Policy Modal - Colombian Law 1581 Compliance - Modern Interactive Design
 const PrivacyPolicyModal = ({ isOpen, onClose, isDark }) => {
+  const [activeTab, setActiveTab] = useState('policy'); // 'policy' or 'rights'
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestForm, setRequestForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    dataTypes: [],
+    reason: ''
+  });
+
+  const dataTypeOptions = [
+    { id: 'nombre', label: 'Nombre', icon: User },
+    { id: 'whatsapp', label: 'WhatsApp', icon: Phone },
+    { id: 'direccion', label: 'Dirección', icon: MapPin },
+    { id: 'pedidos', label: 'Historial de pedidos', icon: FileText }
+  ];
+
+  // Handle close with reset
+  const handleClose = () => {
+    setShowRequestForm(false);
+    setActiveTab('policy');
+    setRequestForm({
+      fullName: '',
+      email: '',
+      phone: '',
+      dataTypes: [],
+      reason: ''
+    });
+    onClose();
+  };
+
   // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -663,6 +695,83 @@ const PrivacyPolicyModal = ({ isOpen, onClose, isDark }) => {
     };
   }, [isOpen]);
 
+  const toggleDataType = (typeId) => {
+    setRequestForm(prev => ({
+      ...prev,
+      dataTypes: prev.dataTypes.includes(typeId)
+        ? prev.dataTypes.filter(id => id !== typeId)
+        : [...prev.dataTypes, typeId]
+    }));
+  };
+
+  const buildWhatsAppMessage = () => {
+    const selectedTypes = requestForm.dataTypes
+      .map(id => dataTypeOptions.find(opt => opt.id === id)?.label)
+      .filter(Boolean)
+      .join(', ');
+
+    const message = `🔒 *SOLICITUD DE ELIMINACIÓN DE DATOS*
+━━━━━━━━━━━━━━━━━━━━━━
+
+📋 *Información del Solicitante:*
+• Nombre: ${requestForm.fullName}
+• Email: ${requestForm.email}
+• Teléfono: ${requestForm.phone}
+
+🗂️ *Datos a Eliminar:*
+${selectedTypes || 'No especificados'}
+
+📝 *Motivo:*
+${requestForm.reason || 'No especificado'}
+
+━━━━━━━━━━━━━━━━━━━━━━
+Ley 1581 de 2012 - Habeas Data`;
+
+    return encodeURIComponent(message);
+  };
+
+  const buildEmailBody = () => {
+    const selectedTypes = requestForm.dataTypes
+      .map(id => dataTypeOptions.find(opt => opt.id === id)?.label)
+      .filter(Boolean)
+      .join(', ');
+
+    const body = `SOLICITUD DE ELIMINACIÓN DE DATOS PERSONALES
+
+Información del Solicitante:
+- Nombre completo: ${requestForm.fullName}
+- Correo electrónico: ${requestForm.email}
+- Teléfono: ${requestForm.phone}
+
+Datos que solicito eliminar:
+${selectedTypes || 'No especificados'}
+
+Motivo de la solicitud:
+${requestForm.reason || 'No especificado'}
+
+---
+Esta solicitud se realiza en ejercicio de mis derechos bajo la Ley 1581 de 2012 (Ley de Habeas Data de Colombia).
+
+Atentamente,
+${requestForm.fullName}`;
+
+    return encodeURIComponent(body);
+  };
+
+  const handleWhatsAppClick = () => {
+    const message = buildWhatsAppMessage();
+    window.open(`https://wa.me/573001234567?text=${message}`, '_blank');
+  };
+
+  const handleEmailClick = () => {
+    const subject = encodeURIComponent('Solicitud de Eliminación de Datos - Ley 1581');
+    const body = buildEmailBody();
+    const mailtoUrl = `mailto:privacidad@collectpoint.co?subject=${subject}&body=${body}`;
+    window.open(mailtoUrl, '_self');
+  };
+
+  const isFormValid = requestForm.fullName && requestForm.email && requestForm.phone && requestForm.dataTypes.length > 0;
+
   if (!isOpen) return null;
 
   return (
@@ -673,22 +782,22 @@ const PrivacyPolicyModal = ({ isOpen, onClose, isDark }) => {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        onClick={onClose}
+        onClick={handleClose}
       >
-        {/* Backdrop */}
+        {/* Backdrop with gradient */}
         <motion.div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-emerald-900/30 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
         />
 
-        {/* Modal Content - iOS-style spring animation */}
+        {/* Modal Content */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.85 }}
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{
             type: "spring",
             damping: 25,
@@ -696,115 +805,541 @@ const PrivacyPolicyModal = ({ isOpen, onClose, isDark }) => {
             mass: 0.8,
           }}
           onClick={(e) => e.stopPropagation()}
-          className={`relative w-full max-w-lg max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden
-            ${isDark ? 'bg-dark-bg-card' : 'bg-white'}
+          className={`relative w-full max-w-xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden
+            ${isDark ? 'bg-gradient-to-b from-dark-bg-card to-dark-surface' : 'bg-gradient-to-b from-white to-gray-50'}
           `}
         >
-          {/* Header */}
-          <div className={`sticky top-0 z-10 flex items-center justify-between p-4 border-b backdrop-blur-md
-            ${isDark ? 'bg-dark-bg-card/90 border-dark-border' : 'bg-white/90 border-warm-tan/30'}
-          `}>
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-500/10'}`}>
-                <Shield className="w-5 h-5 text-emerald-500" />
+          {/* Header with gradient accent */}
+          <div className={`relative overflow-hidden`}>
+            {/* Decorative gradient bar */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-maple" />
+
+            <div className={`flex items-center justify-between p-5 ${isDark ? 'bg-dark-bg-card/80' : 'bg-white/80'} backdrop-blur-sm`}>
+              <div className="flex items-center gap-4">
+                <motion.div
+                  className={`p-3 rounded-2xl ${isDark ? 'bg-gradient-to-br from-emerald-500/30 to-emerald-600/20' : 'bg-gradient-to-br from-emerald-100 to-emerald-200'}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Shield className="w-6 h-6 text-emerald-500" />
+                </motion.div>
+                <div>
+                  <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    Política de Privacidad
+                  </h3>
+                  <p className={`text-xs ${isDark ? 'text-emerald-400/80' : 'text-emerald-600'}`}>
+                    Ley 1581 de 2012 • Colombia
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                  Política de Privacidad
-                </h3>
-                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                  Ley 1581 de 2012 (Colombia)
-                </p>
-              </div>
+              <motion.button
+                onClick={handleClose}
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                className={`p-2.5 rounded-xl transition-colors
+                  ${isDark ? 'hover:bg-dark-surface text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'}
+                `}
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
             </div>
-            <button
-              onClick={onClose}
-              className={`p-2 rounded-xl transition-colors
-                ${isDark ? 'hover:bg-dark-surface text-gray-400' : 'hover:bg-warm-cream-light text-warm-gray'}
-              `}
-            >
-              <X className="w-5 h-5" />
-            </button>
+
+            {/* Tab Navigation */}
+            {!showRequestForm && (
+              <div className={`flex gap-2 px-5 pb-4 ${isDark ? 'bg-dark-bg-card/80' : 'bg-white/80'}`}>
+                {[
+                  { id: 'policy', label: 'Política', icon: FileText },
+                  { id: 'rights', label: 'Tus Derechos', icon: Shield }
+                ].map((tab) => (
+                  <motion.button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all duration-200
+                      ${activeTab === tab.id
+                        ? isDark
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : isDark
+                          ? 'bg-dark-surface/50 text-gray-400 hover:text-gray-300 border border-transparent'
+                          : 'bg-gray-50 text-gray-500 hover:text-gray-700 border border-transparent'
+                      }
+                    `}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    {tab.label}
+                  </motion.button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Scrollable Content */}
-          <div className="overflow-y-auto max-h-[calc(85vh-80px)] p-5 space-y-5">
-            {/* Intro */}
-            <div className={`p-4 rounded-xl ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
-              <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                🔒 <span className="font-semibold">Tu privacidad es importante.</span> CollectPoint cumple con la Ley Estatutaria 1581 de 2012 de Protección de Datos Personales en Colombia.
-              </p>
-            </div>
+          <div className="overflow-y-auto max-h-[calc(90vh-180px)] px-5 pb-5">
+            <AnimatePresence mode="wait">
+              {showRequestForm ? (
+                /* Data Deletion Request Form */
+                <motion.div
+                  key="form"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-5 py-4"
+                >
+                  {/* Back button */}
+                  <button
+                    onClick={() => setShowRequestForm(false)}
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors
+                      ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}
+                    `}
+                  >
+                    <ChevronRight className="w-4 h-4 rotate-180" />
+                    Volver
+                  </button>
 
-            {/* What we collect */}
-            <div>
-              <h4 className={`text-sm font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                📋 ¿Qué datos recopilamos?
-              </h4>
-              <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-                <li>• <strong>Nombre:</strong> para personalizar tu pedido</li>
-                <li>• <strong>WhatsApp:</strong> para coordinar entrega y pagos</li>
-                <li>• <strong>Dirección:</strong> para enviar tu pedido</li>
-              </ul>
-            </div>
+                  {/* Form Header */}
+                  <div className={`p-4 rounded-2xl ${isDark ? 'bg-maple/10 border border-maple/20' : 'bg-maple/5 border border-maple/10'}`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`p-2 rounded-xl ${isDark ? 'bg-maple/20' : 'bg-maple/10'}`}>
+                        <Trash2 className="w-5 h-5 text-maple" />
+                      </div>
+                      <h4 className={`font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                        Solicitud de Eliminación de Datos
+                      </h4>
+                    </div>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                      Completa el formulario y envíalo por WhatsApp o Email. Procesaremos tu solicitud en máximo 15 días hábiles.
+                    </p>
+                  </div>
 
-            {/* How we use it */}
-            <div>
-              <h4 className={`text-sm font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                ✅ ¿Cómo usamos tus datos?
-              </h4>
-              <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-                <li>• <strong>Solo</strong> para procesar y entregar tu pedido</li>
-                <li>• Contactarte sobre el estado de tu reserva</li>
-                <li>• Coordinar pago y envío</li>
-              </ul>
-            </div>
+                  {/* Form Fields */}
+                  <div className="space-y-4">
+                    {/* Full Name */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                        Nombre Completo *
+                      </label>
+                      <div className="relative">
+                        <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                        <input
+                          type="text"
+                          value={requestForm.fullName}
+                          onChange={(e) => setRequestForm(prev => ({ ...prev, fullName: e.target.value }))}
+                          placeholder="Tu nombre completo"
+                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all text-sm
+                            ${isDark
+                              ? 'bg-dark-surface border-dark-border text-white placeholder-gray-500 focus:border-maple'
+                              : 'bg-white border-gray-200 text-gray-800 placeholder-gray-400 focus:border-maple'
+                            }
+                          `}
+                        />
+                      </div>
+                    </div>
 
-            {/* No selling */}
-            <div className={`p-4 rounded-xl border-2 ${isDark ? 'bg-dark-surface border-maple/30' : 'bg-maple/5 border-maple/20'}`}>
-              <h4 className={`text-sm font-bold mb-2 text-maple flex items-center gap-2`}>
-                🚫 Lo que NO hacemos
-              </h4>
-              <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-                <li>• <strong>No vendemos</strong> tus datos a terceros</li>
-                <li>• <strong>No compartimos</strong> tu información con otras empresas</li>
-                <li>• <strong>No enviamos</strong> publicidad no solicitada</li>
-                <li>• <strong>No almacenamos</strong> datos de pago</li>
-              </ul>
-            </div>
+                    {/* Email */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                        Correo Electrónico *
+                      </label>
+                      <div className="relative">
+                        <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                        <input
+                          type="email"
+                          value={requestForm.email}
+                          onChange={(e) => setRequestForm(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="tu@email.com"
+                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all text-sm
+                            ${isDark
+                              ? 'bg-dark-surface border-dark-border text-white placeholder-gray-500 focus:border-maple'
+                              : 'bg-white border-gray-200 text-gray-800 placeholder-gray-400 focus:border-maple'
+                            }
+                          `}
+                        />
+                      </div>
+                    </div>
 
-            {/* Your rights */}
-            <div>
-              <h4 className={`text-sm font-bold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                ⚖️ Tus derechos (Ley 1581)
-              </h4>
-              <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`}>
-                <li>• <strong>Acceso:</strong> solicitar copia de tus datos</li>
-                <li>• <strong>Rectificación:</strong> corregir información inexacta</li>
-                <li>• <strong>Cancelación:</strong> solicitar eliminación de tus datos</li>
-                <li>• <strong>Revocación:</strong> retirar tu consentimiento</li>
-              </ul>
-              <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
-                Para ejercer tus derechos, contáctanos por WhatsApp.
-              </p>
-            </div>
+                    {/* Phone */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                        Teléfono / WhatsApp *
+                      </label>
+                      <div className="relative">
+                        <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                        <input
+                          type="tel"
+                          value={requestForm.phone}
+                          onChange={(e) => setRequestForm(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="300 123 4567"
+                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all text-sm
+                            ${isDark
+                              ? 'bg-dark-surface border-dark-border text-white placeholder-gray-500 focus:border-maple'
+                              : 'bg-white border-gray-200 text-gray-800 placeholder-gray-400 focus:border-maple'
+                            }
+                          `}
+                        />
+                      </div>
+                    </div>
 
-            {/* Legal basis */}
-            <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
-              <p className="mb-1"><strong>Base legal:</strong> Ley Estatutaria 1581 de 2012, Decreto 1377 de 2013.</p>
-              <p><strong>Responsable:</strong> CollectPoint Colombia.</p>
-            </div>
+                    {/* Data Types Selection */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                        ¿Qué datos deseas eliminar? *
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {dataTypeOptions.map((option) => {
+                          const isSelected = requestForm.dataTypes.includes(option.id);
+                          return (
+                            <motion.button
+                              key={option.id}
+                              type="button"
+                              onClick={() => toggleDataType(option.id)}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left
+                                ${isSelected
+                                  ? isDark
+                                    ? 'bg-maple/20 border-maple text-maple'
+                                    : 'bg-maple/10 border-maple text-maple'
+                                  : isDark
+                                    ? 'bg-dark-surface border-dark-border text-gray-400 hover:border-gray-600'
+                                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
+                                }
+                              `}
+                            >
+                              <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-maple/20' : isDark ? 'bg-dark-bg-card' : 'bg-white'}`}>
+                                <option.icon className="w-4 h-4" />
+                              </div>
+                              <span className="text-sm font-medium">{option.label}</span>
+                              {isSelected && (
+                                <CheckCircle className="w-4 h-4 ml-auto" />
+                              )}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Reason */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+                        Motivo (opcional)
+                      </label>
+                      <textarea
+                        value={requestForm.reason}
+                        onChange={(e) => setRequestForm(prev => ({ ...prev, reason: e.target.value }))}
+                        placeholder="Cuéntanos por qué deseas eliminar tus datos..."
+                        rows={3}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all text-sm resize-none
+                          ${isDark
+                            ? 'bg-dark-surface border-dark-border text-white placeholder-gray-500 focus:border-maple'
+                            : 'bg-white border-gray-200 text-gray-800 placeholder-gray-400 focus:border-maple'
+                          }
+                        `}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Submit Buttons */}
+                  <div className="space-y-3 pt-2">
+                    <motion.button
+                      onClick={handleWhatsAppClick}
+                      disabled={!isFormValid}
+                      whileHover={isFormValid ? { scale: 1.02 } : {}}
+                      whileTap={isFormValid ? { scale: 0.98 } : {}}
+                      className={`w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-xl font-semibold transition-all
+                        ${isFormValid
+                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl'
+                          : isDark
+                            ? 'bg-dark-surface text-gray-600 cursor-not-allowed'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }
+                      `}
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Enviar por WhatsApp
+                    </motion.button>
+
+                    <motion.button
+                      onClick={handleEmailClick}
+                      disabled={!isFormValid}
+                      whileHover={isFormValid ? { scale: 1.02 } : {}}
+                      whileTap={isFormValid ? { scale: 0.98 } : {}}
+                      className={`w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-xl font-semibold border-2 transition-all
+                        ${isFormValid
+                          ? isDark
+                            ? 'border-gray-600 text-white hover:bg-dark-surface'
+                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                          : isDark
+                            ? 'border-dark-border text-gray-600 cursor-not-allowed'
+                            : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                        }
+                      `}
+                    >
+                      <Mail className="w-5 h-5" />
+                      Enviar por Email
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ) : activeTab === 'policy' ? (
+                /* Policy Tab Content */
+                <motion.div
+                  key="policy"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="space-y-4 py-4"
+                >
+                  {/* Trust Banner */}
+                  <motion.div
+                    className={`p-4 rounded-2xl ${isDark ? 'bg-gradient-to-r from-emerald-500/15 to-emerald-600/10 border border-emerald-500/20' : 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 border border-emerald-200'}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-xl flex-shrink-0 ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-200'}`}>
+                        <Lock className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-semibold ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                          Tu privacidad es nuestra prioridad
+                        </p>
+                        <p className={`text-xs mt-1 ${isDark ? 'text-emerald-400/70' : 'text-emerald-600/80'}`}>
+                          Cumplimos con la Ley Estatutaria 1581 de 2012 de Protección de Datos Personales.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Data Collection Card */}
+                  <motion.div
+                    className={`rounded-2xl overflow-hidden ${isDark ? 'bg-dark-surface/50' : 'bg-white'} border ${isDark ? 'border-dark-border' : 'border-gray-100'}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                  >
+                    <div className={`px-4 py-3 flex items-center gap-3 ${isDark ? 'bg-dark-bg-card' : 'bg-gray-50'}`}>
+                      <FileText className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
+                      <h4 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        ¿Qué datos recopilamos?
+                      </h4>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {[
+                        { icon: User, label: 'Nombre', desc: 'Para personalizar tu pedido' },
+                        { icon: MessageCircle, label: 'WhatsApp', desc: 'Para coordinar entrega y pagos' },
+                        { icon: MapPin, label: 'Dirección', desc: 'Para enviar tu pedido' }
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${isDark ? 'bg-dark-bg-card' : 'bg-gray-100'}`}>
+                            <item.icon className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                          </div>
+                          <div>
+                            <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{item.label}</p>
+                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{item.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+
+                  {/* Usage Card */}
+                  <motion.div
+                    className={`rounded-2xl overflow-hidden ${isDark ? 'bg-dark-surface/50' : 'bg-white'} border ${isDark ? 'border-dark-border' : 'border-gray-100'}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <div className={`px-4 py-3 flex items-center gap-3 ${isDark ? 'bg-dark-bg-card' : 'bg-gray-50'}`}>
+                      <Eye className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-500'}`} />
+                      <h4 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        ¿Cómo usamos tus datos?
+                      </h4>
+                    </div>
+                    <div className="p-4">
+                      <ul className="space-y-2">
+                        {[
+                          'Solo para procesar y entregar tu pedido',
+                          'Contactarte sobre el estado de tu reserva',
+                          'Coordinar pago y envío'
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <CheckCircle className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                            <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </motion.div>
+
+                  {/* What We DON'T Do Card */}
+                  <motion.div
+                    className={`rounded-2xl overflow-hidden border-2 ${isDark ? 'bg-maple/5 border-maple/30' : 'bg-maple/5 border-maple/20'}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                  >
+                    <div className={`px-4 py-3 flex items-center gap-3 ${isDark ? 'bg-maple/10' : 'bg-maple/10'}`}>
+                      <UserX className="w-5 h-5 text-maple" />
+                      <h4 className="font-semibold text-sm text-maple">
+                        Lo que NO hacemos
+                      </h4>
+                    </div>
+                    <div className="p-4">
+                      <ul className="space-y-2">
+                        {[
+                          { bold: 'No vendemos', text: 'tus datos a terceros' },
+                          { bold: 'No compartimos', text: 'tu información con otras empresas' },
+                          { bold: 'No enviamos', text: 'publicidad no solicitada' },
+                          { bold: 'No almacenamos', text: 'datos de pago' }
+                        ].map((item, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <X className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-maple' : 'text-maple'}`} />
+                            <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                              <strong className="text-maple">{item.bold}</strong> {item.text}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </motion.div>
+
+                  {/* Legal Info */}
+                  <motion.div
+                    className={`p-4 rounded-xl ${isDark ? 'bg-dark-surface/30' : 'bg-gray-50'}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                      <strong>Base legal:</strong> Ley Estatutaria 1581 de 2012, Decreto 1377 de 2013.
+                    </p>
+                    <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                      <strong>Responsable:</strong> CollectPoint Colombia.
+                    </p>
+                  </motion.div>
+                </motion.div>
+              ) : (
+                /* Rights Tab Content */
+                <motion.div
+                  key="rights"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-4 py-4"
+                >
+                  {/* Rights Header */}
+                  <motion.div
+                    className={`p-4 rounded-2xl ${isDark ? 'bg-gradient-to-r from-blue-500/15 to-blue-600/10 border border-blue-500/20' : 'bg-gradient-to-r from-blue-50 to-blue-100/50 border border-blue-200'}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-xl flex-shrink-0 ${isDark ? 'bg-blue-500/20' : 'bg-blue-200'}`}>
+                        <Shield className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-semibold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                          Tus derechos bajo la Ley 1581
+                        </p>
+                        <p className={`text-xs mt-1 ${isDark ? 'text-blue-400/70' : 'text-blue-600/80'}`}>
+                          La ley colombiana te garantiza control total sobre tus datos personales.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Rights Cards */}
+                  <div className="space-y-3">
+                    {[
+                      { icon: Eye, title: 'Acceso', desc: 'Solicitar una copia de todos tus datos personales que almacenamos.', color: 'blue' },
+                      { icon: FileText, title: 'Rectificación', desc: 'Corregir información inexacta o desactualizada.', color: 'purple' },
+                      { icon: Trash2, title: 'Cancelación', desc: 'Solicitar la eliminación de tus datos de nuestros sistemas.', color: 'red' },
+                      { icon: UserX, title: 'Revocación', desc: 'Retirar tu consentimiento para el uso de tus datos.', color: 'orange' }
+                    ].map((right, idx) => (
+                      <motion.div
+                        key={idx}
+                        className={`p-4 rounded-2xl ${isDark ? 'bg-dark-surface/50' : 'bg-white'} border ${isDark ? 'border-dark-border' : 'border-gray-100'}`}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.15 + (idx * 0.05) }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-xl flex-shrink-0
+                            ${right.color === 'blue' ? isDark ? 'bg-blue-500/20' : 'bg-blue-100' : ''}
+                            ${right.color === 'purple' ? isDark ? 'bg-purple-500/20' : 'bg-purple-100' : ''}
+                            ${right.color === 'red' ? isDark ? 'bg-red-500/20' : 'bg-red-100' : ''}
+                            ${right.color === 'orange' ? isDark ? 'bg-orange-500/20' : 'bg-orange-100' : ''}
+                          `}>
+                            <right.icon className={`w-5 h-5
+                              ${right.color === 'blue' ? 'text-blue-500' : ''}
+                              ${right.color === 'purple' ? 'text-purple-500' : ''}
+                              ${right.color === 'red' ? 'text-red-500' : ''}
+                              ${right.color === 'orange' ? 'text-orange-500' : ''}
+                            `} />
+                          </div>
+                          <div>
+                            <h4 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                              {right.title}
+                            </h4>
+                            <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {right.desc}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Exercise Rights CTA */}
+                  <motion.div
+                    className={`p-4 rounded-2xl ${isDark ? 'bg-gradient-to-r from-maple/20 to-maple/10 border border-maple/30' : 'bg-gradient-to-r from-maple/10 to-maple/5 border border-maple/20'}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <h4 className={`font-semibold text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      ¿Quieres ejercer tus derechos?
+                    </h4>
+                    <p className={`text-xs mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Puedes solicitar acceso, modificación o eliminación de tus datos de forma fácil y rápida.
+                    </p>
+                    <motion.button
+                      onClick={() => setShowRequestForm(true)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold bg-maple text-white hover:bg-maple-dark transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                      Solicitar eliminación de datos
+                      <ChevronRight className="w-4 h-4" />
+                    </motion.button>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Footer */}
-          <div className={`sticky bottom-0 p-4 border-t ${isDark ? 'bg-dark-bg-card border-dark-border' : 'bg-white border-warm-tan/30'}`}>
-            <button
-              onClick={onClose}
-              className="w-full py-3 rounded-xl font-medium bg-maple text-white hover:bg-maple-dark transition-colors"
-            >
-              Entendido
-            </button>
-          </div>
+          {!showRequestForm && (
+            <div className={`sticky bottom-0 p-4 border-t ${isDark ? 'bg-dark-bg-card/95 border-dark-border' : 'bg-white/95 border-gray-100'} backdrop-blur-sm`}>
+              <motion.button
+                onClick={handleClose}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className={`w-full py-3.5 rounded-xl font-semibold transition-all
+                  ${isDark
+                    ? 'bg-gradient-to-r from-dark-surface to-dark-border text-white hover:from-dark-border hover:to-dark-surface'
+                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300'
+                  }
+                `}
+              >
+                Entendido
+              </motion.button>
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -1725,23 +2260,6 @@ const ReserveSection = ({ cart = {} }) => {
                       )}
                     </AnimatePresence>
 
-                    {/* Privacy Policy Link */}
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <Shield className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                        No vendemos ni compartimos tus datos.
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setIsPrivacyModalOpen(true)}
-                        className={`text-xs font-medium underline underline-offset-2 transition-colors
-                          ${isDark ? 'text-maple-light hover:text-maple' : 'text-maple hover:text-maple-dark'}
-                        `}
-                      >
-                        Ver política
-                      </button>
-                    </div>
-
                     {/* Submit Button */}
                     <button
                       type="submit"
@@ -1883,17 +2401,22 @@ const ReserveSection = ({ cart = {} }) => {
               </AnimatePresence>
             </div>
 
-            {/* Privacy note */}
-            <button
-              type="button"
-              onClick={() => setIsPrivacyModalOpen(true)}
-              className={`text-center text-xs mt-4 flex items-center justify-center gap-1.5 mx-auto transition-colors
-                ${isDark ? 'text-gray-400 hover:text-gray-300' : 'text-warm-gray hover:text-warm-brown'}
-              `}
-            >
-              <Shield className="w-3 h-3" />
-              Ver política de privacidad
-            </button>
+            {/* Privacy note - Combined message with hyperlink */}
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <Shield className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                No vendemos ni compartimos tus datos.
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsPrivacyModalOpen(true)}
+                className={`text-xs font-medium underline underline-offset-2 transition-colors
+                  ${isDark ? 'text-maple-light hover:text-maple' : 'text-maple hover:text-maple-dark'}
+                `}
+              >
+                Ver política
+              </button>
+            </div>
           </motion.div>
 
           {/* Right Column: Order Summary Only (2/5 width) */}
