@@ -710,22 +710,20 @@ const PrivacyPolicyModal = ({ isOpen, onClose, isDark }) => {
       .filter(Boolean)
       .join(', ');
 
-    const message = `🔒 *SOLICITUD DE ELIMINACIÓN DE DATOS*
-━━━━━━━━━━━━━━━━━━━━━━
+    const message = `SOLICITUD DE ELIMINACIÓN DE DATOS
 
-📋 *Información del Solicitante:*
-• Nombre: ${requestForm.fullName}
-• Email: ${requestForm.email}
-• Teléfono: ${requestForm.phone}
+Información del Solicitante:
+- Nombre: ${requestForm.fullName}
+- Email: ${requestForm.email}
+- Teléfono: ${requestForm.phone}
 
-🗂️ *Datos a Eliminar:*
+Datos a Eliminar:
 ${selectedTypes || 'No especificados'}
 
-📝 *Motivo:*
+Motivo:
 ${requestForm.reason || 'No especificado'}
 
-━━━━━━━━━━━━━━━━━━━━━━
-Ley 1581 de 2012 - Habeas Data`;
+Solicitud bajo Ley 1581 de 2012 (Habeas Data)`;
 
     return encodeURIComponent(message);
   };
