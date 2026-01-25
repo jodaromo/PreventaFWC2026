@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import Header from './components/Header';
+import FabMenu from './components/FabMenu';
 import Hero from './components/Hero';
 import MascotSection from './components/MascotSection';
 import ProductGrid from './components/ProductGrid';
@@ -23,8 +24,11 @@ function AppContent() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-theme-cream">
-      {/* Fixed Header - always visible */}
+      {/* Fixed Header - minimal */}
       <Header />
+
+      {/* FAB Menu - top right with radial options */}
+      <FabMenu />
 
       {/* Section 1: Hero */}
       <div className="snap-section">

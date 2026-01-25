@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Minus, Plus, Sparkles, X, Info } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useMotionTemplate, useAnimation } from 'framer-motion';
+import { Minus, Plus, Sparkles, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { getAssetPath, img } from '../utils/assets';
 
@@ -9,8 +9,341 @@ import { getAssetPath, img } from '../utils/assets';
 // Static scarcity counter (placeholder)
 const SCARCITY_COUNT = 2;
 
+// Messi variant cards data - using cropped clean images
+const variantCards = [
+  { id: 'bronze', name: 'Bronze', image: 'BronzeVariant_clean.png', glow: 'rgba(180, 83, 9, 0.5)' },
+  { id: 'silver', name: 'Silver', image: 'SilverVariant_clean.png', glow: 'rgba(156, 163, 175, 0.6)' },
+  { id: 'gold', name: 'Gold', image: 'GoldVariant_clean.png', glow: 'rgba(251, 191, 36, 0.6)' },
+  { id: 'red', name: 'Red', image: 'RedVariant_clean.png', glow: 'rgba(239, 68, 68, 0.5)' },
+];
+
+// Card back image
+const CARD_BACK = 'CardBack.png';
+
+// Fan arrangement calculations - shared between closed and open states
+const getFanLayout = (index, totalCards, scale = 1) => {
+  const fanAngle = 40; // Total spread angle
+  const angleStep = fanAngle / (totalCards - 1);
+  const rotation = -fanAngle / 2 + index * angleStep;
+
+  // Center cards are higher (parabolic curve) - outer cards drop down
+  const centerIndex = (totalCards - 1) / 2;
+  const distanceFromCenter = Math.abs(index - centerIndex);
+  const verticalOffset = distanceFromCenter * distanceFromCenter * 12 * scale; // More pronounced parabola
+
+  const horizontalOffset = (index - centerIndex) * 60 * scale; // Wider spread
+
+  return { rotation, horizontalOffset, verticalOffset };
+};
+
+// Individual Variant Card with 3D tilt effect and spin capability
+const VariantCard = ({ variant, isDark, isSelected, onSelect, isZoomed, onSpin }) => {
+  const cardRef = useRef(null);
+  const controls = useAnimation();
+  const spinVelocity = useRef(0);
+  const lastClickTime = useRef(0);
+  const spinAnimationRef = useRef(null);
+
+  // Current rotation for spinning
+  const [currentRotation, setCurrentRotation] = useState(0);
+
+  // 3D tilt effect (only when not zoomed)
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const mouseXSpring = useSpring(mouseX, { stiffness: 300, damping: 30 });
+  const mouseYSpring = useSpring(mouseY, { stiffness: 300, damping: 30 });
+
+  const rotateDepth = isZoomed ? 8 : 12;
+  const tiltRotateX = useTransform(mouseYSpring, [-0.5, 0.5], [`${rotateDepth}deg`, `-${rotateDepth}deg`]);
+  const tiltRotateY = useTransform(mouseXSpring, [-0.5, 0.5], [`-${rotateDepth}deg`, `${rotateDepth}deg`]);
+
+  // Glare effect
+  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], [0, 100]);
+  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], [0, 100]);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 30%, rgba(255, 255, 255, 0) 70%)`;
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current || isZoomed) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  // Handle click - select or spin
+  const handleClick = (e) => {
+    e.stopPropagation();
+
+    if (!isZoomed) {
+      // Select this card
+      onSelect(variant.id);
+    } else {
+      // Spin the card with momentum
+      const now = Date.now();
+      const timeSinceLastClick = now - lastClickTime.current;
+      lastClickTime.current = now;
+
+      // Build up velocity with rapid clicks
+      if (timeSinceLastClick < 300) {
+        spinVelocity.current = Math.min(spinVelocity.current + 400, 2000);
+      } else {
+        spinVelocity.current = 400;
+      }
+
+      onSpin(spinVelocity.current);
+    }
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      className={`cursor-pointer select-none ${isZoomed ? 'w-[220px] sm:w-[280px]' : 'w-[100px] sm:w-[130px]'}`}
+      style={{ perspective: '1000px' }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+      whileHover={!isZoomed ? { scale: 1.08, zIndex: 20 } : {}}
+      whileTap={{ scale: 0.98 }}
+    >
+      <motion.div
+        className="relative rounded-lg overflow-hidden"
+        style={{
+          rotateX: isZoomed ? 0 : tiltRotateX,
+          rotateY: isZoomed ? currentRotation : tiltRotateY,
+          transformStyle: 'preserve-3d',
+          boxShadow: `0 20px 40px -10px ${variant.glow}, 0 10px 20px -5px rgba(0,0,0,0.3)`,
+        }}
+        animate={controls}
+      >
+        {/* Card image */}
+        <img
+          src={img(variant.image)}
+          alt={`Messi ${variant.name} Variant`}
+          className="w-full h-auto object-contain pointer-events-none"
+          draggable={false}
+        />
+
+        {/* Glare overlay */}
+        <motion.div
+          className="pointer-events-none absolute inset-0 z-10 mix-blend-overlay rounded-lg"
+          style={{ background: glareBackground, opacity: 0.9 }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// ZoomedCard component with 3D tilt and glow effect for the spinning card
+// Animates FROM the fanned position TO center, and back on close
+const ZoomedCard = ({ selectedCard, selectedIndex, spinRotation, onClose, onSpin, isDark }) => {
+  const cardRef = useRef(null);
+  const variant = variantCards.find(v => v.id === selectedCard);
+
+  // Calculate the starting position based on the fan layout
+  const { rotation: startRotation, horizontalOffset, verticalOffset } = getFanLayout(selectedIndex, variantCards.length, 1);
+
+  // Mouse position for tilt
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const mouseXSpring = useSpring(mouseX, { stiffness: 400, damping: 30 });
+  const mouseYSpring = useSpring(mouseY, { stiffness: 400, damping: 30 });
+
+  // Tilt transforms - combined with spin rotation
+  const tiltX = useTransform(mouseYSpring, [-0.5, 0.5], [15, -15]);
+  const tiltY = useTransform(mouseXSpring, [-0.5, 0.5], [-15, 15]);
+
+  // Glare position
+  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], [0, 100]);
+  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], [0, 100]);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.25) 35%, rgba(255, 255, 255, 0) 70%)`;
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  if (!variant) return null;
+
+  // Animation states
+  const closedState = {
+    x: horizontalOffset,
+    y: verticalOffset + 20,
+    rotate: startRotation,
+    scale: 0.45,
+    opacity: 0, // Fade out on exit to hide position mismatch
+  };
+
+  const openedState = {
+    x: 0,
+    y: 0,
+    rotate: 0,
+    scale: 1,
+    opacity: 1,
+  };
+
+  const springTransition = { type: "spring", stiffness: 400, damping: 28 };
+
+  return (
+    <motion.div
+      className="absolute inset-0 z-30 flex items-center justify-center select-none"
+      onClick={onClose}
+    >
+      <motion.div
+        ref={cardRef}
+        className="cursor-pointer select-none"
+        style={{ perspective: '1200px', width: '330px' }}
+        initial={closedState}
+        animate={openedState}
+        exit={closedState}
+        transition={springTransition}
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onSpin();
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onMouseDown={(e) => e.preventDefault()}
+        whileTap={{ scale: 0.98 }}
+      >
+        <motion.div
+          className="relative rounded-xl overflow-hidden select-none"
+          style={{
+            rotateX: tiltX,
+            rotateY: spinRotation + tiltY.get(),
+            transformStyle: 'preserve-3d',
+            boxShadow: `0 35px 70px -15px ${variant.glow}, 0 20px 40px -10px rgba(0,0,0,0.5)`,
+          }}
+        >
+          <img
+            src={img(variant.image)}
+            alt="Selected Card"
+            className="w-full h-auto object-contain pointer-events-none select-none"
+            draggable={false}
+            onDragStart={(e) => e.preventDefault()}
+          />
+          {/* Dynamic glare overlay */}
+          <motion.div
+            className="pointer-events-none absolute inset-0 z-10 mix-blend-overlay rounded-xl"
+            style={{ background: glareBackground, opacity: 0.95 }}
+          />
+        </motion.div>
+        <p className={`text-center mt-3 text-xs select-none ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+          Toca rápido para girar más fuerte
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 // Extra Stickers Modal Component - Uses Portal to render at document root
 const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [spinRotation, setSpinRotation] = useState(0);
+  const [exitingCard, setExitingCard] = useState(null); // Track which card is animating back
+  const spinAnimationRef = useRef(null);
+  const currentVelocityRef = useRef(0);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedCard(null);
+      setSelectedIndex(-1);
+      setSpinRotation(0);
+      setExitingCard(null);
+      if (spinAnimationRef.current) {
+        cancelAnimationFrame(spinAnimationRef.current);
+      }
+    }
+  }, [isOpen]);
+
+  // Track rapid clicks for spin acceleration
+  const lastClickTimeRef = useRef(0);
+  const clickCountRef = useRef(0);
+
+  // Handle spin with momentum decay
+  const handleSpin = () => {
+    const now = Date.now();
+    const timeSinceLastClick = now - lastClickTimeRef.current;
+    lastClickTimeRef.current = now;
+
+    // Build velocity with rapid clicks
+    if (timeSinceLastClick < 250) {
+      clickCountRef.current++;
+      currentVelocityRef.current += 300 + (clickCountRef.current * 150); // Accelerate more with each rapid click
+      currentVelocityRef.current = Math.min(currentVelocityRef.current, 3000); // Cap velocity
+    } else {
+      clickCountRef.current = 1;
+      currentVelocityRef.current = Math.max(currentVelocityRef.current + 350, 400);
+    }
+
+    if (spinAnimationRef.current) {
+      cancelAnimationFrame(spinAnimationRef.current);
+    }
+
+    const animate = () => {
+      if (Math.abs(currentVelocityRef.current) < 3) {
+        currentVelocityRef.current = 0;
+        return;
+      }
+
+      setSpinRotation(prev => prev + currentVelocityRef.current * 0.016); // ~60fps
+      currentVelocityRef.current *= 0.965; // Friction decay - slightly slower deceleration
+
+      spinAnimationRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+  };
+
+  // Handle card selection - toggle selection
+  const handleSelectCard = (cardId, index) => {
+    if (selectedCard === cardId) {
+      // Set exitingCard BEFORE clearing selectedCard so fanned card stays hidden
+      setExitingCard(cardId);
+      setSelectedCard(null);
+      setSelectedIndex(-1);
+      setSpinRotation(0);
+      if (spinAnimationRef.current) {
+        cancelAnimationFrame(spinAnimationRef.current);
+      }
+    } else {
+      setExitingCard(null);
+      setSelectedCard(cardId);
+      setSelectedIndex(index);
+      setSpinRotation(0);
+    }
+  };
+
+  // Handle backdrop click
+  const handleBackdropClick = () => {
+    if (selectedCard) {
+      setExitingCard(selectedCard);
+      setSelectedCard(null);
+      setSelectedIndex(-1);
+      setSpinRotation(0);
+      if (spinAnimationRef.current) {
+        cancelAnimationFrame(spinAnimationRef.current);
+      }
+    } else {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   const modalContent = (
@@ -22,8 +355,8 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
-            className={`fixed inset-0 backdrop-blur-sm z-[9999] ${isDark ? 'bg-black/70' : 'bg-black/50'}`}
+            onClick={handleBackdropClick}
+            className={`fixed inset-0 backdrop-blur-md z-[9999] ${isDark ? 'bg-black/85' : 'bg-black/70'}`}
           />
 
           {/* Modal */}
@@ -34,80 +367,147 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="pointer-events-auto w-full max-w-[360px]" onClick={(e) => e.stopPropagation()}>
+            <div className="pointer-events-auto w-full max-w-[700px]" onClick={(e) => e.stopPropagation()}>
               {/* Themed modal */}
-              <div className={`rounded-2xl overflow-hidden shadow-2xl ${
+              <div className={`rounded-3xl overflow-hidden shadow-2xl ${
                 isDark
-                  ? 'bg-[#1a1a1a] border border-white/10'
-                  : 'bg-white border border-warm-tan/30'
+                  ? 'bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d] border border-white/10'
+                  : 'bg-gradient-to-b from-white to-gray-50 border border-warm-tan/30'
               }`}>
 
-                {/* Hero section with card image */}
-                <div className={`relative h-48 flex items-center justify-center overflow-hidden ${
-                  isDark ? 'bg-black' : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
-                }`}>
-                  {/* Card image - centered and properly sized */}
-                  <img
-                    src={img('extra-cards.png')}
-                    alt="Extra Stickers"
-                    className="h-40 w-auto object-contain"
-                  />
-
-                  {/* Gradient fade at bottom */}
-                  <div className={`absolute bottom-0 left-0 right-0 h-20 ${
-                    isDark
-                      ? 'bg-gradient-to-t from-[#1a1a1a] to-transparent'
-                      : 'bg-gradient-to-t from-white to-transparent'
-                  }`} />
-
-                  {/* Reference disclaimer - bottom left */}
-                  <span className="absolute bottom-2 left-3 text-[9px] text-white/40 z-10">
-                    *Imagen de referencia
-                  </span>
-
+                {/* Header */}
+                <div className={`relative px-6 pt-5 pb-4 border-b ${isDark ? 'border-white/10' : 'border-warm-tan/20'}`}>
                   {/* Close button */}
                   <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-white/10 hover:bg-white/20"
+                    className={`absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center transition-colors
+                      ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`}
                   >
-                    <X className="w-4 h-4 text-white/70" />
+                    <X className={`w-4 h-4 ${isDark ? 'text-white/70' : 'text-warm-brown'}`} />
                   </button>
 
                   {/* Badge */}
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-maple/20 border border-maple/30 backdrop-blur-sm">
-                    <Sparkles className="w-3 h-3 text-maple" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-maple">Ultra Raro</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-maple/20 border border-maple/30">
+                      <Sparkles className="w-3 h-3 text-maple" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-maple">Ultra Raro</span>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                    Extra Stickers
+                  </h3>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                    Las láminas más codiciadas del álbum — Variantes exclusivas de Messi
+                  </p>
+                </div>
+
+                {/* Cards Display - Fanned hand arrangement */}
+                <div className="relative py-4 px-4 flex justify-center items-start min-h-[380px] select-none">
+                  {/* Zoomed card overlay - appears when a card is selected */}
+                  <AnimatePresence onExitComplete={() => setExitingCard(null)}>
+                    {selectedCard && (
+                      <ZoomedCard
+                        key={selectedCard}
+                        selectedCard={selectedCard}
+                        selectedIndex={selectedIndex}
+                        spinRotation={spinRotation}
+                        onClose={() => handleSelectCard(selectedCard, selectedIndex)}
+                        onSpin={handleSpin}
+                        isDark={isDark}
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  {/* Fanned cards arrangement - positioned from top */}
+                  <div
+                    className="relative flex items-start justify-center select-none"
+                    style={{ perspective: '1000px', height: '340px', paddingTop: '20px' }}
+                  >
+                    {variantCards.map((variant, index) => {
+                      const { rotation, horizontalOffset, verticalOffset } = getFanLayout(index, variantCards.length, 1);
+                      const isThisCardSelected = selectedCard === variant.id;
+                      const isThisCardExiting = exitingCard === variant.id;
+                      // Keep hidden if selected OR if ZoomedCard is still animating out
+                      const shouldHide = isThisCardSelected || isThisCardExiting;
+
+                      return (
+                        <motion.div
+                          key={variant.id}
+                          initial={{ opacity: 0, y: 50, rotate: 0 }}
+                          animate={{
+                            opacity: shouldHide ? 0 : (selectedCard ? 0.3 : 1),
+                            y: verticalOffset,
+                            rotate: rotation,
+                            x: horizontalOffset,
+                            scale: shouldHide ? 0.8 : 1,
+                          }}
+                          transition={{
+                            delay: shouldHide ? 0 : index * 0.05,
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 26,
+                            opacity: { duration: 0.1, ease: "easeOut" }
+                          }}
+                          whileHover={!selectedCard && !exitingCard ? {
+                            y: verticalOffset - 20,
+                            transition: { type: "spring", stiffness: 400, damping: 20 }
+                          } : {}}
+                          className={`absolute select-none ${(selectedCard || exitingCard) ? 'pointer-events-none' : 'cursor-pointer'}`}
+                          style={{
+                            transformOrigin: 'bottom center',
+                            zIndex: index + 1,
+                          }}
+                          onClick={() => handleSelectCard(variant.id, index)}
+                        >
+                          <motion.div
+                            className="relative rounded-lg overflow-hidden w-[120px] sm:w-[150px]"
+                            style={{
+                              boxShadow: `0 20px 40px -10px ${variant.glow}, 0 10px 20px -5px rgba(0,0,0,0.3)`,
+                            }}
+                          >
+                            <img
+                              src={img(variant.image)}
+                              alt={`Messi ${variant.name} Variant`}
+                              className="w-full h-auto object-contain pointer-events-none select-none"
+                              draggable={false}
+                              onDragStart={(e) => e.preventDefault()}
+                            />
+                            {/* Static glare overlay */}
+                            <div
+                              className="pointer-events-none absolute inset-0 z-10 mix-blend-overlay rounded-lg"
+                              style={{
+                                background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.15) 40%, rgba(255, 255, 255, 0) 70%)',
+                                opacity: 0.8
+                              }}
+                            />
+                          </motion.div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-5">
-                  {/* Title */}
-                  <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                    Extra Stickers
-                  </h3>
-                  <p className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                    Las láminas más codiciadas del álbum
-                  </p>
-
-                  {/* Stats row */}
+                {/* Stats row */}
+                <div className={`px-6 pb-6`}>
                   <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className={`text-center p-2.5 rounded-xl ${
+                    <div className={`text-center p-3 rounded-xl ${
                       isDark ? 'bg-white/5' : 'bg-warm-cream'
                     }`}>
-                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>1:100</p>
+                      <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>1:100</p>
                       <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Probabilidad</p>
                     </div>
-                    <div className={`text-center p-2.5 rounded-xl ${
+                    <div className={`text-center p-3 rounded-xl ${
                       isDark ? 'bg-white/5' : 'bg-warm-cream'
                     }`}>
-                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>80</p>
+                      <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>80</p>
                       <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Total</p>
                     </div>
-                    <div className={`text-center p-2.5 rounded-xl ${
+                    <div className={`text-center p-3 rounded-xl ${
                       isDark ? 'bg-maple/10' : 'bg-maple/10'
                     }`}>
-                      <p className={`text-lg font-bold scarcity-glow ${
+                      <p className={`text-xl font-bold scarcity-glow ${
                         isDark ? 'text-maple' : 'text-maple'
                       }`}>{SCARCITY_COUNT}</p>
                       <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Encontrados</p>
@@ -117,8 +517,8 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
                   {/* CTA Button */}
                   <button
                     onClick={onClose}
-                    className="w-full py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98]
-                      bg-maple text-white hover:bg-maple-dark"
+                    className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all active:scale-[0.98]
+                      bg-maple text-white hover:bg-maple-dark shadow-lg shadow-maple/20"
                   >
                     ¡Quiero encontrar uno!
                   </button>
@@ -170,7 +570,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                 ? 'bg-maple text-white border-maple-dark'
                 : ''}
               ${product.badge === 'El Atajo'
-                ? 'bg-warm-brown text-white border-warm-brown'
+                ? 'bg-maple text-white border-maple-dark'
                 : ''}
             `}>
               {product.badge}
@@ -188,17 +588,30 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
         )}
 
         {/* Product Image */}
-        <div className={`relative h-52 sm:h-60 flex items-center justify-center p-5 overflow-hidden transition-colors duration-300
+        <div className={`relative h-52 sm:h-60 flex items-center justify-center p-5 overflow-hidden
           ${isDark
             ? 'bg-gradient-to-b from-dark-bg-elevated to-dark-bg-card'
             : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
           }
         `}>
-          <div className="relative transition-transform duration-300 ease-out hover:scale-105">
+          <div
+            className="relative transition-transform duration-300 ease-out hover:scale-105"
+            style={{ willChange: 'transform' }}
+          >
             <img
               src={getAssetPath(product.image)}
               alt={product.name}
-              className="h-36 sm:h-44 w-auto object-contain drop-shadow-lg"
+              className="h-36 sm:h-44 w-auto object-contain"
+              draggable={false}
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                imageRendering: '-webkit-optimize-contrast',
+                WebkitTransform: 'translateZ(0) scale(1.0)',
+                transform: 'translateZ(0) scale(1.0)',
+                filter: 'blur(0)',
+                WebkitFilter: 'blur(0)',
+              }}
             />
           </div>
 
@@ -269,40 +682,53 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                 {product.name}
               </h3>
 
-              {/* Extra Stickers Badge - Only for Caja Display - Duolingo-style tilt animation */}
+              {/* Extra Stickers Badge - Only for Caja Display - Fanned cards matching modal layout */}
               {isCajaDisplay && (
                 <motion.button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowExtraStickersModal(true);
                   }}
-                  whileHover={{
-                    scale: 1.2,
-                    rotate: [0, -3, 3, -1.5, 0],
-                    y: -4
-                  }}
+                  whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{
                     type: "spring",
-                    stiffness: 300,
-                    damping: 20,
-                    rotate: { duration: 0.6, ease: "easeInOut" }
+                    stiffness: 400,
+                    damping: 25
                   }}
-                  className="absolute top-2 right-3 flex flex-col items-center cursor-pointer z-10"
+                  className="absolute top-0 right-0 flex flex-col items-center cursor-pointer z-10 select-none group"
                 >
-                  <motion.img
-                    src={img('extra-cards.png')}
-                    alt="Extra Stickers"
-                    className="w-16 h-auto object-contain"
-                    style={{
-                      filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35))'
-                    }}
-                  />
-                  <span className="flex flex-col items-center mt-1">
-                    <span className="text-[8px] font-extrabold tracking-wider leading-tight gradient-text-animated">
+                  {/* Fanned cards - moved down 15px */}
+                  <div className="relative w-20 h-16 flex items-start justify-center" style={{ marginTop: '15px' }}>
+                    {variantCards.map((variant, index) => {
+                      const { rotation, horizontalOffset, verticalOffset } = getFanLayout(index, variantCards.length, 0.2);
+
+                      return (
+                        <img
+                          key={variant.id}
+                          src={img(variant.image)}
+                          alt={variant.name}
+                          className="absolute w-7 h-auto rounded-[2px] select-none transition-transform duration-200"
+                          draggable={false}
+                          style={{
+                            top: `${verticalOffset}px`,
+                            left: `50%`,
+                            marginLeft: `${horizontalOffset - 14}px`,
+                            filter: `drop-shadow(0 3px 5px rgba(0,0,0,0.5))`,
+                            transform: `rotate(${rotation}deg)`,
+                            transformOrigin: 'top center',
+                            zIndex: index + 1,
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                  {/* Text appears only on hover - moved up 10px (from -mt-1 to -mt-3.5) */}
+                  <span className="flex flex-col items-center -mt-3.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <span className="text-[7px] font-extrabold tracking-wider leading-tight gradient-text-animated">
                       Extra
                     </span>
-                    <span className="text-[8px] font-extrabold tracking-wider leading-tight gradient-text-animated-delay">
+                    <span className="text-[7px] font-extrabold tracking-wider leading-tight gradient-text-animated-delay">
                       Stickers
                     </span>
                   </span>

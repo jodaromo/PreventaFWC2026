@@ -830,13 +830,13 @@ const ReserveSection = ({ cart = {} }) => {
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState('idle');
   const [selectedPlan, setSelectedPlan] = useState('flexible');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('nequi');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('breb');
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   // Payment methods data
   const paymentMethods = [
-    { id: 'llave', name: 'Llave', description: 'Transferencia rápida', color: 'bg-blue-500', logo: 'Bre_B_Logo.png' },
+    { id: 'breb', name: 'Bre-B', description: 'Transferencia rápida', color: 'bg-blue-500', logo: 'Bre_B_Logo.png' },
     { id: 'nequi', name: 'Nequi', description: 'Pago móvil', color: 'bg-[#E6007E]', logo: 'Nequi_Logo.png' },
     { id: 'davibank', name: 'DaviBank', description: 'Pago móvil', color: 'bg-[#ED1C24]', logo: 'DaviBank_Logo.png' },
     { id: 'bancolombia', name: 'Bancolombia', description: 'Transferencia', color: 'bg-[#FDDA24]', logo: 'bancolombia_logo.png' },
@@ -1640,14 +1640,22 @@ const ReserveSection = ({ cart = {} }) => {
                                     {selectedPlan === 'directo' ? 'Pago Único' : selectedPlan === 'rapido' ? '2 Cuotas' : '4 Cuotas'}
                                   </p>
                                   <p className={`text-xl sm:text-2xl font-bold text-maple`}>
-                                    {selectedPlan === 'directo'
-                                      ? (hasProducts ? formatCurrency(totals.totalToPay) : '$520.000')
-                                      : selectedPlan === 'rapido'
-                                        ? (hasProducts ? formatCurrency(totals.rapidoPayment) : '$260.000')
-                                        : (hasProducts ? formatCurrency(totals.flexiblePayment) : '$130.000')
-                                    }
-                                    {selectedPlan !== 'directo' && (
-                                      <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/mes</span>
+                                    {hasProducts ? (
+                                      <>
+                                        {selectedPlan === 'directo'
+                                          ? formatCurrency(totals.totalToPay)
+                                          : selectedPlan === 'rapido'
+                                            ? formatCurrency(totals.rapidoPayment)
+                                            : formatCurrency(totals.flexiblePayment)
+                                        }
+                                        {selectedPlan !== 'directo' && (
+                                          <span className={`text-xs font-normal ml-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>/mes</span>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <span className={`text-sm font-normal ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                                        Selecciona productos arriba
+                                      </span>
                                     )}
                                   </p>
                                   <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
