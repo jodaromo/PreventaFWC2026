@@ -356,7 +356,7 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleBackdropClick}
-            className={`fixed inset-0 backdrop-blur-md z-[9999] ${isDark ? 'bg-black/85' : 'bg-black/70'}`}
+            className={`fixed inset-0 z-[9999] ${isDark ? 'bg-black/85 backdrop-blur-md' : 'glass-overlay'}`}
           />
 
           {/* Modal */}
@@ -372,7 +372,7 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
               <div className={`rounded-3xl overflow-hidden shadow-2xl ${
                 isDark
                   ? 'bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d] border border-white/10'
-                  : 'bg-gradient-to-b from-white to-gray-50 border border-warm-tan/30'
+                  : 'glass-prominent'
               }`}>
 
                 {/* Header */}
@@ -552,14 +552,14 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.5, delay: index * 0.1 }}
-        className={`relative rounded-2xl overflow-hidden border-2 transition-colors duration-300
+        className={`relative rounded-2xl overflow-hidden
           ${isDark
             ? isSelected
-              ? 'bg-dark-bg-card border-maple shadow-xl shadow-maple/20'
-              : 'bg-dark-bg-card border-dark-border shadow-lg'
+              ? 'bg-dark-bg-card border-2 border-maple shadow-xl shadow-maple/20'
+              : 'bg-dark-bg-card border border-dark-border shadow-lg'
             : isSelected
-              ? 'bg-white border-maple shadow-xl shadow-maple/20'
-              : 'bg-white border-warm-tan/30 shadow-lg'
+              ? 'glass-card border-2 border-maple shadow-xl shadow-maple/20'
+              : 'glass-card'
           }`}
       >
         {/* Badge - with dark background for contrast */}
@@ -591,7 +591,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
         <div className={`relative h-52 sm:h-60 flex items-center justify-center p-5 overflow-hidden
           ${isDark
             ? 'bg-gradient-to-b from-dark-bg-elevated to-dark-bg-card'
-            : 'bg-gradient-to-b from-warm-cream to-warm-cream-light'
+            : 'bg-gradient-to-b from-white/40 to-white/20'
           }
         `}>
           <div
@@ -616,8 +616,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           </div>
 
           {/* Reference disclaimer - bottom left of image */}
-          <span className={`absolute bottom-3 left-3 text-[9px] z-10 transition-colors duration-300
-            ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
+          <span className={`absolute bottom-3 left-3 text-[9px] z-10             ${isDark ? 'text-gray-500' : 'text-warm-gray/60'}
           `}>
             *Imagen de referencia
           </span>
@@ -676,8 +675,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           <div className="mb-3">
             {/* Title row with Extra Stickers button */}
             <div className="relative">
-              <h3 className={`text-xl sm:text-2xl font-bold leading-tight transition-colors duration-300
-                ${isDark ? 'text-white' : 'text-warm-brown'}
+              <h3 className={`text-xl sm:text-2xl font-bold leading-tight                 ${isDark ? 'text-white' : 'text-warm-brown'}
               `}>
                 {product.name}
               </h3>
@@ -696,7 +694,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                     stiffness: 400,
                     damping: 25
                   }}
-                  className="absolute top-0 right-0 flex flex-col items-center cursor-pointer z-10 select-none group"
+                  className="absolute -top-2 -right-2 p-2 flex flex-col items-center cursor-pointer z-10 select-none group"
                 >
                   {/* Fanned cards - moved down 15px */}
                   <div className="relative w-20 h-16 flex items-start justify-center" style={{ marginTop: '15px' }}>
@@ -723,8 +721,8 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                       );
                     })}
                   </div>
-                  {/* Text appears only on hover - moved up 10px (from -mt-1 to -mt-3.5) */}
-                  <span className="flex flex-col items-center -mt-3.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {/* Text appears only on hover */}
+                  <span className={`flex flex-col items-center -mt-3.5 scale-0 group-hover:scale-100 opacity-0 group-hover:opacity-100 transition-all duration-200 origin-top pointer-events-none px-1.5 py-0.5 rounded ${isDark ? '' : 'bg-white/60 backdrop-blur-sm'}`}>
                     <span className="text-[7px] font-extrabold tracking-wider leading-tight gradient-text-animated">
                       Extra
                     </span>
@@ -737,8 +735,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             </div>
 
             {/* Price - secondary to title */}
-            <p className={`text-lg sm:text-xl font-semibold mt-3 mb-1 transition-colors duration-300
-              ${isDark ? 'text-gray-200' : 'text-warm-brown/80'}
+            <p className={`text-lg sm:text-xl font-semibold mt-3 mb-1               ${isDark ? 'text-gray-200' : 'text-warm-brown/80'}
             `}>
               {product.priceFormatted}
             </p>
@@ -773,8 +770,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           </div>
 
           {/* Description */}
-          <p className={`text-sm mb-3 leading-relaxed transition-colors duration-300
-            ${isDark ? 'text-gray-400' : 'text-warm-gray'}
+          <p className={`text-sm mb-3 leading-relaxed             ${isDark ? 'text-gray-400' : 'text-warm-gray'}
           `}>
             {product.description}
           </p>
@@ -784,10 +780,9 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             {product.specs.map((spec, i) => (
               <span
                 key={i}
-                className={`px-2 py-0.5 text-[11px] font-medium rounded-full transition-colors duration-300
-                  ${isDark
+                className={`px-2 py-0.5 text-[11px] font-medium rounded-full                   ${isDark
                     ? 'bg-dark-surface text-gray-400'
-                    : 'bg-warm-cream text-warm-gray'
+                    : 'glass-pill text-warm-gray'
                   }
                 `}
               >

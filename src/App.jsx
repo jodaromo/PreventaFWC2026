@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import Header from './components/Header';
 import FabMenu from './components/FabMenu';
+import ThemeToggle from './components/ThemeToggle';
 import Hero from './components/Hero';
 import MascotSection from './components/MascotSection';
 import ProductGrid from './components/ProductGrid';
@@ -26,6 +27,9 @@ function AppContent() {
     <main className="min-h-screen overflow-x-hidden bg-theme-cream">
       {/* Fixed Header - minimal */}
       <Header />
+
+      {/* Theme Toggle - persistent upper left */}
+      <ThemeToggle />
 
       {/* FAB Menu - top right with radial options */}
       <FabMenu />

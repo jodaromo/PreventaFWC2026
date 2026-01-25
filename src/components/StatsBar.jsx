@@ -115,10 +115,10 @@ const StatsBar = () => {
       />
 
       {/* Overlay for readability - adjusts based on theme */}
-      <div className={`absolute inset-0 transition-colors duration-300
+      <div className={`absolute inset-0 transition-all duration-300
         ${isDark
           ? 'bg-dark-bg/85 backdrop-blur-sm'
-          : 'bg-warm-cream/80 backdrop-blur-sm'
+          : 'bg-white/60 backdrop-blur-md'
         }
       `} />
 
@@ -182,10 +182,10 @@ const StatsBar = () => {
           ].map((item, index) => (
             <span
               key={index}
-              className={`px-4 py-2 text-sm font-medium rounded-full border transition-colors duration-300
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300
                 ${isDark
-                  ? 'bg-white/5 border-white/10'
-                  : 'bg-white/70 border-warm-tan/40'
+                  ? 'bg-white/5 border border-white/10'
+                  : 'glass-pill'
                 }
               `}
             >

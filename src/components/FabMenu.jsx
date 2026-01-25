@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { img } from '../utils/assets';
 import {
-  X, Sun, Moon, Share2, MessageCircle,
-  Instagram, Facebook, Phone, Mail, ExternalLink
+  X, Share2, MessageCircle,
+  Instagram, Facebook, Mail, ExternalLink
 } from 'lucide-react';
 
 // TikTok icon (not in lucide)
@@ -21,26 +21,210 @@ const WhatsAppIcon = ({ className }) => (
   </svg>
 );
 
+// Curved text label that arcs below the bubble - matches the bubble's spherical curve
+const CurvedLabel = ({ label, isDark, isActive }) => {
+  const id = `curve-${label.replace(/\s/g, '-')}`;
+
+  return (
+    <svg
+      width="80"
+      height="28"
+      viewBox="0 0 80 28"
+      className="pointer-events-none"
+      style={{ overflow: 'visible' }}
+    >
+      <defs>
+        {/* Circular arc curving downward - starts at y=2 to be tight to bubble */}
+        <path
+          id={id}
+          d="M 8,2 A 32,32 0 0,0 72,2"
+          fill="none"
+        />
+      </defs>
+      <text
+        className={`font-semibold uppercase
+          ${isActive
+            ? 'fill-white'
+            : isDark
+              ? 'fill-gray-400'
+              : 'fill-warm-gray'
+          }
+        `}
+        style={{
+          fontSize: '9px',
+          letterSpacing: '0.22em',
+        }}
+      >
+        <textPath
+          href={`#${id}`}
+          startOffset="50%"
+          textAnchor="middle"
+        >
+          {label}
+        </textPath>
+      </text>
+    </svg>
+  );
+};
+
+// Expanding Bubble Menu Item - iOS 26 liquid glass morphing
+const BubbleItem = ({ item, index, total, isOpen, isDark, onClick, isActive, expandedContent }) => {
+  const spacing = 72;
+
+  // iOS 26 liquid spring
+  const liquidSpring = {
+    type: 'spring',
+    stiffness: 400,
+    damping: 25,
+    mass: 0.8,
+  };
+
+  // Morphing spring - snappy for liquid feel
+  const morphSpring = {
+    type: 'spring',
+    stiffness: 500,
+    damping: 35,
+    mass: 0.8,
+  };
+
+  // Expanded height (fixed value to avoid 'auto' glitch)
+  // Social: 400px for 2x2 QR grid + header (QRs need more space)
+  // Contact: 180px for WhatsApp + Email (2 items) + header
+  const expandedHeight = item.id === 'social' ? 400 : 180;
+
+  return (
+    <motion.div
+      className="absolute top-0 right-0"
+      initial={{
+        scale: 0,
+        x: 0,
+        opacity: 0,
+        filter: 'blur(8px)',
+      }}
+      animate={isOpen ? {
+        scale: 1,
+        x: -((index + 1) * spacing),
+        opacity: 1,
+        filter: 'blur(0px)',
+      } : {
+        scale: 0,
+        x: 0,
+        opacity: 0,
+        filter: 'blur(8px)',
+      }}
+      transition={{
+        ...liquidSpring,
+        delay: isOpen ? index * 0.06 : (total - index - 1) * 0.04,
+        filter: { duration: 0.15 },
+      }}
+      style={{ zIndex: isActive ? 50 : 1 }}
+    >
+      {/* The morphing bubble container */}
+      <motion.div
+        onClick={!isActive ? onClick : undefined}
+        animate={{
+          width: isActive ? 280 : 48,
+          height: isActive ? expandedHeight : 48,
+          borderRadius: 24,
+        }}
+        transition={morphSpring}
+        className={`relative overflow-hidden cursor-pointer
+          ${isActive
+            ? isDark
+              ? 'bg-dark-bg-card/95 backdrop-blur-xl border border-white/10'
+              : 'glass-prominent'
+            : isDark
+              ? 'bg-dark-bg-card/90 backdrop-blur-xl border border-white/10'
+              : 'glass'
+          }
+        `}
+        style={{
+          boxShadow: isActive
+            ? isDark
+              ? '0 20px 50px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)'
+              : '0 20px 50px -10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8)'
+            : isDark
+              ? '0 8px 32px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)'
+              : '0 8px 32px -4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+        }}
+      >
+        {/* Collapsed state - icon */}
+        <motion.div
+          animate={{
+            opacity: isActive ? 0 : 1,
+            scale: isActive ? 0.5 : 1,
+          }}
+          transition={{ duration: 0.15 }}
+          className={`absolute inset-0 w-12 h-12 grid place-items-center
+            ${isDark ? 'text-gray-300 hover:text-white' : 'text-warm-gray hover:text-warm-brown'}
+          `}
+          style={{ pointerEvents: isActive ? 'none' : 'auto' }}
+        >
+          <item.icon className="w-5 h-5" strokeWidth={2} />
+        </motion.div>
+
+        {/* Expanded state - content */}
+        <motion.div
+          animate={{
+            opacity: isActive ? 1 : 0,
+          }}
+          transition={{ duration: 0.2 }}
+          className="p-4"
+          style={{ pointerEvents: isActive ? 'auto' : 'none' }}
+        >
+          {/* Header with close */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className={`p-2 rounded-xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+                <item.icon className={`w-4 h-4 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`} strokeWidth={2} />
+              </div>
+              <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
+                {item.title}
+              </span>
+            </div>
+            <motion.button
+              onClick={(e) => { e.stopPropagation(); onClick(); }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className={`p-1.5 rounded-full ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-black/5 text-warm-gray'}`}
+            >
+              <X className="w-4 h-4" />
+            </motion.button>
+          </div>
+          {/* Dynamic content */}
+          {expandedContent}
+        </motion.div>
+      </motion.div>
+
+      {/* Label - instantly hidden when expanded (no animation to prevent drift) */}
+      {!isActive && (
+        <div
+          className="absolute pointer-events-none overflow-visible"
+          style={{ top: 35, left: 24, transform: 'translateX(-50%)' }}
+        >
+          <CurvedLabel
+            label={item.label}
+            isDark={isDark}
+            isActive={false}
+          />
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 const FabMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeCard, setActiveCard] = useState(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [switching, setSwitching] = useState(false);
-  const { toggleTheme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const menuRef = useRef(null);
 
   // Contact info
   const whatsappNumber = '+57 300 123 4567';
   const whatsappLink = 'https://wa.me/573001234567';
   const email = 'info@collectpoint.co';
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 60);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -66,12 +250,6 @@ const FabMenu = () => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
-  const handleThemeToggle = () => {
-    setSwitching(true);
-    toggleTheme();
-    setTimeout(() => setSwitching(false), 400);
-  };
-
   const handleSocialClick = () => {
     setActiveCard(activeCard === 'social' ? null : 'social');
   };
@@ -80,34 +258,83 @@ const FabMenu = () => {
     setActiveCard(activeCard === 'contact' ? null : 'contact');
   };
 
-  const menuItems = [
-    {
-      id: 'theme',
-      icon: isDark ? Sun : Moon,
-      label: isDark ? 'Claro' : 'Oscuro',
-      onClick: handleThemeToggle,
-    },
-    {
-      id: 'social',
-      icon: Share2,
-      label: 'Redes',
-      onClick: handleSocialClick,
-      isActive: activeCard === 'social',
-    },
-    {
-      id: 'contact',
-      icon: MessageCircle,
-      label: 'Contacto',
-      onClick: handleContactClick,
-      isActive: activeCard === 'contact',
-    },
-  ];
-
   const socialItems = [
     { id: 'instagram', name: 'Instagram', qr: 'qr-instagram.png', icon: Instagram },
     { id: 'facebook', name: 'Facebook', qr: 'qr-facebook.png', icon: Facebook },
     { id: 'tiktok', name: 'TikTok', qr: 'qr-tiktok.png', icon: TikTokIcon },
     { id: 'whatsapp', name: 'WhatsApp', qr: 'qr-whatsapp.png', icon: WhatsAppIcon },
+  ];
+
+  // Social content for expanded bubble - no stagger, loads as one unit
+  const SocialContent = (
+    <div className="grid grid-cols-2 gap-2">
+      {socialItems.map((social) => (
+        <div
+          key={social.id}
+          className={`p-2 rounded-xl ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'} cursor-pointer transition-colors`}
+        >
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <social.icon className={`w-3 h-3 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
+            <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
+              {social.name}
+            </span>
+          </div>
+          <div className="aspect-square rounded-lg overflow-hidden bg-white">
+            <img src={img(social.qr)} alt={`QR ${social.name}`} className="w-full h-full object-cover" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Contact content for expanded bubble - no stagger, loads as one unit
+  const ContactContent = (
+    <div className="space-y-2">
+      <a
+        href={whatsappLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#25d366] text-white hover:bg-[#20bd5a] transition-colors"
+      >
+        <WhatsAppIcon className="w-5 h-5" />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-xs">WhatsApp</p>
+          <p className="text-[10px] text-white/75 truncate">{whatsappNumber}</p>
+        </div>
+        <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+      </a>
+      <a
+        href={`mailto:${email}`}
+        className={`flex items-center gap-2.5 p-2.5 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}
+      >
+        <Mail className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
+        <div className="flex-1 min-w-0">
+          <p className={`font-medium text-xs ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>Email</p>
+          <p className={`text-[10px] truncate ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>{email}</p>
+        </div>
+      </a>
+    </div>
+  );
+
+  const menuItems = [
+    {
+      id: 'social',
+      icon: Share2,
+      label: 'Redes',
+      title: 'Redes',
+      onClick: handleSocialClick,
+      isActive: activeCard === 'social',
+      content: SocialContent,
+    },
+    {
+      id: 'contact',
+      icon: MessageCircle,
+      label: 'Contacto',
+      title: 'Contacto',
+      onClick: handleContactClick,
+      isActive: activeCard === 'contact',
+      content: ContactContent,
+    },
   ];
 
   const quickSpring = {
@@ -117,20 +344,27 @@ const FabMenu = () => {
     mass: 0.8,
   };
 
-  const smoothSpring = {
-    type: 'spring',
-    stiffness: 400,
-    damping: 28,
-    mass: 0.9,
-  };
-
-  // Determine if pill should be expanded
-  const isExpanded = scrolled || isOpen;
-
   return (
     <div ref={menuRef} className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50">
-      {/* Main FAB Button (Pill) */}
-      <motion.button
+      {/* Liquid Glass Container - bubbles flow left from here */}
+      <div className="relative">
+        {/* Bubble Menu Items - positioned absolutely, flow LEFT */}
+        {menuItems.map((item, index) => (
+          <BubbleItem
+            key={item.id}
+            item={item}
+            index={index}
+            total={menuItems.length}
+            isOpen={isOpen}
+            isDark={isDark}
+            onClick={item.onClick}
+            isActive={item.isActive}
+            expandedContent={item.content}
+          />
+        ))}
+
+        {/* Main FAB Button */}
+        <motion.button
         onClick={() => {
           setIsOpen(!isOpen);
           if (isOpen) setActiveCard(null);
@@ -146,423 +380,63 @@ const FabMenu = () => {
               : '0 10px 30px -6px rgba(0,0,0,0.1), 0 4px 12px -2px rgba(0,0,0,0.05)',
         }}
         whileHover={{
-          scale: 1.04,
+          scale: 1.06,
           boxShadow: isDark
             ? '0 24px 48px -8px rgba(0,0,0,0.55), 0 12px 24px -4px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)'
             : '0 24px 48px -8px rgba(0,0,0,0.18), 0 12px 24px -4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)'
         }}
-        whileTap={{ scale: 0.96 }}
+        whileTap={{ scale: 0.94 }}
         transition={quickSpring}
-        className={`relative flex items-center gap-2 overflow-hidden cursor-pointer rounded-full backdrop-blur-md will-change-transform transform-gpu
-          transition-[padding,background-color] duration-[350ms] ease-[cubic-bezier(0.4,0,0.2,1)]
-          ${isExpanded
-            ? isDark
-              ? 'bg-dark-bg-card/95 pl-1 pr-3 py-1'
-              : 'bg-white/95 pl-1 pr-3 py-1'
-            : isDark
-              ? 'bg-dark-bg-card/60 p-1'
-              : 'bg-white/60 p-1'
+        className={`relative w-12 h-12 flex items-center justify-center cursor-pointer rounded-full will-change-transform transform-gpu
+          ${isDark
+            ? 'bg-dark-bg-card/95 backdrop-blur-glass border border-dark-border/50'
+            : 'glass'
           }
         `}
         aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
         aria-expanded={isOpen}
       >
-        {/* Logo */}
-        <div className="relative flex-shrink-0 will-change-transform transform-gpu">
-          <img
-            src={img('logo-collectpoint.jpg')}
-            alt="Collect Point"
-            className="w-10 h-10 object-cover rounded-full will-change-transform transform-gpu"
-            style={{
-              boxShadow: isDark
-                ? '0 4px 12px -2px rgba(0,0,0,0.4)'
-                : '0 4px 12px -2px rgba(0,0,0,0.15)'
-            }}
-          />
-        </div>
-
-        {/* Text or Close icon */}
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="wait">
           {isOpen ? (
             <motion.div
               key="close"
-              initial={{ opacity: 0, scale: 0.8, width: 0 }}
-              animate={{ opacity: 1, scale: 1, width: 'auto' }}
-              exit={{ opacity: 0, scale: 0.8, width: 0 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="flex items-center justify-center overflow-hidden"
+              initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+              transition={{ duration: 0.2 }}
             >
               <X className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
             </motion.div>
-          ) : scrolled ? (
-            <motion.span
-              key="text"
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 'auto' }}
-              exit={{ opacity: 0, width: 0 }}
-              transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-              className={`font-semibold text-sm whitespace-nowrap overflow-hidden
-                ${isDark ? 'text-white' : 'text-warm-brown'}
-              `}
-            >
-              Collect Point
-            </motion.span>
-          ) : null}
+          ) : (
+            <motion.img
+              key="logo"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.15 }}
+              src={img('logo-collectpoint.jpg')}
+              alt="Collect Point"
+              className="w-10 h-10 object-cover rounded-full"
+            />
+          )}
         </AnimatePresence>
       </motion.button>
 
-      {/* Dropdown Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -12, scale: 0.95 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              boxShadow: isDark
-                ? '0 25px 50px -12px rgba(0,0,0,0.5), 0 12px 24px -8px rgba(0,0,0,0.3)'
-                : '0 25px 50px -12px rgba(0,0,0,0.15), 0 12px 24px -8px rgba(0,0,0,0.08)'
-            }}
-            exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            transition={quickSpring}
-            className={`absolute top-full right-0 mt-3 rounded-2xl overflow-hidden
-              ${isDark
-                ? 'bg-dark-bg-card/98 backdrop-blur-xl border border-dark-border/50'
-                : 'bg-white/98 backdrop-blur-xl border border-warm-tan/20'
-              }
-            `}
-          >
-            <div className="p-2 flex flex-col gap-1">
-              {menuItems.map((item, index) => (
-                <motion.button
-                  key={item.id}
-                  initial={{ opacity: 0, x: 16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    ...quickSpring,
-                    delay: index * 0.03,
-                  }}
-                  onClick={item.onClick}
-                  whileHover={{
-                    scale: 1.02,
-                    x: -3,
-                    boxShadow: isDark
-                      ? 'inset 0 0 0 1px rgba(255,255,255,0.05), 0 4px 12px -2px rgba(0,0,0,0.3)'
-                      : 'inset 0 0 0 1px rgba(0,0,0,0.03), 0 4px 12px -2px rgba(0,0,0,0.08)'
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl min-w-[140px] transition-colors
-                    ${item.isActive
-                      ? isDark
-                        ? 'bg-maple/20 text-maple shadow-inner'
-                        : 'bg-maple/10 text-maple shadow-inner'
-                      : isDark
-                        ? 'text-gray-300 hover:bg-dark-surface/80 hover:text-white'
-                        : 'text-warm-gray hover:bg-warm-cream-light/80 hover:text-warm-brown'
-                    }
-                  `}
-                >
-                  <motion.div
-                    animate={item.id === 'theme' && switching ? { rotate: 360 } : { rotate: 0 }}
-                    transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                    className={`p-1.5 rounded-lg ${
-                      item.isActive
-                        ? 'bg-maple/20'
-                        : isDark ? 'bg-dark-surface/50' : 'bg-warm-tan/10'
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                  </motion.div>
-                  <span className="text-sm font-medium">{item.label}</span>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Menu label - only when closed */}
+      {!isOpen && (
+        <div
+          className="absolute pointer-events-none left-1/2 -translate-x-1/2 overflow-visible"
+          style={{ top: 35 }}
+        >
+          <CurvedLabel
+            label="Menu"
+            isDark={isDark}
+            isActive={false}
+          />
+        </div>
+      )}
+      </div>
 
-      {/* Floating Cards */}
-      <AnimatePresence>
-        {activeCard === 'social' && (
-          <motion.div
-            initial={{ opacity: 0, y: -16, scale: 0.92 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              boxShadow: isDark
-                ? '0 32px 64px -16px rgba(0,0,0,0.5), 0 16px 32px -8px rgba(0,0,0,0.3)'
-                : '0 32px 64px -16px rgba(0,0,0,0.15), 0 16px 32px -8px rgba(0,0,0,0.08)'
-            }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={smoothSpring}
-            className={`absolute top-full right-0 w-72 sm:w-80 rounded-2xl overflow-hidden
-              ${isDark ? 'bg-dark-bg-card border border-dark-border/50' : 'bg-white border border-warm-tan/20'}
-            `}
-            style={{ marginTop: isOpen ? '148px' : '12px' }}
-          >
-            {/* Header */}
-            <div className={`p-4 border-b ${isDark ? 'border-dark-border/50' : 'border-warm-tan/15'}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <motion.div
-                    className={`p-2.5 rounded-xl ${isDark ? 'bg-maple/20' : 'bg-maple/10'}`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{
-                      boxShadow: isDark
-                        ? 'inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 8px -2px rgba(224,123,76,0.3)'
-                        : 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px -2px rgba(224,123,76,0.2)'
-                    }}
-                  >
-                    <Share2 className="w-4 h-4 text-maple" />
-                  </motion.div>
-                  <div>
-                    <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                      Síguenos
-                    </h3>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>
-                      Escanea el código QR
-                    </p>
-                  </div>
-                </div>
-                <motion.button
-                  onClick={() => setActiveCard(null)}
-                  whileHover={{ scale: 1.1, backgroundColor: isDark ? 'rgba(50,56,63,0.8)' : 'rgba(0,0,0,0.05)' }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={quickSpring}
-                  className={`p-2 rounded-xl transition-colors
-                    ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-warm-gray hover:text-warm-brown'}
-                  `}
-                >
-                  <X className="w-4 h-4" />
-                </motion.button>
-              </div>
-            </div>
-
-            {/* QR Grid */}
-            <div className="p-3 grid grid-cols-2 gap-2.5">
-              {socialItems.map((social, index) => (
-                <motion.div
-                  key={social.id}
-                  initial={{ opacity: 0, y: 12, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{
-                    ...smoothSpring,
-                    delay: index * 0.04,
-                  }}
-                  whileHover={{
-                    scale: 1.03,
-                    boxShadow: isDark
-                      ? '0 8px 24px -4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)'
-                      : '0 8px 24px -4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`group p-3 rounded-xl cursor-pointer transition-colors
-                    ${isDark
-                      ? 'bg-dark-surface/60 hover:bg-dark-surface'
-                      : 'bg-warm-cream-light/40 hover:bg-warm-cream-light/80'
-                    }
-                  `}
-                  style={{
-                    boxShadow: isDark
-                      ? 'inset 0 1px 0 rgba(255,255,255,0.02), 0 2px 8px -2px rgba(0,0,0,0.2)'
-                      : 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px -2px rgba(0,0,0,0.05)'
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <social.icon className={`w-3.5 h-3.5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
-                    <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
-                      {social.name}
-                    </span>
-                  </div>
-                  <div
-                    className="relative aspect-square rounded-lg overflow-hidden bg-white"
-                    style={{
-                      boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.06), 0 2px 6px -1px rgba(0,0,0,0.1)'
-                    }}
-                  >
-                    <img
-                      src={img(social.qr)}
-                      alt={`QR ${social.name}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {activeCard === 'contact' && (
-          <motion.div
-            initial={{ opacity: 0, y: -16, scale: 0.92 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              boxShadow: isDark
-                ? '0 32px 64px -16px rgba(0,0,0,0.5), 0 16px 32px -8px rgba(0,0,0,0.3)'
-                : '0 32px 64px -16px rgba(0,0,0,0.15), 0 16px 32px -8px rgba(0,0,0,0.08)'
-            }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={smoothSpring}
-            className={`absolute top-full right-0 w-72 rounded-2xl overflow-hidden
-              ${isDark ? 'bg-dark-bg-card border border-dark-border/50' : 'bg-white border border-warm-tan/20'}
-            `}
-            style={{ marginTop: isOpen ? '148px' : '12px' }}
-          >
-            {/* Header with Logo */}
-            <div className={`p-4 border-b ${isDark ? 'border-dark-border/50' : 'border-warm-tan/15'}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{
-                      boxShadow: isDark
-                        ? '0 4px 12px -2px rgba(0,0,0,0.4)'
-                        : '0 4px 12px -2px rgba(0,0,0,0.12)'
-                    }}
-                    className="rounded-xl overflow-hidden"
-                  >
-                    <img
-                      src={img('logo-collectpoint.jpg')}
-                      alt="Collect Point"
-                      className="w-11 h-11 object-cover"
-                    />
-                  </motion.div>
-                  <div>
-                    <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                      Collect Point
-                    </h3>
-                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>
-                      Contáctanos
-                    </p>
-                  </div>
-                </div>
-                <motion.button
-                  onClick={() => setActiveCard(null)}
-                  whileHover={{ scale: 1.1, backgroundColor: isDark ? 'rgba(50,56,63,0.8)' : 'rgba(0,0,0,0.05)' }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={quickSpring}
-                  className={`p-2 rounded-xl transition-colors
-                    ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-warm-gray hover:text-warm-brown'}
-                  `}
-                >
-                  <X className="w-4 h-4" />
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Contact Options */}
-            <div className="p-3 space-y-2">
-              {/* WhatsApp - Primary CTA */}
-              <motion.a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...smoothSpring, delay: 0.03 }}
-                whileHover={{
-                  scale: 1.02,
-                  x: -3,
-                  boxShadow: '0 12px 28px -6px rgba(37,211,102,0.4), inset 0 1px 0 rgba(255,255,255,0.15)'
-                }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-3 p-3.5 rounded-xl bg-[#25d366] text-white group"
-                style={{
-                  boxShadow: '0 6px 20px -4px rgba(37,211,102,0.35), inset 0 1px 0 rgba(255,255,255,0.1)'
-                }}
-              >
-                <div
-                  className="p-2 bg-white/20 rounded-lg"
-                  style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)' }}
-                >
-                  <WhatsAppIcon className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm">WhatsApp</p>
-                  <p className="text-xs text-white/75 truncate">{whatsappNumber}</p>
-                </div>
-                <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-              </motion.a>
-
-              {/* Phone */}
-              <motion.a
-                href={`tel:${whatsappNumber.replace(/\s/g, '')}`}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...smoothSpring, delay: 0.06 }}
-                whileHover={{
-                  scale: 1.02,
-                  x: -3,
-                  boxShadow: isDark
-                    ? 'inset 0 0 0 1px rgba(255,255,255,0.05), 0 6px 16px -4px rgba(0,0,0,0.3)'
-                    : 'inset 0 0 0 1px rgba(0,0,0,0.03), 0 6px 16px -4px rgba(0,0,0,0.1)'
-                }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex items-center gap-3 p-3.5 rounded-xl group
-                  ${isDark
-                    ? 'bg-dark-surface/60 hover:bg-dark-surface'
-                    : 'bg-warm-cream-light/40 hover:bg-warm-cream-light/80'
-                  }
-                `}
-                style={{
-                  boxShadow: isDark
-                    ? 'inset 0 1px 0 rgba(255,255,255,0.02), 0 2px 8px -2px rgba(0,0,0,0.15)'
-                    : 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px -2px rgba(0,0,0,0.04)'
-                }}
-              >
-                <div className={`p-2 rounded-lg ${isDark ? 'bg-dark-border/50' : 'bg-warm-tan/15'}`}>
-                  <Phone className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>Llamar</p>
-                  <p className={`text-xs truncate ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>{whatsappNumber}</p>
-                </div>
-              </motion.a>
-
-              {/* Email */}
-              <motion.a
-                href={`mailto:${email}`}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...smoothSpring, delay: 0.09 }}
-                whileHover={{
-                  scale: 1.02,
-                  x: -3,
-                  boxShadow: isDark
-                    ? 'inset 0 0 0 1px rgba(255,255,255,0.05), 0 6px 16px -4px rgba(0,0,0,0.3)'
-                    : 'inset 0 0 0 1px rgba(0,0,0,0.03), 0 6px 16px -4px rgba(0,0,0,0.1)'
-                }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex items-center gap-3 p-3.5 rounded-xl group
-                  ${isDark
-                    ? 'bg-dark-surface/60 hover:bg-dark-surface'
-                    : 'bg-warm-cream-light/40 hover:bg-warm-cream-light/80'
-                  }
-                `}
-                style={{
-                  boxShadow: isDark
-                    ? 'inset 0 1px 0 rgba(255,255,255,0.02), 0 2px 8px -2px rgba(0,0,0,0.15)'
-                    : 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px -2px rgba(0,0,0,0.04)'
-                }}
-              >
-                <div className={`p-2 rounded-lg ${isDark ? 'bg-dark-border/50' : 'bg-warm-tan/15'}`}>
-                  <Mail className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-medium text-sm ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>Email</p>
-                  <p className={`text-xs truncate ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>{email}</p>
-                </div>
-              </motion.a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

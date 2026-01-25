@@ -5,6 +5,76 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==============================================
+   REACTIVE THEME SYSTEM
+   CSS custom properties with single-point transition
+   ============================================== */
+
+:root {
+  /* Light mode colors */
+  --theme-bg: #FAFAFA;
+  --theme-bg-card: rgba(255, 255, 255, 0.78);
+  --theme-bg-elevated: rgba(255, 255, 255, 0.85);
+  --theme-text: #171717;
+  --theme-text-secondary: #404040;
+  --theme-text-muted: #737373;
+  --theme-border: rgba(255, 255, 255, 0.45);
+  --theme-shadow: rgba(0, 0, 0, 0.08);
+
+  /* Transition on the root - everything inherits */
+  transition:
+    --theme-bg 0.15s ease-out,
+    --theme-bg-card 0.15s ease-out,
+    --theme-bg-elevated 0.15s ease-out,
+    --theme-text 0.15s ease-out,
+    --theme-text-secondary 0.15s ease-out,
+    --theme-text-muted 0.15s ease-out,
+    --theme-border 0.15s ease-out,
+    --theme-shadow 0.15s ease-out;
+}
+
+:root.dark {
+  /* Dark mode colors */
+  --theme-bg: #1A1D21;
+  --theme-bg-card: rgba(42, 47, 56, 0.85);
+  --theme-bg-elevated: rgba(42, 47, 56, 0.92);
+  --theme-text: #F5F5F7;
+  --theme-text-secondary: #A8ADB5;
+  --theme-text-muted: #6B7280;
+  --theme-border: rgba(255, 255, 255, 0.08);
+  --theme-shadow: rgba(0, 0, 0, 0.4);
+}
+
+/* Apply universal color transition to all elements - INSTANT
+   Uses !important to override Tailwind's transition-colors duration-300 classes */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow !important;
+  transition-duration: 1ms !important;
+  transition-timing-function: linear !important;
+}
+
+/* Preserve transform/motion animations - these need their original timing */
+[class*="hover:scale"],
+[class*="scale-"],
+[class*="translate"],
+[class*="rotate"],
+.transition-transform,
+[class*="animate-"],
+[class*="group-hover:scale"],
+[class*="group-hover:w-"],
+[class*="active:scale"] {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, transform, opacity, width !important;
+  transition-duration: 1ms, 1ms, 1ms, 1ms, 1ms, 1ms, 0.2s, 0.2s, 0.3s !important;
+  transition-timing-function: linear, linear, linear, linear, linear, linear, ease, ease, ease !important;
+}
+
+/* Respect reduced motion - instant switch */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+  }
+}
+
 /* iOS 26 Continuous Corners (Squircle) */
 @layer utilities {
   .squircle {
@@ -63,13 +133,21 @@ body {
   background-color: #FAFAFA; /* clean light gray */
   color: #171717; /* near black */
   margin: 0;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Dark Mode */
 .dark body {
   background-color: #1A1D21; /* dark-bg */
   color: #F5F5F7; /* dark-text */
+}
+
+/* Smooth theme transition overlay - prevents flash */
+html {
+  background-color: #FAFAFA;
+}
+
+html.dark {
+  background-color: #1A1D21;
 }
 
 /* Typography Scale */
@@ -388,24 +466,229 @@ body {
   box-shadow: 0 8px 40px rgba(37, 211, 102, 0.6);
 }
 
-/* Glass Effect */
+/* ==============================================
+   iOS 26.3 GLASSMORPHISM SYSTEM
+   Sophisticated frosted glass effects for light mode
+   ============================================== */
+
+/* Base Glass - Standard frosted panel */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 8px 24px -4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .dark .glass {
-  background: rgba(42, 47, 56, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(42, 47, 56, 0.82);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.2),
+    0 8px 24px -4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.glass-dark {
-  background: rgba(29, 29, 31, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+/* Glass Subtle - Lighter frost for large surfaces */
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    0 4px 16px -2px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.dark .glass-subtle {
+  background: rgba(42, 47, 56, 0.65);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.15),
+    0 4px 16px -2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Glass Prominent - Stronger frost for floating elements */
+.glass-prominent {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 12px 32px -4px rgba(0, 0, 0, 0.1),
+    0 24px 48px -8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.dark .glass-prominent {
+  background: rgba(42, 47, 56, 0.92);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 12px 32px -4px rgba(0, 0, 0, 0.5),
+    0 24px 48px -8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Glass Card - For product cards and content panels */
+.glass-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    0 6px 20px -3px rgba(0, 0, 0, 0.07),
+    0 16px 40px -6px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 8px 24px -3px rgba(0, 0, 0, 0.09),
+    0 20px 48px -6px rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.dark .glass-card {
+  background: rgba(42, 47, 56, 0.85);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 6px 20px -3px rgba(0, 0, 0, 0.4),
+    0 16px 40px -6px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dark .glass-card:hover {
+  background: rgba(42, 47, 56, 0.92);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 8px 24px -3px rgba(0, 0, 0, 0.5),
+    0 20px 48px -6px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Glass Input - For form fields */
+.glass-input {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.02),
+    0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s ease;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(224, 123, 76, 0.5);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.01),
+    0 0 0 4px rgba(224, 123, 76, 0.12),
+    0 2px 8px rgba(224, 123, 76, 0.1);
+}
+
+.dark .glass-input {
+  background: rgba(42, 47, 56, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.15),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass-input:focus {
+  background: rgba(42, 47, 56, 0.9);
+  border-color: rgba(224, 123, 76, 0.6);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.1),
+    0 0 0 4px rgba(224, 123, 76, 0.2),
+    0 2px 8px rgba(224, 123, 76, 0.15);
+}
+
+/* Glass Pill - For badges, tags, and small floating elements */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 2px 6px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.dark .glass-pill {
+  background: rgba(42, 47, 56, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 2px 6px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Glass Overlay - For modals and sheet backgrounds */
+.glass-overlay {
+  background: rgba(250, 250, 250, 0.6);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+.dark .glass-overlay {
+  background: rgba(26, 29, 33, 0.7);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+/* Warm Glass - With subtle warm tint (matches FIFA palette) */
+.glass-warm {
+  background: rgba(255, 252, 248, 0.75);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  border: 1px solid rgba(224, 123, 76, 0.08);
+  box-shadow:
+    0 1px 3px rgba(224, 123, 76, 0.03),
+    0 8px 24px -4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.dark .glass-warm {
+  background: rgba(42, 47, 56, 0.8);
+  border: 1px solid rgba(224, 123, 76, 0.12);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.2),
+    0 8px 24px -4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(224, 123, 76, 0.05);
+}
+
+/* Legacy glass-dark for backwards compatibility */
+.glass-dark {
+  background: rgba(29, 29, 31, 0.85);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 12px 32px -4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* Selection Color */

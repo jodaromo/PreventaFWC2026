@@ -8,6 +8,7 @@ export const ThemeProvider = ({ children }) => {
     return 'dark';
   });
 
+  // Apply theme class to document
   useEffect(() => {
     const root = document.documentElement;
 

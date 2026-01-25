@@ -129,9 +129,29 @@ export default {
         // Dark mode shadows (with accent glow)
         'card-dark': '0 4px 20px rgba(0, 0, 0, 0.4)',
         'card-dark-hover': '0 8px 40px rgba(0, 0, 0, 0.5)',
-        'glow-maple': '0 0 30px rgba(224, 123, 76, 0.3)', // Coral-orange glow
+        'glow-maple': '0 0 30px rgba(224, 123, 76, 0.3)',
         'glow-teal': '0 0 30px rgba(23, 162, 184, 0.3)',
         'glow-gold': '0 0 30px rgba(224, 123, 76, 0.3)',
+        // iOS 26.3 Glassmorphism shadows
+        'glass-sm': '0 1px 2px rgba(0, 0, 0, 0.03), 0 2px 6px rgba(0, 0, 0, 0.05)',
+        'glass': '0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.08)',
+        'glass-md': '0 2px 4px rgba(0, 0, 0, 0.04), 0 12px 32px -4px rgba(0, 0, 0, 0.1)',
+        'glass-lg': '0 4px 8px rgba(0, 0, 0, 0.05), 0 20px 48px -8px rgba(0, 0, 0, 0.12)',
+        'glass-xl': '0 8px 16px rgba(0, 0, 0, 0.06), 0 32px 64px -12px rgba(0, 0, 0, 0.15)',
+        // Dark mode glass shadows
+        'glass-dark-sm': '0 1px 2px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.2)',
+        'glass-dark': '0 1px 3px rgba(0, 0, 0, 0.2), 0 8px 24px -4px rgba(0, 0, 0, 0.4)',
+        'glass-dark-md': '0 2px 4px rgba(0, 0, 0, 0.25), 0 12px 32px -4px rgba(0, 0, 0, 0.5)',
+        'glass-dark-lg': '0 4px 8px rgba(0, 0, 0, 0.3), 0 20px 48px -8px rgba(0, 0, 0, 0.55)',
+        // Inset highlights for glass depth
+        'glass-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.6)',
+        'glass-inset-dark': 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+      },
+      backdropBlur: {
+        'glass-subtle': '12px',
+        'glass': '16px',
+        'glass-strong': '20px',
+        'glass-max': '24px',
       },
     },
   },
