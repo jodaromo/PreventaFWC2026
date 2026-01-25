@@ -14,7 +14,7 @@ const variantCards = [
   { id: 'bronze', name: 'Bronze', image: 'BronzeVariant_clean.png', glow: 'rgba(180, 83, 9, 0.5)' },
   { id: 'silver', name: 'Silver', image: 'SilverVariant_clean.png', glow: 'rgba(156, 163, 175, 0.6)' },
   { id: 'gold', name: 'Gold', image: 'GoldVariant_clean.png', glow: 'rgba(251, 191, 36, 0.6)' },
-  { id: 'red', name: 'Red', image: 'RedVariant_clean.png', glow: 'rgba(239, 68, 68, 0.5)' },
+  { id: 'base', name: 'Base', image: 'RedVariant_clean.png', glow: 'rgba(239, 68, 68, 0.5)' },
 ];
 
 // Card back image
