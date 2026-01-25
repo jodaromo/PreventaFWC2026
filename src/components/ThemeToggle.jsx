@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { quickSpring } from '../utils/animations';
 
 const ThemeToggle = () => {
   const { toggleTheme, isDark } = useTheme();
@@ -24,7 +25,8 @@ const ThemeToggle = () => {
       onClick={handleClick}
       initial={false}
       whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.9 }}
+      transition={quickSpring}
       className={`fixed top-4 left-4 sm:top-6 sm:left-6 z-50 w-11 h-11 rounded-full flex items-center justify-center
         transition-all duration-300 cursor-pointer
         ${isDark

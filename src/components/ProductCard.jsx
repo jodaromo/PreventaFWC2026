@@ -1,279 +1,88 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useMotionTemplate, useAnimation } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Minus, Plus, Sparkles, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { getAssetPath, img } from '../utils/assets';
+import { img } from '../utils/assets';
+import { quickSpring, iconButtonHover, iconButtonTap } from '../utils/animations';
 
-
-// Static scarcity counter (placeholder)
-const SCARCITY_COUNT = 2;
-
-// Messi variant cards data - using cropped clean images
-const variantCards = [
-  { id: 'bronze', name: 'Bronze', image: 'BronzeVariant_clean.png', glow: 'rgba(180, 83, 9, 0.5)' },
-  { id: 'silver', name: 'Silver', image: 'SilverVariant_clean.png', glow: 'rgba(156, 163, 175, 0.6)' },
-  { id: 'gold', name: 'Gold', image: 'GoldVariant_clean.png', glow: 'rgba(251, 191, 36, 0.6)' },
-  { id: 'red', name: 'Red', image: 'RedVariant_clean.png', glow: 'rgba(239, 68, 68, 0.5)' },
-];
-
-// Card back image
-const CARD_BACK = 'CardBack.png';
-
-// Fan arrangement calculations - shared between closed and open states
-const getFanLayout = (index, totalCards, scale = 1) => {
-  const fanAngle = 40; // Total spread angle
-  const angleStep = fanAngle / (totalCards - 1);
-  const rotation = -fanAngle / 2 + index * angleStep;
-
-  // Center cards are higher (parabolic curve) - outer cards drop down
-  const centerIndex = (totalCards - 1) / 2;
-  const distanceFromCenter = Math.abs(index - centerIndex);
-  const verticalOffset = distanceFromCenter * distanceFromCenter * 12 * scale; // More pronounced parabola
-
-  const horizontalOffset = (index - centerIndex) * 60 * scale; // Wider spread
-
+// Calculate fan layout for mini cards on the button
+const getFanLayout = (index, total, fanSpread = 0.2) => {
+  const centerIndex = (total - 1) / 2;
+  const offsetFromCenter = index - centerIndex;
+  const rotation = offsetFromCenter * (15 * fanSpread);
+  const horizontalOffset = offsetFromCenter * (12 * fanSpread);
+  const verticalOffset = Math.abs(offsetFromCenter) * (3 * fanSpread);
   return { rotation, horizontalOffset, verticalOffset };
 };
 
-// Individual Variant Card with 3D tilt effect and spin capability
-const VariantCard = ({ variant, isDark, isSelected, onSelect, isZoomed, onSpin }) => {
-  const cardRef = useRef(null);
-  const controls = useAnimation();
-  const spinVelocity = useRef(0);
-  const lastClickTime = useRef(0);
-  const spinAnimationRef = useRef(null);
+// Variant cards data - using Qatar 2022 reference images
+const variantCards = [
+  { id: 'bronze', name: 'Bronze', image: 'BronzeVariant_clean.png', glow: 'rgba(180, 83, 9, 0.5)', glowIntense: 'rgba(180, 83, 9, 0.8)' },
+  { id: 'silver', name: 'Silver', image: 'SilverVariant_clean.png', glow: 'rgba(156, 163, 175, 0.6)', glowIntense: 'rgba(156, 163, 175, 0.9)' },
+  { id: 'gold', name: 'Gold', image: 'GoldVariant_clean.png', glow: 'rgba(251, 191, 36, 0.6)', glowIntense: 'rgba(251, 191, 36, 0.9)' },
+  { id: 'red', name: 'Red', image: 'RedVariant_clean.png', glow: 'rgba(239, 68, 68, 0.5)', glowIntense: 'rgba(239, 68, 68, 0.8)' },
+];
 
-  // Current rotation for spinning
-  const [currentRotation, setCurrentRotation] = useState(0);
-
-  // 3D tilt effect (only when not zoomed)
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const mouseXSpring = useSpring(mouseX, { stiffness: 300, damping: 30 });
-  const mouseYSpring = useSpring(mouseY, { stiffness: 300, damping: 30 });
-
-  const rotateDepth = isZoomed ? 8 : 12;
-  const tiltRotateX = useTransform(mouseYSpring, [-0.5, 0.5], [`${rotateDepth}deg`, `-${rotateDepth}deg`]);
-  const tiltRotateY = useTransform(mouseXSpring, [-0.5, 0.5], [`-${rotateDepth}deg`, `${rotateDepth}deg`]);
-
-  // Glare effect
-  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], [0, 100]);
-  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], [0, 100]);
-  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 30%, rgba(255, 255, 255, 0) 70%)`;
-
-  const handleMouseMove = (e) => {
-    if (!cardRef.current || isZoomed) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
-    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
-
-  // Handle click - select or spin
-  const handleClick = (e) => {
-    e.stopPropagation();
-
-    if (!isZoomed) {
-      // Select this card
-      onSelect(variant.id);
-    } else {
-      // Spin the card with momentum
-      const now = Date.now();
-      const timeSinceLastClick = now - lastClickTime.current;
-      lastClickTime.current = now;
-
-      // Build up velocity with rapid clicks
-      if (timeSinceLastClick < 300) {
-        spinVelocity.current = Math.min(spinVelocity.current + 400, 2000);
-      } else {
-        spinVelocity.current = 400;
-      }
-
-      onSpin(spinVelocity.current);
-    }
-  };
-
-  return (
-    <motion.div
-      ref={cardRef}
-      className={`cursor-pointer select-none ${isZoomed ? 'w-[220px] sm:w-[280px]' : 'w-[100px] sm:w-[130px]'}`}
-      style={{ perspective: '1000px' }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
-      whileHover={!isZoomed ? { scale: 1.08, zIndex: 20 } : {}}
-      whileTap={{ scale: 0.98 }}
-    >
-      <motion.div
-        className="relative rounded-lg overflow-hidden"
-        style={{
-          rotateX: isZoomed ? 0 : tiltRotateX,
-          rotateY: isZoomed ? currentRotation : tiltRotateY,
-          transformStyle: 'preserve-3d',
-          boxShadow: `0 20px 40px -10px ${variant.glow}, 0 10px 20px -5px rgba(0,0,0,0.3)`,
-        }}
-        animate={controls}
-      >
-        {/* Card image */}
-        <img
-          src={img(variant.image)}
-          alt={`Messi ${variant.name} Variant`}
-          className="w-full h-auto object-contain pointer-events-none"
-          draggable={false}
-        />
-
-        {/* Glare overlay */}
-        <motion.div
-          className="pointer-events-none absolute inset-0 z-10 mix-blend-overlay rounded-lg"
-          style={{ background: glareBackground, opacity: 0.9 }}
-        />
-      </motion.div>
-    </motion.div>
-  );
+// iOS 26.3 style spring for app-open animation - buttery smooth
+const iosSpring = {
+  type: 'spring',
+  stiffness: 200,
+  damping: 28,
+  mass: 0.8,
 };
 
-// ZoomedCard component with 3D tilt and glow effect for the spinning card
-// Animates FROM the fanned position TO center, and back on close
-const ZoomedCard = ({ selectedCard, selectedIndex, spinRotation, onClose, onSpin, isDark }) => {
-  const cardRef = useRef(null);
-  const variant = variantCards.find(v => v.id === selectedCard);
-
-  // Calculate the starting position based on the fan layout
-  const { rotation: startRotation, horizontalOffset, verticalOffset } = getFanLayout(selectedIndex, variantCards.length, 1);
-
-  // Mouse position for tilt
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const mouseXSpring = useSpring(mouseX, { stiffness: 400, damping: 30 });
-  const mouseYSpring = useSpring(mouseY, { stiffness: 400, damping: 30 });
-
-  // Tilt transforms - combined with spin rotation
-  const tiltX = useTransform(mouseYSpring, [-0.5, 0.5], [15, -15]);
-  const tiltY = useTransform(mouseXSpring, [-0.5, 0.5], [-15, 15]);
-
-  // Glare position
-  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], [0, 100]);
-  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], [0, 100]);
-  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.25) 35%, rgba(255, 255, 255, 0) 70%)`;
-
-  const handleMouseMove = (e) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
-    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
-
-  if (!variant) return null;
-
-  // Animation states
-  const closedState = {
-    x: horizontalOffset,
-    y: verticalOffset + 20,
-    rotate: startRotation,
-    scale: 0.45,
-    opacity: 0, // Fade out on exit to hide position mismatch
-  };
-
-  const openedState = {
-    x: 0,
-    y: 0,
-    rotate: 0,
-    scale: 1,
-    opacity: 1,
-  };
-
-  const springTransition = { type: "spring", stiffness: 400, damping: 28 };
-
-  return (
-    <motion.div
-      className="absolute inset-0 z-30 flex items-center justify-center select-none"
-      onClick={onClose}
-    >
-      <motion.div
-        ref={cardRef}
-        className="cursor-pointer select-none"
-        style={{ perspective: '1200px', width: '330px' }}
-        initial={closedState}
-        animate={openedState}
-        exit={closedState}
-        transition={springTransition}
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          onSpin();
-        }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        onMouseDown={(e) => e.preventDefault()}
-        whileTap={{ scale: 0.98 }}
-      >
-        <motion.div
-          className="relative rounded-xl overflow-hidden select-none"
-          style={{
-            rotateX: tiltX,
-            rotateY: spinRotation + tiltY.get(),
-            transformStyle: 'preserve-3d',
-            boxShadow: `0 35px 70px -15px ${variant.glow}, 0 20px 40px -10px rgba(0,0,0,0.5)`,
-          }}
-        >
-          <img
-            src={img(variant.image)}
-            alt="Selected Card"
-            className="w-full h-auto object-contain pointer-events-none select-none"
-            draggable={false}
-            onDragStart={(e) => e.preventDefault()}
-          />
-          {/* Dynamic glare overlay */}
-          <motion.div
-            className="pointer-events-none absolute inset-0 z-10 mix-blend-overlay rounded-xl"
-            style={{ background: glareBackground, opacity: 0.95 }}
-          />
-        </motion.div>
-        <p className={`text-center mt-3 text-xs select-none ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-          Toca rápido para girar más fuerte
-        </p>
-      </motion.div>
-    </motion.div>
-  );
+// Faster spring for the expand animation
+const expandSpring = {
+  type: 'spring',
+  stiffness: 260,
+  damping: 30,
+  mass: 0.9,
 };
 
-// Extra Stickers Modal Component - Uses Portal to render at document root
-const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
+// Card sizes - responsive
+const getCardSizes = () => {
+  if (typeof window === 'undefined') return { grid: 140, expanded: 280 };
+  const isMobile = window.innerWidth < 640;
+  const isSmallMobile = window.innerWidth < 380;
+  return {
+    grid: isSmallMobile ? 110 : isMobile ? 130 : 180,
+    expanded: isSmallMobile ? 240 : isMobile ? 280 : 320,
+    gap: isSmallMobile ? 12 : isMobile ? 16 : 32,
+  };
+};
+
+// Extra Stickers Modal - 2x2 Grid with iOS app-opening expand
+const ExtraStickersModal = ({ isOpen, onClose }) => {
   const [selectedCard, setSelectedCard] = useState(null);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [spinRotation, setSpinRotation] = useState(0);
-  const [exitingCard, setExitingCard] = useState(null); // Track which card is animating back
+  const [expandedCardPos, setExpandedCardPos] = useState(null); // Starting position for expanded card
+  const [closingCardId, setClosingCardId] = useState(null); // Track which card is animating back
+  const [cardSizes, setCardSizes] = useState(getCardSizes());
   const spinAnimationRef = useRef(null);
   const currentVelocityRef = useRef(0);
+  const lastClickTimeRef = useRef(0);
+  const clickCountRef = useRef(0);
+  const containerRef = useRef(null);
+  const cardRefs = useRef({});
+
+  // Update card sizes on resize
+  useEffect(() => {
+    const handleResize = () => setCardSizes(getCardSizes());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setSelectedCard(null);
-      setSelectedIndex(-1);
       setSpinRotation(0);
-      setExitingCard(null);
       if (spinAnimationRef.current) {
         cancelAnimationFrame(spinAnimationRef.current);
       }
     }
   }, [isOpen]);
-
-  // Track rapid clicks for spin acceleration
-  const lastClickTimeRef = useRef(0);
-  const clickCountRef = useRef(0);
 
   // Handle spin with momentum decay
   const handleSpin = () => {
@@ -281,11 +90,10 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
     const timeSinceLastClick = now - lastClickTimeRef.current;
     lastClickTimeRef.current = now;
 
-    // Build velocity with rapid clicks
     if (timeSinceLastClick < 250) {
       clickCountRef.current++;
-      currentVelocityRef.current += 300 + (clickCountRef.current * 150); // Accelerate more with each rapid click
-      currentVelocityRef.current = Math.min(currentVelocityRef.current, 3000); // Cap velocity
+      currentVelocityRef.current += 300 + (clickCountRef.current * 150);
+      currentVelocityRef.current = Math.min(currentVelocityRef.current, 3000);
     } else {
       clickCountRef.current = 1;
       currentVelocityRef.current = Math.max(currentVelocityRef.current + 350, 400);
@@ -300,48 +108,48 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
         currentVelocityRef.current = 0;
         return;
       }
-
-      setSpinRotation(prev => prev + currentVelocityRef.current * 0.016); // ~60fps
-      currentVelocityRef.current *= 0.965; // Friction decay - slightly slower deceleration
-
+      setSpinRotation(prev => prev + currentVelocityRef.current * 0.016);
+      currentVelocityRef.current *= 0.965;
       spinAnimationRef.current = requestAnimationFrame(animate);
     };
-
     animate();
   };
 
-  // Handle card selection - toggle selection
-  const handleSelectCard = (cardId, index) => {
-    if (selectedCard === cardId) {
-      // Set exitingCard BEFORE clearing selectedCard so fanned card stays hidden
-      setExitingCard(cardId);
-      setSelectedCard(null);
-      setSelectedIndex(-1);
-      setSpinRotation(0);
-      if (spinAnimationRef.current) {
-        cancelAnimationFrame(spinAnimationRef.current);
-      }
-    } else {
-      setExitingCard(null);
-      setSelectedCard(cardId);
-      setSelectedIndex(index);
-      setSpinRotation(0);
+  // Handle card selection - opens to center
+  const handleSelectCard = (cardId) => {
+    // Capture the card's current position before selecting
+    const cardEl = cardRefs.current[cardId];
+    if (cardEl) {
+      const rect = cardEl.getBoundingClientRect();
+      // Store position to animate FROM - this is used by the expanded card portal
+      setExpandedCardPos({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+    setSelectedCard(cardId);
+    setSpinRotation(0);
+    if (spinAnimationRef.current) {
+      cancelAnimationFrame(spinAnimationRef.current);
     }
   };
 
-  // Handle backdrop click
-  const handleBackdropClick = () => {
-    if (selectedCard) {
-      setExitingCard(selectedCard);
-      setSelectedCard(null);
-      setSelectedIndex(-1);
-      setSpinRotation(0);
-      if (spinAnimationRef.current) {
-        cancelAnimationFrame(spinAnimationRef.current);
-      }
-    } else {
-      onClose();
+  // Close expanded card (click outside)
+  const handleCloseExpanded = () => {
+    // Mark which card is closing - keep its grid version hidden until animation completes
+    setClosingCardId(selectedCard);
+    setSelectedCard(null);
+    setSpinRotation(0);
+    if (spinAnimationRef.current) {
+      cancelAnimationFrame(spinAnimationRef.current);
     }
+  };
+
+  // Called when exit animation completes
+  const handleExitComplete = () => {
+    setClosingCardId(null);
   };
 
   if (!isOpen) return null;
@@ -350,180 +158,374 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - darker when card is expanded */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={handleBackdropClick}
-            className={`fixed inset-0 z-[9999] ${isDark ? 'bg-black/85 backdrop-blur-md' : 'glass-overlay'}`}
+            onClick={selectedCard ? handleCloseExpanded : onClose}
+            className="fixed inset-0 z-[9998]"
+            style={{
+              background: selectedCard
+                ? 'rgba(0, 0, 0, 0.97)'
+                : 'linear-gradient(135deg, rgba(10, 10, 15, 0.96) 0%, rgba(20, 15, 30, 0.96) 100%)',
+              backdropFilter: 'blur(24px)',
+            }}
           />
 
-          {/* Modal */}
+          {/* Main Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
+            ref={containerRef}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 lg:p-6 overflow-hidden"
+            onClick={selectedCard ? handleCloseExpanded : undefined}
           >
-            <div className="pointer-events-auto w-full max-w-[700px]" onClick={(e) => e.stopPropagation()}>
-              {/* Themed modal */}
-              <div className={`rounded-3xl overflow-hidden shadow-2xl ${
-                isDark
-                  ? 'bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d] border border-white/10'
-                  : 'glass-prominent'
-              }`}>
+            {/* Close button */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ ...iosSpring, delay: 0.1 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectedCard ? handleCloseExpanded() : onClose();
+              }}
+              whileHover={iconButtonHover}
+              whileTap={iconButtonTap}
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-[10001]
+                bg-white/10 hover:bg-white/20 text-white/80 hover:text-white
+                backdrop-blur-xl border border-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </motion.button>
 
-                {/* Header */}
-                <div className={`relative px-6 pt-5 pb-4 border-b ${isDark ? 'border-white/10' : 'border-warm-tan/20'}`}>
-                  {/* Close button */}
-                  <button
-                    onClick={onClose}
-                    className={`absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center transition-colors
-                      ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`}
-                  >
-                    <X className={`w-4 h-4 ${isDark ? 'text-white/70' : 'text-warm-brown'}`} />
-                  </button>
+            {/* Content Layout - vertical on mobile, horizontal on desktop */}
+            <div className="w-full max-w-5xl flex flex-col lg:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-12 h-full">
 
-                  {/* Badge */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-maple/20 border border-maple/30">
-                      <Sparkles className="w-3 h-3 text-maple" />
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-maple">Ultra Raro</span>
-                    </div>
-                  </div>
+              {/* Left: Cards Area - SINGLE set of cards that animate in place */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ ...iosSpring, delay: 0.05 }}
+                className="relative flex-shrink-0"
+              >
+                {/* Grid container - stays in place */}
+                <div
+                  className="grid grid-cols-2"
+                  style={{ gap: cardSizes.gap }}
+                >
+                  {variantCards.map((variant) => {
+                    const isThisSelected = selectedCard === variant.id;
+                    const isAnySelected = selectedCard !== null;
+                    const isThisClosing = closingCardId === variant.id;
 
-                  {/* Title */}
-                  <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
-                    Extra Stickers
-                  </h3>
-                  <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                    Las láminas más codiciadas del álbum — Variantes exclusivas de Messi
-                  </p>
-                </div>
+                    // Determine opacity: hidden if selected OR if this card is animating back
+                    const shouldHide = isThisSelected || isThisClosing;
 
-                {/* Cards Display - Fanned hand arrangement */}
-                <div className="relative py-4 px-4 flex justify-center items-start min-h-[380px] select-none">
-                  {/* Zoomed card overlay - appears when a card is selected */}
-                  <AnimatePresence onExitComplete={() => setExitingCard(null)}>
-                    {selectedCard && (
-                      <ZoomedCard
-                        key={selectedCard}
-                        selectedCard={selectedCard}
-                        selectedIndex={selectedIndex}
-                        spinRotation={spinRotation}
-                        onClose={() => handleSelectCard(selectedCard, selectedIndex)}
-                        onSpin={handleSpin}
-                        isDark={isDark}
-                      />
-                    )}
-                  </AnimatePresence>
-
-                  {/* Fanned cards arrangement - positioned from top */}
-                  <div
-                    className="relative flex items-start justify-center select-none"
-                    style={{ perspective: '1000px', height: '340px', paddingTop: '20px' }}
-                  >
-                    {variantCards.map((variant, index) => {
-                      const { rotation, horizontalOffset, verticalOffset } = getFanLayout(index, variantCards.length, 1);
-                      const isThisCardSelected = selectedCard === variant.id;
-                      const isThisCardExiting = exitingCard === variant.id;
-                      // Keep hidden if selected OR if ZoomedCard is still animating out
-                      const shouldHide = isThisCardSelected || isThisCardExiting;
-
-                      return (
+                    return (
+                      <div
+                        key={variant.id}
+                        className="relative"
+                        ref={el => cardRefs.current[variant.id] = el}
+                        style={{
+                          // Fixed size container - never changes, keeps grid stable
+                          width: cardSizes.grid,
+                          height: cardSizes.grid * 1.4, // Approximate aspect ratio
+                        }}
+                      >
+                        {/* Grid card - hidden when this card is selected OR animating back */}
                         <motion.div
-                          key={variant.id}
-                          initial={{ opacity: 0, y: 50, rotate: 0 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isAnySelected && !closingCardId) {
+                              handleSelectCard(variant.id);
+                            }
+                          }}
+                          initial={false}
                           animate={{
-                            opacity: shouldHide ? 0 : (selectedCard ? 0.3 : 1),
-                            y: verticalOffset,
-                            rotate: rotation,
-                            x: horizontalOffset,
-                            scale: shouldHide ? 0.8 : 1,
+                            opacity: shouldHide ? 0 : (isAnySelected ? 0.4 : 1),
+                            scale: isAnySelected && !isThisSelected ? 0.92 : 1,
+                            filter: isAnySelected && !isThisSelected ? 'blur(2px)' : 'blur(0px)',
                           }}
                           transition={{
-                            delay: shouldHide ? 0 : index * 0.05,
-                            type: "spring",
-                            stiffness: 400,
-                            damping: 26,
-                            opacity: { duration: 0.1, ease: "easeOut" }
+                            opacity: { duration: 0.15, ease: 'easeOut' },
+                            scale: iosSpring,
+                            filter: { duration: 0.2 },
                           }}
-                          whileHover={!selectedCard && !exitingCard ? {
-                            y: verticalOffset - 20,
-                            transition: { type: "spring", stiffness: 400, damping: 20 }
-                          } : {}}
-                          className={`absolute select-none ${(selectedCard || exitingCard) ? 'pointer-events-none' : 'cursor-pointer'}`}
+                          className="absolute top-0 left-0 cursor-pointer select-none"
                           style={{
-                            transformOrigin: 'bottom center',
-                            zIndex: index + 1,
+                            width: cardSizes.grid,
+                            perspective: '1200px',
+                            pointerEvents: (isAnySelected || closingCardId) ? 'none' : 'auto',
                           }}
-                          onClick={() => handleSelectCard(variant.id, index)}
                         >
                           <motion.div
-                            className="relative rounded-lg overflow-hidden w-[120px] sm:w-[150px]"
+                            className="relative rounded-2xl overflow-hidden"
+                            whileHover={{ scale: 1.06, y: -10 }}
+                            whileTap={{ scale: 0.97 }}
+                            transition={iosSpring}
                             style={{
-                              boxShadow: `0 20px 40px -10px ${variant.glow}, 0 10px 20px -5px rgba(0,0,0,0.3)`,
+                              transformStyle: 'preserve-3d',
+                              boxShadow: `0 30px 60px -15px ${variant.glow}, 0 15px 30px -10px rgba(0,0,0,0.4)`,
                             }}
                           >
                             <img
                               src={img(variant.image)}
-                              alt={`Messi ${variant.name} Variant`}
+                              alt={`${variant.name} Variant`}
                               className="w-full h-auto object-contain pointer-events-none select-none"
                               draggable={false}
-                              onDragStart={(e) => e.preventDefault()}
                             />
-                            {/* Static glare overlay */}
+                            {/* Glare overlay */}
                             <div
-                              className="pointer-events-none absolute inset-0 z-10 mix-blend-overlay rounded-lg"
+                              className="pointer-events-none absolute inset-0 z-10 mix-blend-overlay rounded-2xl"
                               style={{
-                                background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.15) 40%, rgba(255, 255, 255, 0) 70%)',
-                                opacity: 0.8
+                                background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.15) 40%, rgba(255, 255, 255, 0) 70%)',
+                                opacity: 0.9,
                               }}
                             />
                           </motion.div>
                         </motion.div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* Stats row */}
-                <div className={`px-6 pb-6`}>
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className={`text-center p-3 rounded-xl ${
-                      isDark ? 'bg-white/5' : 'bg-warm-cream'
-                    }`}>
-                      <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>1:100</p>
-                      <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Probabilidad</p>
-                    </div>
-                    <div className={`text-center p-3 rounded-xl ${
-                      isDark ? 'bg-white/5' : 'bg-warm-cream'
-                    }`}>
-                      <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>80</p>
-                      <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Total</p>
-                    </div>
-                    <div className={`text-center p-3 rounded-xl ${
-                      isDark ? 'bg-maple/10' : 'bg-maple/10'
-                    }`}>
-                      <p className={`text-xl font-bold scarcity-glow ${
-                        isDark ? 'text-maple' : 'text-maple'
-                      }`}>{SCARCITY_COUNT}</p>
-                      <p className={`text-[10px] uppercase ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>Encontrados</p>
-                    </div>
+                {/* Expanded card - separate from grid, animates from captured position */}
+                <AnimatePresence mode="wait" onExitComplete={handleExitComplete}>
+                  {selectedCard && expandedCardPos && (() => {
+                    const variant = variantCards.find(v => v.id === selectedCard);
+                    if (!variant) return null;
+
+                    // Calculate center position using responsive sizes
+                    const centerX = typeof window !== 'undefined' ? (window.innerWidth - cardSizes.expanded) / 2 : 0;
+                    const centerY = typeof window !== 'undefined' ? (window.innerHeight - cardSizes.expanded * 1.5) / 2 : 0;
+
+                    return (
+                      <motion.div
+                        key={`expanded-${variant.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSpin();
+                        }}
+                        initial={{
+                          position: 'fixed',
+                          top: expandedCardPos.top,
+                          left: expandedCardPos.left,
+                          width: cardSizes.grid,
+                          scale: 1,
+                          opacity: 1,
+                          zIndex: 10000,
+                        }}
+                        animate={{
+                          top: centerY,
+                          left: centerX,
+                          width: cardSizes.expanded,
+                          scale: 1,
+                          opacity: 1,
+                        }}
+                        exit={{
+                          top: expandedCardPos.top,
+                          left: expandedCardPos.left,
+                          width: cardSizes.grid,
+                          scale: 1,
+                          opacity: 1,
+                        }}
+                        transition={expandSpring}
+                        className="cursor-pointer select-none"
+                        style={{
+                          perspective: '1200px',
+                        }}
+                      >
+                        <motion.div
+                          className="relative rounded-2xl overflow-hidden"
+                          initial={{
+                            rotateY: 0,
+                            boxShadow: `0 30px 60px -15px ${variant.glow}, 0 15px 30px -10px rgba(0,0,0,0.4)`,
+                          }}
+                          animate={{
+                            rotateY: spinRotation,
+                            boxShadow: `0 60px 120px -20px ${variant.glowIntense}, 0 40px 80px -20px rgba(0,0,0,0.6)`,
+                          }}
+                          exit={{
+                            rotateY: 0,
+                            boxShadow: `0 30px 60px -15px ${variant.glow}, 0 15px 30px -10px rgba(0,0,0,0.4)`,
+                          }}
+                          transition={expandSpring}
+                          style={{
+                            transformStyle: 'preserve-3d',
+                          }}
+                        >
+                          <img
+                            src={img(variant.image)}
+                            alt={`${variant.name} Variant`}
+                            className="w-full h-auto object-contain pointer-events-none select-none"
+                            draggable={false}
+                          />
+                          {/* Glare overlay */}
+                          <div
+                            className="pointer-events-none absolute inset-0 z-10 mix-blend-overlay rounded-2xl"
+                            style={{
+                              background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.15) 40%, rgba(255, 255, 255, 0) 70%)',
+                              opacity: 0.9,
+                            }}
+                          />
+                        </motion.div>
+
+                        {/* Card name label */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ delay: 0.15 }}
+                          className="text-center mt-5"
+                        >
+                          <p className="text-2xl font-semibold text-white">
+                            {variant.name}
+                          </p>
+                          <p className="text-sm text-white/50 mt-1">
+                            Toca para girar
+                          </p>
+                        </motion.div>
+                      </motion.div>
+                    );
+                  })()}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* Right: Modern Info Panel - fades when card expanded */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{
+                  opacity: selectedCard ? 0 : 1,
+                  y: selectedCard ? 10 : 0,
+                  scale: selectedCard ? 0.95 : 1,
+                }}
+                transition={iosSpring}
+                className="flex-1 max-w-sm w-full"
+                style={{ pointerEvents: selectedCard ? 'none' : 'auto' }}
+              >
+                {/* Glass card container - more compact on mobile */}
+                <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)',
+                    backdropFilter: 'blur(40px)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
+                  }}
+                >
+                  {/* Gradient accent line */}
+                  <div className="absolute top-0 left-6 right-6 sm:left-8 sm:right-8 h-px bg-gradient-to-r from-transparent via-maple/50 to-transparent" />
+
+                  {/* Mobile: Horizontal layout for badge + title */}
+                  <div className="flex flex-col sm:block">
+                    {/* Badge */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full mb-2 sm:mb-5"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(207,92,54,0.15) 0%, rgba(207,92,54,0.08) 100%)',
+                        border: '1px solid rgba(207,92,54,0.25)',
+                      }}
+                    >
+                      <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-maple" />
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-maple">Ultra Raro</span>
+                    </motion.div>
+
+                    {/* Title */}
+                    <motion.h3
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25 }}
+                      className="text-xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4 tracking-tight"
+                    >
+                      Extra Stickers<span className="text-white/30">*</span>
+                    </motion.h3>
                   </div>
+
+                  {/* Description - hidden on very small screens */}
+                  <motion.p
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="hidden sm:block text-white/50 text-sm leading-relaxed mb-4 lg:mb-6"
+                  >
+                    Variantes especiales con acabados únicos —{' '}
+                    <span className="font-bold" style={{ color: '#CD7F32' }}>Bronze</span>,{' '}
+                    <span className="font-bold" style={{ color: '#C0C0C0' }}>Silver</span>,{' '}
+                    <span className="font-bold" style={{ color: '#FFD700' }}>Gold</span> y{' '}
+                    <span className="font-bold" style={{ color: '#FF4444' }}>Red</span>.
+                  </motion.p>
+
+                  {/* Stats row - inline on mobile */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    className="flex gap-2 sm:gap-3 mb-3 sm:mb-6"
+                  >
+                    <div className="flex-1 text-center py-2 sm:py-3 rounded-xl sm:rounded-2xl"
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                      }}
+                    >
+                      <p className="text-base sm:text-xl font-bold text-white">1:100</p>
+                      <p className="text-[8px] sm:text-[9px] uppercase tracking-wider text-white/35 mt-0.5">Probabilidad</p>
+                    </div>
+                    <div className="flex-1 text-center py-2 sm:py-3 rounded-xl sm:rounded-2xl"
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                      }}
+                    >
+                      <p className="text-base sm:text-xl font-bold text-white">80</p>
+                      <p className="text-[8px] sm:text-[9px] uppercase tracking-wider text-white/35 mt-0.5">Variantes</p>
+                    </div>
+                  </motion.div>
+
+                  {/* Hint text - smaller on mobile */}
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="text-[10px] sm:text-[11px] text-white/25 mb-3 sm:mb-5 text-center"
+                  >
+                    Toca una carta para verla de cerca
+                  </motion.p>
 
                   {/* CTA Button */}
-                  <button
+                  <motion.button
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
                     onClick={onClose}
-                    className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all active:scale-[0.98]
-                      bg-maple text-white hover:bg-maple-dark shadow-lg shadow-maple/20"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm text-white relative overflow-hidden group"
+                    style={{
+                      background: 'linear-gradient(135deg, #CF5C36 0%, #b84d2d 100%)',
+                      boxShadow: '0 10px 30px -5px rgba(207,92,54,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+                    }}
                   >
-                    ¡Quiero encontrar uno!
-                  </button>
+                    <span className="relative z-10">¡Quiero encontrar uno!</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </motion.button>
+
+                  {/* Reference disclaimer - minimalist under button */}
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="text-[9px] text-white/30 text-center mt-3"
+                  >
+                    *Imágenes de referencia FIFA Qatar 2022
+                  </motion.p>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </>
@@ -531,7 +533,6 @@ const ExtraStickersModal = ({ isOpen, onClose, isDark }) => {
     </AnimatePresence>
   );
 
-  // Use portal to render at document body level, avoiding transform issues
   return createPortal(modalContent, document.body);
 };
 
@@ -587,7 +588,7 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
           </div>
         )}
 
-        {/* Product Image */}
+        {/* Product Image or Video */}
         <div className={`relative h-52 sm:h-60 flex items-center justify-center p-5 overflow-hidden
           ${isDark
             ? 'bg-gradient-to-b from-dark-bg-elevated to-dark-bg-card'
@@ -599,9 +600,9 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
             style={{ willChange: 'transform' }}
           >
             <img
-              src={getAssetPath(product.image)}
+              src={img(product.image)}
               alt={product.name}
-              className="h-36 sm:h-44 w-auto object-contain"
+              className={`h-36 sm:h-44 w-auto object-contain ${product.rotating ? 'animate-rotate-y' : ''}`}
               draggable={false}
               style={{
                 backfaceVisibility: 'hidden',
@@ -629,8 +630,9 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                 onQuantityChange(product.id, quantity - 1);
               }}
               disabled={quantity === 0}
-              whileTap={quantity > 0 ? { scale: 0.85 } : {}}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              whileHover={quantity > 0 ? iconButtonHover : {}}
+              whileTap={quantity > 0 ? iconButtonTap : {}}
+              transition={quickSpring}
               className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md
                 ${quantity === 0
                   ? isDark
@@ -658,9 +660,9 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
                 e.stopPropagation();
                 onQuantityChange(product.id, quantity + 1);
               }}
-              whileTap={{ scale: 0.85 }}
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              whileHover={iconButtonHover}
+              whileTap={iconButtonTap}
+              transition={quickSpring}
               className="w-7 h-7 rounded-full flex items-center justify-center shadow-lg
                 bg-maple text-white hover:bg-maple-dark"
             >
@@ -797,7 +799,6 @@ const ProductCard = ({ product, index, quantity, onQuantityChange }) => {
       <ExtraStickersModal
         isOpen={showExtraStickersModal}
         onClose={() => setShowExtraStickersModal(false)}
-        isDark={isDark}
       />
     </>
   );

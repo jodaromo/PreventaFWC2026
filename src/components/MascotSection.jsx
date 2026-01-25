@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useMo
 import { X, MapPin, ExternalLink } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { img } from '../utils/assets';
+import { quickSpring, iconButtonTap } from '../utils/animations';
 
 // Mascot data with full stories and stadiums
 const mascots = [
@@ -658,7 +659,8 @@ const MascotCard = ({
           transformStyle: 'preserve-3d',
         }}
         whileHover={isCenter ? { scale: 1.02 } : {}}
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: 0.97 }}
+        transition={quickSpring}
       >
         <div className={`relative rounded-3xl overflow-hidden h-full w-full
           ${isCenter ? 'shadow-2xl' : 'shadow-lg'}
@@ -801,7 +803,9 @@ const MascotCarousel = ({ mascots, currentIndex, setCurrentIndex, setActiveMasco
         <motion.button
           onClick={() => paginate(-1)}
           className={`p-1.5 transition-colors ${isDark ? 'text-white/30 hover:text-white/70' : 'text-warm-brown/30 hover:text-warm-brown/70'}`}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={iconButtonTap}
+          transition={quickSpring}
           aria-label="Previous mascot"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -830,7 +834,9 @@ const MascotCarousel = ({ mascots, currentIndex, setCurrentIndex, setActiveMasco
         <motion.button
           onClick={() => paginate(1)}
           className={`p-1.5 transition-colors ${isDark ? 'text-white/30 hover:text-white/70' : 'text-warm-brown/30 hover:text-warm-brown/70'}`}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={iconButtonTap}
+          transition={quickSpring}
           aria-label="Next mascot"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

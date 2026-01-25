@@ -7,4 +7,5 @@ export default defineConfig({
   // For Vercel/custom domain: use '/'
   // For GitHub Pages without custom domain: use '/CollectPoint/'
   base: '/',
+  cacheDir: '/tmp/vite-cache',
 })

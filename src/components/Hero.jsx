@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { presaleStatus } from '../data/products';
 import { img } from '../utils/assets';
+import { quickSpring, ctaButtonHover, ctaButtonTap } from '../utils/animations';
 
 // Custom organic float animation - more natural than CSS keyframes
 const floatVariants = {
@@ -247,16 +248,17 @@ const Hero = () => {
                   transition={{ delay: 0.7, duration: 0.5 }}
                   className="mt-6 w-full"
                 >
-                  <button
+                  <motion.button
                     onClick={scrollToProducts}
+                    whileHover={ctaButtonHover}
+                    whileTap={ctaButtonTap}
+                    transition={quickSpring}
                     className="w-full font-bold py-5 px-10 rounded-full shadow-lg
                       bg-maple text-white text-xl
-                      shadow-maple/25 hover:bg-maple-dark hover:shadow-maple/40 hover:shadow-xl hover:scale-[1.02]
-                      active:scale-[0.98] active:shadow-md
-                      transition-all duration-150 ease-out"
+                      shadow-maple/25 hover:bg-maple-dark hover:shadow-maple/40 hover:shadow-xl"
                   >
                     Ver productos y reservar
-                  </button>
+                  </motion.button>
                 </motion.div>
               </div>
 
@@ -312,9 +314,12 @@ const Hero = () => {
         />
 
         {/* Mascot link */}
-        <button
+        <motion.button
           onClick={scrollToMascots}
-          className={`text-sm transition-all duration-200 ease-out flex items-center gap-1.5 group
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          transition={quickSpring}
+          className={`text-sm flex items-center gap-1.5 group
             ${isDark ? 'text-gray-400 hover:text-white' : 'text-warm-gray hover:text-warm-brown'}
           `}
         >
@@ -325,7 +330,7 @@ const Hero = () => {
             `} />
           </span>
           <span className="text-base transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-        </button>
+        </motion.button>
       </motion.div>
 
       {/* Scroll indicator - Bottom center with organic bounce */}

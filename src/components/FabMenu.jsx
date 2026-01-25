@@ -1,11 +1,84 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useMotionTemplate } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { img } from '../utils/assets';
+import { quickSpring, liquidSpring, iconButtonHover, iconButtonTap } from '../utils/animations';
 import {
   X, Share2, MessageCircle,
   Instagram, Facebook, Mail, ExternalLink
 } from 'lucide-react';
+
+// Glowing QR Card with 3D tilt effect on hover
+const GlowingQRCard = ({ social, isDark, href }) => {
+  const cardRef = useRef(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const mouseXSpring = useSpring(mouseX, { stiffness: 400, damping: 30 });
+  const mouseYSpring = useSpring(mouseY, { stiffness: 400, damping: 30 });
+
+  const rotateDepth = 8;
+  const tiltRotateX = useTransform(mouseYSpring, [-0.5, 0.5], [`${rotateDepth}deg`, `-${rotateDepth}deg`]);
+  const tiltRotateY = useTransform(mouseXSpring, [-0.5, 0.5], [`-${rotateDepth}deg`, `${rotateDepth}deg`]);
+
+  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], [0, 100]);
+  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], [0, 100]);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0) 70%)`;
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  return (
+    <motion.a
+      ref={cardRef}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.98 }}
+      transition={quickSpring}
+      className={`block p-2 rounded-xl ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'} cursor-pointer transition-colors`}
+      style={{
+        perspective: 400,
+      }}
+    >
+      <motion.div
+        style={{
+          rotateX: tiltRotateX,
+          rotateY: tiltRotateY,
+          transformStyle: 'preserve-3d',
+        }}
+      >
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <social.icon className={`w-3 h-3 ${isDark ? 'text-gray-300' : 'text-warm-brown/60'}`} />
+          <span className={`text-[10px] font-medium ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>
+            {social.name}
+          </span>
+          <ExternalLink className={`w-2.5 h-2.5 ml-auto ${isDark ? 'text-gray-500' : 'text-warm-brown/40'}`} />
+        </div>
+        <div className="relative aspect-square rounded-lg overflow-hidden bg-white">
+          <img src={img(social.qr)} alt={`QR ${social.name}`} className="w-full h-full object-cover" />
+          {/* Glare overlay */}
+          <motion.div
+            className="pointer-events-none absolute inset-0 z-10 rounded-lg mix-blend-overlay"
+            style={{ background: glareBackground, opacity: 0.9 }}
+          />
+        </div>
+      </motion.div>
+    </motion.a>
+  );
+};
 
 // TikTok icon (not in lucide)
 const TikTokIcon = ({ className }) => (
@@ -46,8 +119,8 @@ const CurvedLabel = ({ label, isDark, isActive }) => {
           ${isActive
             ? 'fill-white'
             : isDark
-              ? 'fill-gray-400'
-              : 'fill-warm-gray'
+              ? 'fill-gray-300'
+              : 'fill-warm-brown/70'
           }
         `}
         style={{
@@ -70,14 +143,6 @@ const CurvedLabel = ({ label, isDark, isActive }) => {
 // Expanding Bubble Menu Item - iOS 26 liquid glass morphing
 const BubbleItem = ({ item, index, total, isOpen, isDark, onClick, isActive, expandedContent }) => {
   const spacing = 72;
-
-  // iOS 26 liquid spring
-  const liquidSpring = {
-    type: 'spring',
-    stiffness: 400,
-    damping: 25,
-    mass: 0.8,
-  };
 
   // Morphing spring - snappy for liquid feel
   const morphSpring = {
@@ -158,7 +223,7 @@ const BubbleItem = ({ item, index, total, isOpen, isDark, onClick, isActive, exp
           }}
           transition={{ duration: 0.15 }}
           className={`absolute inset-0 w-12 h-12 grid place-items-center
-            ${isDark ? 'text-gray-300 hover:text-white' : 'text-warm-gray hover:text-warm-brown'}
+            ${isDark ? 'text-white/80 hover:text-white' : 'text-warm-brown/70 hover:text-warm-brown'}
           `}
           style={{ pointerEvents: isActive ? 'none' : 'auto' }}
         >
@@ -177,8 +242,8 @@ const BubbleItem = ({ item, index, total, isOpen, isDark, onClick, isActive, exp
           {/* Header with close */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
-                <item.icon className={`w-4 h-4 ${isDark ? 'text-gray-300' : 'text-warm-gray'}`} strokeWidth={2} />
+              <div className={`p-2 rounded-xl ${isDark ? 'bg-white/10' : 'bg-black/5'}`}>
+                <item.icon className={`w-4 h-4 ${isDark ? 'text-white' : 'text-warm-brown'}`} strokeWidth={2} />
               </div>
               <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-warm-brown'}`}>
                 {item.title}
@@ -186,9 +251,10 @@ const BubbleItem = ({ item, index, total, isOpen, isDark, onClick, isActive, exp
             </div>
             <motion.button
               onClick={(e) => { e.stopPropagation(); onClick(); }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={`p-1.5 rounded-full ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-black/5 text-warm-gray'}`}
+              whileHover={iconButtonHover}
+              whileTap={iconButtonTap}
+              transition={quickSpring}
+              className={`p-1.5 rounded-full ${isDark ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-black/5 text-warm-brown/60'}`}
             >
               <X className="w-4 h-4" />
             </motion.button>
@@ -222,9 +288,9 @@ const FabMenu = () => {
   const menuRef = useRef(null);
 
   // Contact info
-  const whatsappNumber = '+57 300 123 4567';
-  const whatsappLink = 'https://wa.me/573001234567';
-  const email = 'info@collectpoint.co';
+  const whatsappNumber = '+57 316 211 5581';
+  const whatsappLink = 'https://api.whatsapp.com/send?phone=573162115581';
+  const email = 'collect.1.point@gmail.com';
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -259,30 +325,22 @@ const FabMenu = () => {
   };
 
   const socialItems = [
-    { id: 'instagram', name: 'Instagram', qr: 'qr-instagram.png', icon: Instagram },
-    { id: 'facebook', name: 'Facebook', qr: 'qr-facebook.png', icon: Facebook },
-    { id: 'tiktok', name: 'TikTok', qr: 'qr-tiktok.png', icon: TikTokIcon },
-    { id: 'whatsapp', name: 'WhatsApp', qr: 'qr-whatsapp.png', icon: WhatsAppIcon },
+    { id: 'instagram', name: 'Instagram', qr: 'qr-instagram.png', icon: Instagram, href: 'https://www.instagram.com/collectpoint?igsh=MTN4Nmk4ZDMwZHgyNw==' },
+    { id: 'facebook', name: 'Facebook', qr: 'qr-facebook.png', icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61582734126210' },
+    { id: 'tiktok', name: 'TikTok', qr: 'qr-tiktok.png', icon: TikTokIcon, href: 'https://www.tiktok.com/@collect.point?_r=1&_t=ZS-92AMvQr7QVF' },
+    { id: 'whatsapp', name: 'WhatsApp', qr: 'qr-whatsapp.png', icon: WhatsAppIcon, href: 'https://api.whatsapp.com/send?phone=573162115581' },
   ];
 
-  // Social content for expanded bubble - no stagger, loads as one unit
+  // Social content for expanded bubble - with glowing QR cards
   const SocialContent = (
     <div className="grid grid-cols-2 gap-2">
       {socialItems.map((social) => (
-        <div
+        <GlowingQRCard
           key={social.id}
-          className={`p-2 rounded-xl ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'} cursor-pointer transition-colors`}
-        >
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <social.icon className={`w-3 h-3 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
-            <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-warm-brown'}`}>
-              {social.name}
-            </span>
-          </div>
-          <div className="aspect-square rounded-lg overflow-hidden bg-white">
-            <img src={img(social.qr)} alt={`QR ${social.name}`} className="w-full h-full object-cover" />
-          </div>
-        </div>
+          social={social}
+          isDark={isDark}
+          href={social.href}
+        />
       ))}
     </div>
   );
@@ -307,10 +365,10 @@ const FabMenu = () => {
         href={`mailto:${email}`}
         className={`flex items-center gap-2.5 p-2.5 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}
       >
-        <Mail className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
+        <Mail className={`w-4 h-4 ${isDark ? 'text-gray-300' : 'text-warm-brown/60'}`} />
         <div className="flex-1 min-w-0">
-          <p className={`font-medium text-xs ${isDark ? 'text-gray-200' : 'text-warm-brown'}`}>Email</p>
-          <p className={`text-[10px] truncate ${isDark ? 'text-gray-500' : 'text-warm-gray'}`}>{email}</p>
+          <p className={`font-medium text-xs ${isDark ? 'text-white' : 'text-warm-brown'}`}>Email</p>
+          <p className={`text-[10px] truncate ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>{email}</p>
         </div>
       </a>
     </div>
@@ -336,13 +394,6 @@ const FabMenu = () => {
       content: ContactContent,
     },
   ];
-
-  const quickSpring = {
-    type: 'spring',
-    stiffness: 500,
-    damping: 30,
-    mass: 0.8,
-  };
 
   return (
     <div ref={menuRef} className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50">
@@ -405,7 +456,7 @@ const FabMenu = () => {
               exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
               transition={{ duration: 0.2 }}
             >
-              <X className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`} />
+              <X className={`w-5 h-5 ${isDark ? 'text-white/80' : 'text-warm-brown/70'}`} />
             </motion.div>
           ) : (
             <motion.img
