@@ -2372,7 +2372,7 @@ const ReserveSection = ({ cart = {} }) => {
                     >
                       <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white">
                         <img
-                          src={getAssetPath(product.image)}
+                          src={img(product.image)}
                           alt={product.name}
                           className="w-full h-full object-contain"
                         />
