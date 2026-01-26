@@ -1294,7 +1294,7 @@ const ReserveSection = ({ cart = {} }) => {
   const paymentMethods = [
     { id: 'breb', name: 'Bre-B', description: 'Transferencia rápida', color: 'bg-blue-500', logo: 'Bre_B_Logo.png' },
     { id: 'nequi', name: 'Nequi', description: 'Pago móvil', color: 'bg-[#E6007E]', logo: 'Nequi_Logo.png' },
-    { id: 'davibank', name: 'DaviBank', description: 'Pago móvil', color: 'bg-[#ED1C24]', logo: 'DaviBank_Logo.png' },
+    { id: 'daviplata', name: 'Daviplata', description: 'Pago móvil', color: 'bg-[#ED1C24]', logo: 'Daviplata_Logo.png' },
     { id: 'bancolombia', name: 'Bancolombia', description: 'Transferencia', color: 'bg-[#FDDA24]', logo: 'bancolombia_logo.png' },
     { id: 'distribuidor', name: 'Coordinar', description: 'Con distribuidor', color: 'bg-gray-500', logo: 'Coordinate_logo.png' },
     { id: 'efectivo', name: 'Efectivo', description: 'Pago en efectivo', color: 'bg-emerald-600', icon: Banknote },
