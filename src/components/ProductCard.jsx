@@ -21,7 +21,7 @@ const variantCards = [
   { id: 'bronze', name: 'Bronze', image: 'BronzeVariant_clean.png', glow: 'rgba(180, 83, 9, 0.5)', glowIntense: 'rgba(180, 83, 9, 0.8)' },
   { id: 'silver', name: 'Silver', image: 'SilverVariant_clean.png', glow: 'rgba(156, 163, 175, 0.6)', glowIntense: 'rgba(156, 163, 175, 0.9)' },
   { id: 'gold', name: 'Gold', image: 'GoldVariant_clean.png', glow: 'rgba(251, 191, 36, 0.6)', glowIntense: 'rgba(251, 191, 36, 0.9)' },
-  { id: 'red', name: 'Red', image: 'RedVariant_clean.png', glow: 'rgba(239, 68, 68, 0.5)', glowIntense: 'rgba(239, 68, 68, 0.8)' },
+  { id: 'base', name: 'Base', image: 'RedVariant_clean.png', glow: 'rgba(239, 68, 68, 0.5)', glowIntense: 'rgba(239, 68, 68, 0.8)' },
 ];
 
 // iOS 26.3 style spring for app-open animation - buttery smooth
@@ -457,7 +457,7 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
                     <span className="font-bold" style={{ color: '#CD7F32' }}>Bronze</span>,{' '}
                     <span className="font-bold" style={{ color: '#C0C0C0' }}>Silver</span>,{' '}
                     <span className="font-bold" style={{ color: '#FFD700' }}>Gold</span> y{' '}
-                    <span className="font-bold" style={{ color: '#FF4444' }}>Red</span>.
+                    <span className="font-bold" style={{ color: '#FF4444' }}>Base</span>.
                   </motion.p>
 
                   {/* Stats row - inline on mobile */}
