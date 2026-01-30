@@ -962,7 +962,7 @@ const MascotSection = () => {
               </motion.div>
 
               {/* Main headline - FIFA typography */}
-              <h2 className="font-fifa text-4xl sm:text-5xl lg:text-6xl font-normal tracking-wide mb-6 leading-tight">
+              <h2 className="font-fifa text-3xl sm:text-4xl lg:text-5xl font-normal tracking-wide mb-6 leading-tight">
                 <motion.span
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -971,7 +971,7 @@ const MascotSection = () => {
                   className="inline-block text-maple hover:scale-105 transition-transform cursor-default"
                   title="🇨🇦 Canadá"
                 >
-                  MAPLE
+                  Maple
                 </motion.span>
                 <span className={`transition-colors duration-300 ${isDark ? 'text-white/40' : 'text-warm-brown/40'}`}> · </span>
                 <motion.span
@@ -982,7 +982,7 @@ const MascotSection = () => {
                   className="inline-block text-amber-500 hover:scale-105 transition-transform cursor-default"
                   title="🇲🇽 México"
                 >
-                  ZAYU
+                  Zayu
                 </motion.span>
                 <span className={`transition-colors duration-300 ${isDark ? 'text-white/40' : 'text-warm-brown/40'}`}> · </span>
                 <motion.span
@@ -993,7 +993,7 @@ const MascotSection = () => {
                   className="inline-block text-indigo-500 hover:scale-105 transition-transform cursor-default"
                   title="🇺🇸 Estados Unidos"
                 >
-                  CLUTCH
+                  Clutch
                 </motion.span>
               </h2>
 
