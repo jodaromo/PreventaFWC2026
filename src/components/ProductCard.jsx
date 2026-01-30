@@ -54,6 +54,7 @@ const getCardSizes = () => {
 
 // Extra Stickers Modal - 2x2 Grid with iOS app-opening expand
 const ExtraStickersModal = ({ isOpen, onClose }) => {
+  const { isDark } = useTheme();
   const [selectedCard, setSelectedCard] = useState(null);
   const [spinRotation, setSpinRotation] = useState(0);
   const [expandedCardPos, setExpandedCardPos] = useState(null); // Starting position for expanded card
@@ -167,8 +168,10 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
             className="fixed inset-0 z-[9998]"
             style={{
               background: selectedCard
-                ? 'rgba(0, 0, 0, 0.97)'
-                : 'linear-gradient(135deg, rgba(10, 10, 15, 0.96) 0%, rgba(20, 15, 30, 0.96) 100%)',
+                ? isDark ? 'rgba(0, 0, 0, 0.97)' : 'rgba(255, 255, 255, 0.97)'
+                : isDark
+                  ? 'linear-gradient(135deg, rgba(10, 10, 15, 0.96) 0%, rgba(20, 15, 30, 0.96) 100%)'
+                  : 'linear-gradient(135deg, rgba(250, 247, 242, 0.97) 0%, rgba(255, 255, 255, 0.97) 100%)',
               backdropFilter: 'blur(24px)',
             }}
           />
@@ -194,9 +197,12 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
               }}
               whileHover={iconButtonHover}
               whileTap={iconButtonTap}
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-[10001]
-                bg-white/10 hover:bg-white/20 text-white/80 hover:text-white
-                backdrop-blur-xl border border-white/10 transition-colors"
+              className={`absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-[10001]
+                backdrop-blur-xl transition-colors
+                ${isDark
+                  ? 'bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10'
+                  : 'bg-black/10 hover:bg-black/20 text-warm-brown/80 hover:text-warm-brown border border-black/10'
+                }`}
             >
               <X className="w-5 h-5" />
             </motion.button>
@@ -381,10 +387,10 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
                           transition={{ delay: 0.15 }}
                           className="text-center mt-5"
                         >
-                          <p className="text-2xl font-semibold text-white">
+                          <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
                             {variant.name}
                           </p>
-                          <p className="text-sm text-white/50 mt-1">
+                          <p className={`text-sm mt-1 ${isDark ? 'text-white/50' : 'text-warm-brown/50'}`}>
                             Toca para girar
                           </p>
                         </motion.div>
@@ -409,10 +415,14 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
                 {/* Glass card container - more compact on mobile */}
                 <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl overflow-hidden"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)',
+                    background: isDark
+                      ? 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)'
+                      : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 100%)',
                     backdropFilter: 'blur(40px)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
+                    border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
+                    boxShadow: isDark
+                      ? '0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)'
+                      : '0 25px 50px -12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.5)',
                   }}
                 >
                   {/* Gradient accent line */}
@@ -440,9 +450,9 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.25 }}
-                      className="text-xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4 tracking-tight"
+                      className={`text-xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-4 tracking-tight ${isDark ? 'text-white' : 'text-warm-brown'}`}
                     >
-                      Extra Stickers<span className="text-white/30">*</span>
+                      Extra Stickers<span className={isDark ? 'text-white/30' : 'text-warm-brown/30'}>*</span>
                     </motion.h3>
                   </div>
 
@@ -451,7 +461,7 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="hidden sm:block text-white/50 text-sm leading-relaxed mb-4 lg:mb-6"
+                    className={`hidden sm:block text-sm leading-relaxed mb-4 lg:mb-6 ${isDark ? 'text-white/50' : 'text-warm-brown/60'}`}
                   >
                     Variantes especiales con acabados únicos —{' '}
                     <span className="font-bold" style={{ color: '#CD7F32' }}>Bronze</span>,{' '}
@@ -469,21 +479,21 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
                   >
                     <div className="flex-1 text-center py-2 sm:py-3 rounded-xl sm:rounded-2xl"
                       style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                        border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
                       }}
                     >
-                      <p className="text-base sm:text-xl font-bold text-white">1:100</p>
-                      <p className="text-[8px] sm:text-[9px] uppercase tracking-wider text-white/35 mt-0.5">Probabilidad</p>
+                      <p className={`text-base sm:text-xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>1:100</p>
+                      <p className={`text-[8px] sm:text-[9px] uppercase tracking-wider mt-0.5 ${isDark ? 'text-white/35' : 'text-warm-brown/50'}`}>Probabilidad</p>
                     </div>
                     <div className="flex-1 text-center py-2 sm:py-3 rounded-xl sm:rounded-2xl"
                       style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                        border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
                       }}
                     >
-                      <p className="text-base sm:text-xl font-bold text-white">80</p>
-                      <p className="text-[8px] sm:text-[9px] uppercase tracking-wider text-white/35 mt-0.5">Variantes</p>
+                      <p className={`text-base sm:text-xl font-bold ${isDark ? 'text-white' : 'text-warm-brown'}`}>80</p>
+                      <p className={`text-[8px] sm:text-[9px] uppercase tracking-wider mt-0.5 ${isDark ? 'text-white/35' : 'text-warm-brown/50'}`}>Variantes</p>
                     </div>
                   </motion.div>
 
@@ -492,7 +502,7 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="text-[10px] sm:text-[11px] text-white/25 mb-3 sm:mb-5 text-center"
+                    className={`text-[10px] sm:text-[11px] mb-3 sm:mb-5 text-center ${isDark ? 'text-white/25' : 'text-warm-brown/40'}`}
                   >
                     Toca una carta para verla de cerca
                   </motion.p>
@@ -520,7 +530,7 @@ const ExtraStickersModal = ({ isOpen, onClose }) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="text-[9px] text-white/30 text-center mt-3"
+                    className={`text-[9px] text-center mt-3 ${isDark ? 'text-white/30' : 'text-warm-brown/40'}`}
                   >
                     *Imágenes de referencia FIFA Qatar 2022
                   </motion.p>
