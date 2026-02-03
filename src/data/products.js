@@ -108,5 +108,5 @@ export const generateWhatsAppLink = (product, userData = null) => {
 export const presaleStatus = {
   percentage: 60,
   message: "Estado de la Preventa",
-  endDate: "2026-02-08",
+  endDate: "2026-02-28",
 };
