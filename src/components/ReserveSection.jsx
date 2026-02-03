@@ -34,6 +34,19 @@ const formatCurrency = (amount) => {
 const PASTA_BLANDA_PRODUCT = products.find(p => p.id === 3);
 const PASTA_BLANDA_PRICE = PASTA_BLANDA_PRODUCT?.price || 12990;
 
+// Calculate box quantity discount percentage
+// 1 box = 2%, 2-6 boxes = (n+1)%, 7-9 = 8%, 10-11 = 10%, 12-23 = 12%, 24-35 = 14%, 36+ = 15%
+const getBoxDiscount = (boxQuantity) => {
+  if (boxQuantity < 1) return 0;
+  if (boxQuantity === 1) return 2;
+  if (boxQuantity <= 6) return boxQuantity + 1;
+  if (boxQuantity <= 9) return 8;
+  if (boxQuantity <= 11) return 10;
+  if (boxQuantity <= 23) return 12;
+  if (boxQuantity <= 35) return 14;
+  return 15;
+};
+
 // Searchable Select Component
 const SearchableSelect = ({
   options,
@@ -1357,13 +1370,17 @@ const ReserveSection = ({ cart = {} }) => {
   const calculateTotals = () => {
     const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
     const freeAlbumsValue = freeAlbumCount * PASTA_BLANDA_PRICE;
-    const totalToPay = productsTotal;
+    const discountPercent = getBoxDiscount(boxQuantity);
+    const discountAmount = Math.round(productsTotal * discountPercent / 100);
+    const totalToPay = productsTotal - discountAmount;
 
     return {
       productsTotal,
       freeAlbumsValue,
+      discountPercent,
+      discountAmount,
       totalToPay,
-      flexiblePayment: Math.ceil(totalToPay / 4),
+      flexiblePayment: Math.ceil(totalToPay / 3),
       rapidoPayment: Math.ceil(totalToPay / 2),
     };
   };
@@ -1432,13 +1449,13 @@ const ReserveSection = ({ cart = {} }) => {
       const deptName = sortedDepartments.find(d => d.id === formData.departamento)?.name || formData.departamento;
 
       // Compute payment plan text
-      let planPagoText = '4 cuotas'; // default
+      let planPagoText = '3 cuotas'; // default
       if (selectedPlan === 'directo') {
         planPagoText = 'Pago directo';
       } else if (selectedPlan === 'rapido') {
         planPagoText = '2 cuotas';
       } else if (selectedPlan === 'flexible') {
-        planPagoText = '4 cuotas';
+        planPagoText = '3 cuotas';
       }
 
       // Compute cuota mensual
@@ -1467,12 +1484,17 @@ const ReserveSection = ({ cart = {} }) => {
       const albumBlandaPrice = products.find(p => p.id === 3)?.price || 12890;
       const sobrePrice = products.find(p => p.id === 4)?.price || 4990;
 
-      // Calculate total directly
-      const calculatedTotal = (cajaQty * cajaPrice) + (albumDuraQty * albumDuraPrice) +
+      // Calculate subtotal (before discount)
+      const subtotal = (cajaQty * cajaPrice) + (albumDuraQty * albumDuraPrice) +
         (albumBlandaQty * albumBlandaPrice) + (sobreQty * sobrePrice);
 
-      // Calculate cuota based on plan
-      let calculatedCuota = Math.ceil(calculatedTotal / 4); // default flexible
+      // Calculate discount based on box quantity
+      const discountPercent = getBoxDiscount(cajaQty);
+      const discountAmount = Math.round(subtotal * discountPercent / 100);
+      const calculatedTotal = subtotal - discountAmount;
+
+      // Calculate cuota based on plan (flexible is now 3 cuotas)
+      let calculatedCuota = Math.ceil(calculatedTotal / 3); // default flexible
       if (selectedPlan === 'directo') {
         calculatedCuota = calculatedTotal;
       } else if (selectedPlan === 'rapido') {
@@ -1488,6 +1510,9 @@ const ReserveSection = ({ cart = {} }) => {
         albumPastaBlanda: albumBlandaQty,
         sobreIndividual: sobreQty,
         regaloPastaBlanda: freeAlbumCount || 0,
+        subtotal: subtotal,
+        descuentoPorcentaje: discountPercent,
+        descuentoMonto: discountAmount,
         totalPagar: calculatedTotal,
         planPago: planPagoText,
         cuotaMensual: calculatedCuota,
@@ -2061,7 +2086,7 @@ const ReserveSection = ({ cart = {} }) => {
                                         <p className={`text-[10px] ${selectedPlan === 'rapido' ? 'font-bold' : 'font-medium'}`}>2 Cuotas</p>
                                       </button>
 
-                                      {/* 4 Cuotas */}
+                                      {/* 3 Cuotas */}
                                       <button
                                         type="button"
                                         onClick={() => setSelectedPlan('flexible')}
@@ -2074,7 +2099,7 @@ const ReserveSection = ({ cart = {} }) => {
                                           }
                                           `}
                                       >
-                                        <p className={`text-[10px] ${selectedPlan === 'flexible' ? 'font-bold' : 'font-medium'}`}>4 Cuotas</p>
+                                        <p className={`text-[10px] ${selectedPlan === 'flexible' ? 'font-bold' : 'font-medium'}`}>3 Cuotas</p>
                                       </button>
                                     </div>
                                   </div>
@@ -2093,7 +2118,7 @@ const ReserveSection = ({ cart = {} }) => {
                                     `}
                                 >
                                   <p className={`text-[10px] uppercase tracking-wide mb-1 ${isDark ? 'text-maple/70' : 'text-maple/70'}`}>
-                                    {selectedPlan === 'directo' ? 'Pago Único' : selectedPlan === 'rapido' ? '2 Cuotas' : '4 Cuotas'}
+                                    {selectedPlan === 'directo' ? 'Pago Único' : selectedPlan === 'rapido' ? '2 Cuotas' : '3 Cuotas'}
                                   </p>
                                   <p className={`text-xl sm:text-2xl font-bold text-maple`}>
                                     {hasProducts ? (
@@ -2119,7 +2144,7 @@ const ReserveSection = ({ cart = {} }) => {
                                       ? 'Un solo pago, sin cuotas'
                                       : selectedPlan === 'rapido'
                                         ? 'Febrero y Abril — primeros 5 días'
-                                        : 'Feb, Mar, Abr, May — primeros 5 días'
+                                        : 'Feb, Mar, Abr — primeros 5 días'
                                     }
                                   </p>
                                 </div>
@@ -2263,6 +2288,16 @@ const ReserveSection = ({ cart = {} }) => {
                               </span>
                             </div>
                           )}
+                          {totals.discountPercent > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className={isDark ? 'text-emerald-300' : 'text-emerald-700'}>
+                                Descuento ({totals.discountPercent}%)
+                              </span>
+                              <span className={`text-xs font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                -{formatCurrency(totals.discountAmount)}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className={`border-t mt-3 pt-3 ${isDark ? 'border-dark-border' : 'border-warm-tan/30'}`}>
                           <div className="flex justify-between items-center">
@@ -2270,7 +2305,7 @@ const ReserveSection = ({ cart = {} }) => {
                             <span className="font-bold text-maple">{formatCurrency(totals.totalToPay)}</span>
                           </div>
                           <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
-                            Plan: {selectedPlan === 'flexible' ? '4 cuotas' : '2 cuotas'} de {formatCurrency(selectedPlan === 'flexible' ? totals.flexiblePayment : totals.rapidoPayment)}
+                            Plan: {selectedPlan === 'flexible' ? '3 cuotas' : '2 cuotas'} de {formatCurrency(selectedPlan === 'flexible' ? totals.flexiblePayment : totals.rapidoPayment)}
                           </p>
                           <p className={`text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
                             📍 {formattedAddress}, {formData.ciudad}
@@ -2434,6 +2469,28 @@ const ReserveSection = ({ cart = {} }) => {
 
                   {/* Subtotal / Total */}
                   <div className={`border-t pt-3 mt-3 ${isDark ? 'border-dark-border' : 'border-warm-tan/30'}`}>
+                    {/* Subtotal - only show when there's a discount */}
+                    {totals.discountPercent > 0 && (
+                      <div className="flex justify-between items-center mb-1">
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                          Subtotal:
+                        </span>
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                          {formatCurrency(totals.productsTotal)}
+                        </span>
+                      </div>
+                    )}
+                    {/* Discount row */}
+                    {totals.discountPercent > 0 && (
+                      <div className="flex justify-between items-center mb-1">
+                        <span className={`text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                          Descuento ({totals.discountPercent}%):
+                        </span>
+                        <span className={`text-xs font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                          -{formatCurrency(totals.discountAmount)}
+                        </span>
+                      </div>
+                    )}
                     {qualifiesForGift && (
                       <div className="flex justify-between items-center mb-1">
                         <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
