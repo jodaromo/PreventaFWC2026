@@ -9,10 +9,10 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
   const { isDark } = useTheme();
   const totalItems = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
 
-  // Check if user qualifies for free gift (1 free Pasta Blanda per every 2 Cajas)
-  const boxQuantity = cart[1] || 0;
-  const freeAlbumCount = Math.floor(boxQuantity / 2);
-  const qualifiesForGift = freeAlbumCount > 0;
+  // FREE_GIFT_DISABLED - Uncomment to re-enable free gift feature
+  // const boxQuantity = cart[1] || 0;
+  // const freeAlbumCount = Math.floor(boxQuantity / 2);
+  // const qualifiesForGift = freeAlbumCount > 0;
 
   return (
     <section id="products" className={`relative pt-6 sm:pt-8 pb-10 sm:pb-12 px-4 sm:px-6 transition-colors duration-300
@@ -50,7 +50,7 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
           ))}
         </div>
 
-        {/* Free Gift Banner - Shows when 2+ boxes selected */}
+        {/* FREE_GIFT_DISABLED - Uncomment to re-enable free gift banner
         <AnimatePresence>
           {qualifiesForGift && (
             <motion.div
@@ -97,8 +97,9 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
             </motion.div>
           )}
         </AnimatePresence>
+        */}
 
-        {/* Promo Tip - Shows when close to unlocking gift (1 box) */}
+        {/* FREE_GIFT_DISABLED - Uncomment to re-enable promo tip
         <AnimatePresence>
           {boxQuantity === 1 && (
             <motion.div
@@ -124,6 +125,7 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
             </motion.div>
           )}
         </AnimatePresence>
+        */}
 
         {/* CTA to continue */}
         <motion.div

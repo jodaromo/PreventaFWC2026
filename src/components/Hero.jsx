@@ -36,14 +36,14 @@ const getPresaleData = () => {
   const diffMs = endDateUTC - todayUTC;
   const daysLeft = Math.max(0, Math.round(diffMs / msPerDay));
 
-  // Presale period: Jan 26 to Feb 8, 2026 (13 days)
-  // Day 0 (Jan 26): 13 days left, 60%
-  // Day 13 (Feb 8): 0 days left, 100%
-  const startDateUTC = new Date(Date.UTC(2026, 0, 26));
+  // Presale period: Mar 1 to Mar 15, 2026 (14 days)
+  // Day 0 (Mar 1): 14 days left, 80%
+  // Day 14 (Mar 15): 0 days left, 100%
+  const startDateUTC = new Date(Date.UTC(2026, 2, 1));
   const totalDays = Math.round((endDateUTC - startDateUTC) / msPerDay);
-  const startPercent = presaleStatus.percentage; // 60%
+  const startPercent = presaleStatus.percentage; // 80%
   const endPercent = 100;
-  const percentRange = endPercent - startPercent; // 40%
+  const percentRange = endPercent - startPercent; // 20%
 
   // Days elapsed = total days - days left
   const daysElapsed = totalDays - daysLeft;
