@@ -2,19 +2,11 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext(undefined);
 
-// Get current hour in Colombia (UTC-5)
-const getColombiaHour = () => {
-  const now = new Date();
-  // Colombia is UTC-5, getTimezoneOffset returns minutes (positive for west)
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const colombiaTime = new Date(utcTime - (5 * 60 * 60 * 1000));
-  return colombiaTime.getHours();
-};
-
-// Determine theme based on Colombia time: dark 6pm-6am, light 6am-6pm
+// Determine theme based on local time: dark 6pm-6am, light 6am-6pm
 const getTimeBasedTheme = () => {
-  const hour = getColombiaHour();
+  const hour = new Date().getHours();
   // Dark mode: 18:00 (6pm) to 05:59 (before 6am)
+  // Light mode: 06:00 (6am) to 17:59 (before 6pm)
   return (hour >= 18 || hour < 6) ? 'dark' : 'light';
 };
 
@@ -25,7 +17,7 @@ export const ThemeProvider = ({ children }) => {
     if (stored) {
       return stored;
     }
-    // Otherwise use Colombia time-based default
+    // Otherwise use local time-based default
     return getTimeBasedTheme();
   });
 
