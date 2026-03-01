@@ -1,18 +1,23 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift } from 'lucide-react';
+import { Gift, Percent } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { products } from '../data/products';
 import { useTheme } from '../context/ThemeContext';
 import { img } from '../utils/assets';
+import { getBoxDiscount, getNextDiscountTier } from '../utils/discounts';
 
 const ProductGrid = ({ cart, onQuantityChange }) => {
   const { isDark } = useTheme();
   const totalItems = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
 
-  // FREE_GIFT_DISABLED - Uncomment to re-enable free gift feature
-  // const boxQuantity = cart[1] || 0;
-  // const freeAlbumCount = Math.floor(boxQuantity / 2);
-  // const qualifiesForGift = freeAlbumCount > 0;
+  // Check if user qualifies for free gift (1 free Pasta Blanda per every 2 Cajas)
+  const boxQuantity = cart[1] || 0;
+  const freeAlbumCount = Math.floor(boxQuantity / 2);
+  const qualifiesForGift = freeAlbumCount > 0;
+
+  // Calculate discount info
+  const currentDiscount = getBoxDiscount(boxQuantity);
+  const nextTier = getNextDiscountTier(boxQuantity);
 
   return (
     <section id="products" className={`relative pt-6 sm:pt-8 pb-10 sm:pb-12 px-4 sm:px-6 transition-colors duration-300
@@ -50,7 +55,60 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
           ))}
         </div>
 
-        {/* FREE_GIFT_DISABLED - Uncomment to re-enable free gift banner
+        {/* Discount Banner - Shows when boxes selected */}
+        <AnimatePresence>
+          {boxQuantity >= 1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className={`mt-8 rounded-2xl p-5 sm:p-6 border-2 border-dashed
+                ${isDark
+                  ? 'bg-gradient-to-r from-blue-900/30 to-indigo-800/20 border-blue-500/50'
+                  : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-400/60'
+                }
+              `}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-full flex items-center justify-center
+                  ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}
+                `}>
+                  <Percent className={`w-8 h-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs font-bold uppercase tracking-wider
+                      ${isDark ? 'text-blue-400' : 'text-blue-600'}
+                    `}>
+                      Descuento Aplicado
+                    </span>
+                    <span className={`px-2 py-0.5 text-xs font-bold rounded-full
+                      ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}
+                    `}>
+                      {currentDiscount}% OFF
+                    </span>
+                  </div>
+                  <p className={`font-bold text-lg ${isDark ? 'text-white' : 'text-blue-800'}`}>
+                    {currentDiscount}% de descuento en tu pedido
+                  </p>
+                  {nextTier && (
+                    <p className={`text-sm ${isDark ? 'text-blue-300/70' : 'text-blue-600/80'}`}>
+                      ¡Agrega {nextTier.boxesNeeded} caja{nextTier.boxesNeeded > 1 ? 's' : ''} más para obtener {nextTier.nextDiscount}% de descuento!
+                    </p>
+                  )}
+                  {!nextTier && (
+                    <p className={`text-sm ${isDark ? 'text-blue-300/70' : 'text-blue-600/80'}`}>
+                      ¡Tienes el máximo descuento disponible!
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Free Gift Banner - Shows when 2+ boxes selected */}
         <AnimatePresence>
           {qualifiesForGift && (
             <motion.div
@@ -58,7 +116,7 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className={`mt-8 rounded-2xl p-5 sm:p-6 border-2 border-dashed
+              className={`mt-4 rounded-2xl p-5 sm:p-6 border-2 border-dashed
                 ${isDark
                   ? 'bg-gradient-to-r from-emerald-900/30 to-emerald-800/20 border-emerald-500/50'
                   : 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-400/60'
@@ -97,9 +155,8 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
             </motion.div>
           )}
         </AnimatePresence>
-        */}
 
-        {/* FREE_GIFT_DISABLED - Uncomment to re-enable promo tip
+        {/* Promo Tip - Shows when close to unlocking gift (1 box) */}
         <AnimatePresence>
           {boxQuantity === 1 && (
             <motion.div
@@ -125,7 +182,6 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
             </motion.div>
           )}
         </AnimatePresence>
-        */}
 
         {/* CTA to continue */}
         <motion.div

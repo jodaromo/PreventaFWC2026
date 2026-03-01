@@ -9,6 +9,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { products } from '../data/products';
 import { getAssetPath, img } from '../utils/assets';
+import { getBoxDiscount } from '../utils/discounts';
 import {
   departments,
   viaTypes,
@@ -30,22 +31,9 @@ const formatCurrency = (amount) => {
   }).format(amount);
 };
 
-// FREE_GIFT_DISABLED - Uncomment to re-enable free gift feature
-// const PASTA_BLANDA_PRODUCT = products.find(p => p.id === 3);
-// const PASTA_BLANDA_PRICE = PASTA_BLANDA_PRODUCT?.price || 12990;
-
-// Calculate box quantity discount percentage
-// 1 box = 2%, 2-6 boxes = (n+1)%, 7-9 = 8%, 10-11 = 10%, 12-23 = 12%, 24-35 = 14%, 36+ = 15%
-const getBoxDiscount = (boxQuantity) => {
-  if (boxQuantity < 1) return 0;
-  if (boxQuantity === 1) return 2;
-  if (boxQuantity <= 6) return boxQuantity + 1;
-  if (boxQuantity <= 9) return 8;
-  if (boxQuantity <= 11) return 10;
-  if (boxQuantity <= 23) return 12;
-  if (boxQuantity <= 35) return 14;
-  return 15;
-};
+// Get pasta blanda product info for free gift display
+const PASTA_BLANDA_PRODUCT = products.find(p => p.id === 3);
+const PASTA_BLANDA_PRICE = PASTA_BLANDA_PRODUCT?.price || 12990;
 
 // Searchable Select Component
 const SearchableSelect = ({
@@ -1361,25 +1349,22 @@ const ReserveSection = ({ cart = {} }) => {
   // Check if any products are selected
   const hasProducts = selectedProducts.length > 0;
 
-  // FREE_GIFT_DISABLED - Uncomment to re-enable free gift calculations
-  // const boxQuantity = cart[1] || 0;
-  // const freeAlbumCount = Math.floor(boxQuantity / 2);
-  // const qualifiesForGift = freeAlbumCount > 0;
+  // Calculate free albums: 1 free Pasta Blanda per every 2 Cajas
   const boxQuantity = cart[1] || 0;
+  const freeAlbumCount = Math.floor(boxQuantity / 2);
+  const qualifiesForGift = freeAlbumCount > 0;
 
   // Calculate totals
   const calculateTotals = () => {
     const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
-    // FREE_GIFT_DISABLED - Uncomment to re-enable
-    // const freeAlbumsValue = freeAlbumCount * PASTA_BLANDA_PRICE;
+    const freeAlbumsValue = freeAlbumCount * PASTA_BLANDA_PRICE;
     const discountPercent = getBoxDiscount(boxQuantity);
     const discountAmount = Math.round(productsTotal * discountPercent / 100);
     const totalToPay = productsTotal - discountAmount;
 
     return {
       productsTotal,
-      // FREE_GIFT_DISABLED - Uncomment to re-enable
-      // freeAlbumsValue,
+      freeAlbumsValue,
       discountPercent,
       discountAmount,
       totalToPay,
@@ -1512,9 +1497,7 @@ const ReserveSection = ({ cart = {} }) => {
         albumPastaDura: albumDuraQty,
         albumPastaBlanda: albumBlandaQty,
         sobreIndividual: sobreQty,
-        // FREE_GIFT_DISABLED - Uncomment to re-enable
-        // regaloPastaBlanda: freeAlbumCount || 0,
-        regaloPastaBlanda: 0,
+        regaloPastaBlanda: freeAlbumCount || 0,
         subtotal: subtotal,
         descuentoPorcentaje: discountPercent,
         descuentoMonto: discountAmount,
@@ -2283,7 +2266,6 @@ const ReserveSection = ({ cart = {} }) => {
                               </span>
                             </div>
                           ))}
-                          {/* FREE_GIFT_DISABLED - Uncomment to re-enable free gift in success state
                           {qualifiesForGift && (
                             <div className="flex items-center justify-between text-sm">
                               <span className={isDark ? 'text-emerald-300' : 'text-emerald-700'}>
@@ -2294,7 +2276,6 @@ const ReserveSection = ({ cart = {} }) => {
                               </span>
                             </div>
                           )}
-                          */}
                           {totals.discountPercent > 0 && (
                             <div className="flex items-center justify-between text-sm">
                               <span className={isDark ? 'text-emerald-300' : 'text-emerald-700'}>
@@ -2435,7 +2416,7 @@ const ReserveSection = ({ cart = {} }) => {
                     </button>
                   ))}
 
-                  {/* FREE_GIFT_DISABLED - Uncomment to re-enable free gift in order summary
+                  {/* Free Gift Item - Shows when 2+ boxes */}
                   <AnimatePresence>
                     {qualifiesForGift && (
                       <motion.div
@@ -2473,7 +2454,6 @@ const ReserveSection = ({ cart = {} }) => {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  */}
 
                   {/* Subtotal / Total */}
                   <div className={`border-t pt-3 mt-3 ${isDark ? 'border-dark-border' : 'border-warm-tan/30'}`}>
@@ -2499,7 +2479,6 @@ const ReserveSection = ({ cart = {} }) => {
                         </span>
                       </div>
                     )}
-                    {/* FREE_GIFT_DISABLED - Uncomment to re-enable gift value row
                     {qualifiesForGift && (
                       <div className="flex justify-between items-center mb-1">
                         <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
@@ -2510,7 +2489,6 @@ const ReserveSection = ({ cart = {} }) => {
                         </span>
                       </div>
                     )}
-                    */}
                     <div className="flex justify-between items-center">
                       <span className={`font-semibold ${isDark ? 'text-white' : 'text-warm-brown'}`}>
                         Total a Pagar:
@@ -2553,7 +2531,7 @@ const ReserveSection = ({ cart = {} }) => {
               )}
             </div>
 
-            {/* FREE_GIFT_DISABLED - Uncomment to re-enable promo tip
+            {/* Promo Tip - Shows when close to unlocking gift */}
             {boxQuantity === 1 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -2578,7 +2556,6 @@ const ReserveSection = ({ cart = {} }) => {
                 </div>
               </motion.div>
             )}
-            */}
           </motion.div>
         </div>
       </div>
