@@ -239,6 +239,16 @@ const Hero = () => {
                     <p className={`text-sm mt-3 ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
                       🔥 <span className="font-medium">{100 - presaleData.percentage}% disponible</span> — Los primeros aseguran precio de preventa
                     </p>
+
+                    {/* Presale extension announcement */}
+                    <div className={`mt-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-warm-tan/30'}`}>
+                      <p className={`text-sm font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                        🎉 ¡Preventa extendida hasta el 31 de marzo!
+                      </p>
+                      <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                        Aprovecha precios especiales y asegura tu colección antes de que termine.
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
 
