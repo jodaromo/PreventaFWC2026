@@ -4,12 +4,12 @@ import {
   User, Phone, CheckCircle, AlertCircle, Loader2, RefreshCw,
   MapPin, Gift, CreditCard, Calendar, Truck, ChevronDown, Search, Home, Building2,
   Map, X, Navigation, ExternalLink, Banknote, Shield, Mail, MessageCircle,
-  FileText, Lock, Eye, Trash2, UserX, ChevronRight, Send
+  FileText, Lock, Eye, Trash2, UserX, ChevronRight, Send, Percent
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { products } from '../data/products';
 import { getAssetPath, img } from '../utils/assets';
-import { getBoxDiscount } from '../utils/discounts';
+import { getBoxDiscount, getNextDiscountTier } from '../utils/discounts';
 import {
   departments,
   viaTypes,
@@ -1354,6 +1354,9 @@ const ReserveSection = ({ cart = {} }) => {
   const freeAlbumCount = Math.floor(boxQuantity / 2);
   const qualifiesForGift = freeAlbumCount > 0;
 
+  // Calculate discount info for next tier hint
+  const nextTier = getNextDiscountTier(boxQuantity);
+
   // Calculate totals
   const calculateTotals = () => {
     const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
@@ -2415,6 +2418,49 @@ const ReserveSection = ({ cart = {} }) => {
                       </div>
                     </button>
                   ))}
+
+                  {/* Discount Banner - Shows when boxes selected */}
+                  <AnimatePresence>
+                    {totals.discountPercent > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed
+                          ${isDark
+                            ? 'bg-blue-900/20 border-blue-500/40'
+                            : 'bg-blue-50 border-blue-400/50'
+                          }
+                        `}
+                      >
+                        <div className={`w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center
+                          ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}
+                        `}>
+                          <Percent className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm truncate ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                            {totals.discountPercent}% de descuento aplicado
+                          </p>
+                          {nextTier ? (
+                            <p className={`text-xs ${isDark ? 'text-blue-400/70' : 'text-blue-600/80'}`}>
+                              +{nextTier.boxesNeeded} caja{nextTier.boxesNeeded > 1 ? 's' : ''} → {nextTier.nextDiscount}%
+                            </p>
+                          ) : (
+                            <p className={`text-xs ${isDark ? 'text-blue-400/70' : 'text-blue-600/80'}`}>
+                              ¡Máximo descuento!
+                            </p>
+                          )}
+                        </div>
+                        <span className={`px-2 py-1 rounded-lg font-bold text-xs flex-shrink-0
+                          ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}
+                        `}>
+                          {totals.discountPercent}% OFF
+                        </span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Free Gift Item - Shows when 2+ boxes */}
                   <AnimatePresence>
