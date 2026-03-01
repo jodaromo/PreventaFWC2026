@@ -2517,20 +2517,20 @@ const ReserveSection = ({ cart = {} }) => {
                     {/* Discount row */}
                     {totals.discountPercent > 0 && (
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                        <span className={`text-xs font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                           Descuento ({totals.discountPercent}%):
                         </span>
-                        <span className={`text-xs font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                        <span className={`text-xs font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                           -{formatCurrency(totals.discountAmount)}
                         </span>
                       </div>
                     )}
                     {qualifiesForGift && (
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-warm-gray'}`}>
+                        <span className={`text-xs ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                           Valor del regalo:
                         </span>
-                        <span className={`text-xs line-through ${isDark ? 'text-gray-500' : 'text-warm-gray/70'}`}>
+                        <span className={`text-xs line-through ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                           {formatCurrency(totals.freeAlbumsValue)}
                         </span>
                       </div>
