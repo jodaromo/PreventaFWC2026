@@ -20,7 +20,7 @@ export const products = [
     description: "Para los verdaderos coleccionistas. Tapa resistente, hecho para durar.",
     price: 49900,
     priceFormatted: "$49.900",
-    image: "AlbumHighQuality.png",
+    image: "product-album-hard-cover.png",
     specs: ["112 páginas", "Pasta dura"],
     badge: "Popular",
     popular: true,
