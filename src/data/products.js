@@ -32,7 +32,7 @@ export const products = [
     description: "El clásico de siempre. 112 páginas listas para tu primera figurita.",
     price: 14900,
     priceFormatted: "$14.900",
-    image: "AlbumHighQuality.png",
+    image: "product-album.png",
     specs: ["112 páginas", "Pasta blanda"],
     badge: null,
     popular: false,
