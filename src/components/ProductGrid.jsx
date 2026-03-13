@@ -126,7 +126,7 @@ const ProductGrid = ({ cart, onQuantityChange }) => {
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
                   <img
-                    src={img('product-album.png')}
+                    src={img('product-album-soft-cover.png')}
                     alt="Álbum Pasta Blanda"
                     className="w-full h-full object-contain drop-shadow-md"
                   />
