@@ -2479,7 +2479,7 @@ const ReserveSection = ({ cart = {} }) => {
                       >
                         <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white">
                           <img
-                            src={img('product-album.png')}
+                            src={img('product-album-soft-cover.png')}
                             alt="Álbum Pasta Blanda"
                             className="w-full h-full object-contain"
                           />
